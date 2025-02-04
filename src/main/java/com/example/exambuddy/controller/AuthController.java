@@ -19,10 +19,7 @@ public class AuthController {
     }
 
     // Điều hướng trang Home
-    @GetMapping("/home")
-    public String homePage() {
-        return "home";
-    }
+
 
     // Xử lý đăng nhập
     @PostMapping("/login")
@@ -31,6 +28,7 @@ public class AuthController {
             model.addAttribute("error", "Tài khoản chưa được xác thực. Vui lòng kiểm tra email.");
             return "login";
         }
+        System.out.println(authService.authenticate(username, password));
         if (authService.authenticate(username, password)) {
             return "home";
         }
