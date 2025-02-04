@@ -42,13 +42,12 @@ public class AuthController {
         model.addAttribute("error", "Tên đăng nhập hoặc mật khẩu không đúng!");
         return "login";
     }
+
     @PostMapping("/logout")
     public String logout(HttpSession session, HttpServletResponse response) {
         session.invalidate();
         return "home"; // Chuyển hướng về trang home, đảm bảo session đã bị xóa
     }
-
-
 
     @GetMapping("/forgotPass")
     public String forgotPasswordPage() {
