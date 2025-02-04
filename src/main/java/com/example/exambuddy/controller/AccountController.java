@@ -41,7 +41,7 @@ public class AccountController {
         // Duyệt qua tất cả các cookie để tìm cookie có tên "rememberedUsername"
         if (cookies != null) {
             for (Cookie cookie : cookies) {
-                if ("rememberedUsername".equals(cookie.getName())) {
+                if ("noname".equals(cookie.getName())) {
                     try {
                         // Giải mã giá trị cookie nếu có
                         username = URLDecoder.decode(cookie.getValue(), "UTF-8");
@@ -60,7 +60,7 @@ public class AccountController {
             model.addAttribute("user", user);
         } else {
             // Xử lý khi không có cookie "rememberedUsername"
-            model.addAttribute("userinfo", null);
+            model.addAttribute("user", null);
         }
         return "profile";
     }

@@ -244,6 +244,29 @@
             align-items: center;
             font-size: 14px;
             color: white;
+
+        }
+        .button-gradient {
+            background: linear-gradient(45deg, #00c6ff, #0072ff);
+            color: white;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease-in-out;
+            box-shadow: 0px 4px 10px rgba(0, 114, 255, 0.3);
+        }
+
+        .button-gradient:hover {
+            background: linear-gradient(45deg, #0072ff, #00c6ff);
+            transform: scale(1.05);
+        }
+
+        .button-gradient:active {
+            transform: scale(0.95);
+            box-shadow: 0px 2px 5px rgba(0, 114, 255, 0.5);
         }
     </style>
 </head>
@@ -272,16 +295,15 @@
             <div class="user-menu">
                 <a href="/profile">Thông tin cá nhân</a>
                 <a href="#">Thông báo</a>
-                <form th:action="@{/logout}" method="post">
-                    <button type="submit">Đăng xuất</button>
-                </form>
+                <a href="logout">Đăng xuất</a>
+
             </div>
         </th:block>
 
         <!-- Nếu chưa đăng nhập, hiển thị nút đăng nhập và đăng ký -->
         <th:block th:unless="${session.loggedInUser}">
-            <a href="/login"><button>Đăng nhập</button></a>
-            <a href="/register"><button>Đăng ký</button></a>
+            <a href="/login"><button class="button-gradient">Đăng nhập</button></a>
+            <a href="/register"><button class="button-gradient">Đăng ký</button></a>
         </th:block>
     </div>
 </header>
