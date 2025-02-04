@@ -1,6 +1,9 @@
 package com.example.exambuddy.controller;
 
 import com.example.exambuddy.service.FirebaseAuthService;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -26,18 +29,25 @@ public class AuthController {
 
     // Xử lý đăng nhập
     @PostMapping("/login")
-    public String login(@RequestParam String username, @RequestParam String password, Model model) {
+    public String login(@RequestParam String username, @RequestParam String password, Model model, HttpSession session) {
         if (!authService.isEmailVerified(username)) {
             model.addAttribute("error", "Tài khoản chưa được xác thực. Vui lòng kiểm tra email.");
             return "login";
         }
         System.out.println(authService.authenticate(username,password));
         if (authService.authenticate(username, password)) {
+            session.setAttribute("loggedInUser", username);
             return "home";
         }
         model.addAttribute("error", "Tên đăng nhập hoặc mật khẩu không đúng!");
         return "login";
     }
+    @PostMapping("/logout")
+    public String logout(HttpSession session, HttpServletResponse response) {
+        session.invalidate();
+        return "home"; // Chuyển hướng về trang home, đảm bảo session đã bị xóa
+    }
+
 
 
     @GetMapping("/forgotPass")
