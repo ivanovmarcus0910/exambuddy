@@ -292,8 +292,8 @@
                 <!-- Ghi nhớ đăng nhập và Quên mật khẩu -->
                 <div class="remember-forgot-container">
                     <label class="flex items-center cursor-pointer">
-                        <input type="checkbox" class="custom-checkbox mr-2">
-                        Ghi nhớ
+                        <input type="checkbox" id="rememberMe" name="rememberMe" class="custom-checkbox mr-2">
+                        Ghi nhớ đăng nhập
                     </label>
                     <a href="/forgotPass" class="hover:text-orange-400">Quên mật khẩu?</a>
                 </div>
@@ -376,6 +376,34 @@
 
         return true; // Nếu hợp lệ, cho phép form gửi đi
     }
+    // ✅ JavaScript xử lý session & cookie để ghi nhớ đăng nhập
+    window.onload = function () {
+        const cookies = document.cookie.split("; ");
+        let username = "";
+        let password = "";
+
+        cookies.forEach(cookie => {
+            let [key, value] = cookie.split("=");
+            key = key.trim();
+            if (key === "rememberedUsername") username = decodeURIComponent(value || "");
+            if (key === "rememberedPassword") password = decodeURIComponent(value || "");
+        });
+
+        if (username && password) {
+            document.querySelector('input[name="username"]').value = username;
+            document.querySelector('input[name="password"]').value = password;
+            document.getElementById("rememberMe").checked = true;
+        }
+    };
+
+    // Xoá cookie nếu "Ghi nhớ đăng nhập" bị bỏ chọn
+    document.getElementById("rememberMe").addEventListener("change", function () {
+        if (!this.checked) {
+            document.cookie = "rememberedUsername=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            document.cookie = "rememberedPassword=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        }
+    });
 </script>
+
 </body>
 </html>

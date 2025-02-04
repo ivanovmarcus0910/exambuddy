@@ -2,12 +2,16 @@ package com.example.exambuddy.controller;
 
 import com.example.exambuddy.service.FirebaseAuthService;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 
 @Controller
 public class AuthController {
@@ -27,21 +31,67 @@ public class AuthController {
         return "home";
     }
 
-    // Xử lý đăng nhập
+    // ✅ Xử lý đăng nhập trong Spring Boot với session & cookie
     @PostMapping("/login")
-    public String login(@RequestParam String username, @RequestParam String password, Model model, HttpSession session) {
+    public String login(@RequestParam String username,
+                        @RequestParam String password,
+                        @RequestParam(required = false) boolean rememberMe,
+                        Model model,
+                        HttpSession session,
+                        HttpServletResponse response,
+                        HttpServletRequest request) throws UnsupportedEncodingException {
+
+        // Kiểm tra xác thực email
         if (!authService.isEmailVerified(username)) {
             model.addAttribute("error", "Tài khoản chưa được xác thực. Vui lòng kiểm tra email.");
             return "login";
         }
-        System.out.println(authService.authenticate(username,password));
+
+        // Xác thực tài khoản
         if (authService.authenticate(username, password)) {
+            // Lưu thông tin đăng nhập vào session
             session.setAttribute("loggedInUser", username);
-            return "home";
+
+
+            if (rememberMe) {
+                Cookie usernameCookie = new Cookie("rememberedUsername", URLEncoder.encode(username, "UTF-8"));
+                Cookie passwordCookie = new Cookie("rememberedPassword", URLEncoder.encode(password, "UTF-8"));
+
+                usernameCookie.setMaxAge(24 * 60 * 60); // Lưu trong 7 ngày
+                passwordCookie.setMaxAge(24 * 60 * 60);
+
+                usernameCookie.setHttpOnly(false); // Cho phép truy cập từ JavaScript
+                passwordCookie.setHttpOnly(false);
+
+                usernameCookie.setSecure(false); // Cho phép trên HTTP
+                passwordCookie.setSecure(false);
+
+                usernameCookie.setPath("/");
+                passwordCookie.setPath("/");
+
+                response.addCookie(usernameCookie);
+                response.addCookie(passwordCookie);
+            } else {
+                // Xoá cookie nếu không chọn "Ghi nhớ đăng nhập"
+                Cookie[] cookies = request.getCookies();
+                if (cookies != null) {
+                    for (Cookie cookie : cookies) {
+                        if ("rememberedUsername".equals(cookie.getName()) || "rememberedPassword".equals(cookie.getName())) {
+                            cookie.setMaxAge(0);
+                            cookie.setPath("/");
+                            response.addCookie(cookie);
+                        }
+                    }
+                }
+            }
+            return "redirect:/home";
         }
         model.addAttribute("error", "Tên đăng nhập hoặc mật khẩu không đúng!");
         return "login";
     }
+
+
+
 
     @PostMapping("/logout")
     public String logout(HttpSession session, HttpServletResponse response) {
