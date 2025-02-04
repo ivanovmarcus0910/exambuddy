@@ -125,6 +125,7 @@
             padding: 10px;
             width: 200px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            z-index: 100; /* Đảm bảo menu nằm trên các thành phần khác */
         }
 
         .user-menu a {
@@ -261,11 +262,11 @@
             <li><a href="#">Liên hệ</a></li>
         </ul>
     </nav>
-
+    <div class="search-bar">
+        <input type="text" placeholder="Tìm kiếm khóa học, bài viết...">
+    </div>
     <div class="user-section">
-        <div class="search-bar">
-            <input type="text" placeholder="Tìm kiếm khóa học, bài viết...">
-        </div>
+
         <div class="user-avatar"></div>
         <div class="user-menu">
             <a href="#">Thông tin cá nhân</a>
