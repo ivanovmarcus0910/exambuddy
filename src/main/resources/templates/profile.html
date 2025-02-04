@@ -102,6 +102,24 @@
         .edit-profile:hover {
             box-shadow: 0 0 10px rgba(138, 43, 226, 0.5);
         }
+        .avatar {
+            width: 60px;  /* Đặt chiều rộng nhỏ hơn */
+            height: 60px; /* Đặt chiều cao nhỏ hơn */
+            background: #5A5A8E;
+            border-radius: 50%;  /* Đảm bảo avatar là hình tròn */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+            overflow: hidden;  /* Ẩn phần thừa ra ngoài của hình ảnh */
+        }
+
+        .avatar img {
+            width: 100%;  /* Đảm bảo hình ảnh chiếm toàn bộ diện tích */
+            height: 100%; /* Đảm bảo hình ảnh chiếm toàn bộ diện tích */
+            object-fit: cover;  /* Đảm bảo hình ảnh sẽ cắt và phù hợp với khu vực avatar */
+        }
     </style>
 </head>
 <body>
@@ -127,16 +145,27 @@
     </div>
     <div class="profile-content">
         <div class="profile-header">
-            <div class="avatar">Avatar User</div>
+            <div class="avatar">
+
+
+                <img th:src="@{/img/{username}.jpg(username=${user.username})}" alt="Avatar">
+            </div>
             <div>
-                <p><strong>Role</strong></p>
-                <h2>Welcome, Username</h2>
+                <h2>Xin chào, <span th:text="${user.username}"></span></h2>
             </div>
         </div>
-        <p><strong>First Name:</strong> James</p>
-        <p><strong>Last Name:</strong> Pham</p>
-        <p><strong>Email:</strong> example@gmail.com</p>
-        <a href="#" class="edit-profile">✎ Edit profile</a>
+        <p><strong>Họ và Tên:</strong> <span th:text="${user.username}"></span></p>
+        <p><strong>SĐT:</strong> <span th:text="${user.phone}"></span></p>
+        <p><strong>Email:</strong> <span th:text="${user.email}"></span></p>
+
+        <!-- Upload Avatar -->
+        <form th:action="@{/profile/upload}" method="post" enctype="multipart/form-data">
+            <input type="file" name="avatar" required>
+            <input type="hidden" name="userId" value="${user.username}">
+            <button type="submit">Tải lên</button>
+        </form>
+
+        <a href="#" class="edit-profile">✎ Chỉnh sửa hồ sơ</a>
     </div>
 </div>
 </body>
