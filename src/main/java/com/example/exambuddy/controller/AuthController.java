@@ -19,7 +19,7 @@ public class AuthController {
     }
 
     // Điều hướng trang Home
-    @GetMapping("/home")
+    @GetMapping("")
     public String homePage() {
         return "home";
     }
@@ -31,6 +31,7 @@ public class AuthController {
             model.addAttribute("error", "Tài khoản chưa được xác thực. Vui lòng kiểm tra email.");
             return "login";
         }
+        System.out.println(authService.authenticate(username,password));
         if (authService.authenticate(username, password)) {
             return "home";
         }
@@ -38,17 +39,6 @@ public class AuthController {
         return "login";
     }
 
-
-    // Xử lý xác thực email
-    @GetMapping("/verify-email")
-    public String verifyEmail(@RequestParam String token, Model model) {
-        if (authService.verifyEmail(token)) {
-            model.addAttribute("message", "Xác thực email thành công! Bạn có thể đăng nhập.");
-        } else {
-            model.addAttribute("error", "Mã xác thực không hợp lệ hoặc đã được sử dụng.");
-        }
-        return "login";
-    }
 
     @GetMapping("/forgotPass")
     public String forgotPasswordPage() {
@@ -65,25 +55,47 @@ public class AuthController {
     }
 
     @PostMapping("/resendOTP")
-    public String resendOtp(@RequestParam String email, Model model) {
+    public String resendOtp(@RequestParam String email, @RequestParam String actionType, Model model) {
         System.out.println("📩 Đang gửi lại OTP cho email: " + email);
-        String result = authService.resendOtp(email);
+        String result = authService.resendOtp(email, actionType);
         model.addAttribute("message", result);
         model.addAttribute("email", email);
+        model.addAttribute("actionType", actionType);
 
         return "verifyOTP";
     }
 
 
     @PostMapping("/verifyOTP")
-    public String verifyOtp(@RequestParam String email, @RequestParam String otp, Model model) {
-        if (authService.verifyOtp(email, otp)) {
-            model.addAttribute("email", email);
-            return "resetPass";
+    public String verifyOtp(@RequestParam String email, @RequestParam String otp,
+                            @RequestParam String actionType, Model model) {
+        boolean success;
+
+        if ("register".equals(actionType)) {
+            success = authService.verifyAccountOtp(email, otp);
+        } else {
+            success = authService.verifyOtp(email, otp);
+        }
+
+        if (success) {
+            if ("register".equals(actionType)) {
+                model.addAttribute("message", "Tài khoản đã được xác thực! Hãy đăng nhập.");
+                return "login";
+            } else {
+                model.addAttribute("email", email);
+                return "resetPass";
+            }
         } else {
             model.addAttribute("error", "Mã OTP không hợp lệ hoặc đã hết hạn.");
+            model.addAttribute("email", email);
+            model.addAttribute("actionType", actionType);
             return "verifyOTP";
         }
+    }
+
+    @GetMapping("/resetPass")
+    public String ressetPassPage() {
+        return "resetPass";
     }
 
     // Xử lý đặt lại mật khẩu
@@ -169,7 +181,10 @@ public class AuthController {
             return "signup";
         }
 
-        // Đăng ký và gửi email xác thực
+        /**
+         * Đăng ký và gửi email xác thực
+         */
+        /*
         System.out.println("👉 Đăng ký người dùng: " + email);
         String result = authService.registerUser(email, phone, username, password);
         if (result.startsWith("Error")) {
@@ -181,5 +196,12 @@ public class AuthController {
         // Chuyển đến trang register.html
         model.addAttribute("email", email);
         return "register.html";
+
+         */
+        String result = authService.registerUser(email, phone, username, password);
+        model.addAttribute("email", email);
+        model.addAttribute("actionType", "register");  // Xác thực tài khoản
+        model.addAttribute("message", result);
+        return "verifyOTP"; // Dùng chung trang verifyOTP.html
     }
 }

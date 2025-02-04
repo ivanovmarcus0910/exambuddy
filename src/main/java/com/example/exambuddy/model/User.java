@@ -7,17 +7,16 @@ public class User {
     private String username;
     private String password;
     private boolean verified;
-    private String verificationToken;
+
 
     public User() {}
 
-    public User(String id, String email, String phone, String username, String password, String verificationToken) {
+    public User(String id, String email, String phone, String username, String password, boolean verified) {
         this.id = id;
         this.email = email;
         this.phone = phone;
         this.username = username;
         this.password = password;
-        this.verificationToken = verificationToken;
         this.verified = false; // Mặc định chưa xác thực
     }
 
@@ -27,14 +26,6 @@ public class User {
 
     public void setVerified(boolean verified) {
         this.verified = verified;
-    }
-
-    public String getVerificationToken() {
-        return verificationToken;
-    }
-
-    public void setVerificationToken(String verificationToken) {
-        this.verificationToken = verificationToken;
     }
 
     public String getId() {

@@ -13,13 +13,40 @@ public class FirebaseAuthService {
     @Autowired
     private  EmailService emailService;
     private static final String COLLECTION_NAME = "users";
-    private static final String OTP_COLLECTION = "password_reset_otps";
+    private static final String ACCOUNT_OTP_COLLECTION = "account_verify_otps"; // xac thuc account
+    private static final String OTP_COLLECTION = "password_reset_otps"; // quen pass
 
     // Đăng ký người dùng mới và gửi email xác thực
     public String registerUser(String email, String phone, String username, String password) {
         Firestore firestore = FirestoreClient.getFirestore();
         CollectionReference users = firestore.collection(COLLECTION_NAME);
 
+        User user = new User(null, email, phone, username, password, false); // Chưa xác thực tài khoản
+
+        try {
+            // ✅ Tạo OTP xác thực tài khoản
+            String otp = emailService.generateOtp();
+            long expiryTime = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(5); // Hết hạn sau 5 phút
+
+            // ✅ Lưu OTP vào Firestore
+            firestore.collection(OTP_COLLECTION).document(email).set(new OtpRecord(otp, expiryTime));
+
+            // ✅ Gửi OTP qua email
+            emailService.sendOtpEmail(email, otp);
+            System.out.println("📧 Đã gửi mã OTP xác thực tài khoản cho: " + email);
+
+            // ✅ Lưu thông tin tài khoản vào Firestore (chưa xác thực)
+            users.document(username).set(user);
+            System.out.println("✅ Tài khoản đã được lưu vào Firestore (chưa xác thực): " + username);
+            return "OTP đã được gửi đến email của bạn!";
+
+        } catch (Exception e) {
+            System.out.println("❌ Lỗi khi gửi OTP xác thực: " + e.getMessage());
+            e.printStackTrace();
+            return "Error: Không thể gửi OTP xác thực!";
+        }
+    }
+        /*
         String verificationToken = UUID.randomUUID().toString();
         User user = new User(null, email, phone, username, password, verificationToken);
 
@@ -41,6 +68,7 @@ public class FirebaseAuthService {
     }
 
     //Xác thực email bằng token
+
     public boolean verifyEmail(String token) {
         Firestore firestore = FirestoreClient.getFirestore();
         try {
@@ -60,7 +88,40 @@ public class FirebaseAuthService {
         }
         return false;
     }
+    */
 
+    /**
+     * Xác thực tài khoản bằng OTP
+     */
+    public boolean verifyAccountOtp(String email, String otp) {
+        Firestore firestore = FirestoreClient.getFirestore();
+        try {
+            DocumentSnapshot otpSnapshot = firestore.collection(OTP_COLLECTION).document(email).get().get();
+            if (!otpSnapshot.exists()) return false;
+
+            OtpRecord otpRecord = otpSnapshot.toObject(OtpRecord.class);
+            if (otpRecord == null || System.currentTimeMillis() > otpRecord.getExpiryTime()) return false;
+            System.out.println("Đã qua đây");
+            if (otpRecord.getOtp().equals(otp)) {
+                // ✅ Cập nhật trạng thái xác thực tài khoản
+                Query query = firestore.collection(COLLECTION_NAME).whereEqualTo("email", email);
+                QuerySnapshot querySnapshot = query.get().get();
+
+                if (!querySnapshot.isEmpty()) {
+                    DocumentSnapshot doc = querySnapshot.getDocuments().get(0);
+                    doc.getReference().update("verified", true);
+                    System.out.println("✅ Tài khoản đã được xác thực: " + email);
+                }
+
+                // ✅ Xóa OTP sau khi xác thực thành công
+                firestore.collection(OTP_COLLECTION).document(email).delete();
+                return true;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
     /**
      * Gửi OTP đặt lại mật khẩu và lưu vào Firestore
      */
@@ -83,20 +144,20 @@ public class FirebaseAuthService {
     /**
     Gửi lại mã OTP khác
      */
-    public String resendOtp(String email) {
+    public String resendOtp(String email, String actionType) {
         Firestore firestore = FirestoreClient.getFirestore();
-        CollectionReference otpCollection = firestore.collection("password_reset_otps");
+        String collectionName = actionType.equals("register") ? ACCOUNT_OTP_COLLECTION : OTP_COLLECTION;
 
         String newOtp = emailService.generateOtp();
         long expiryTime = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(5);
 
         try {
-            DocumentSnapshot existingOtp = otpCollection.document(email).get().get();
+            DocumentSnapshot existingOtp = firestore.collection(collectionName).document(email).get().get();
 
             if (existingOtp.exists()) {
-                otpCollection.document(email).update("otp", newOtp, "expiryTime", expiryTime);
+                firestore.collection(collectionName).document(email).update("otp", newOtp, "expiryTime", expiryTime);
             } else {
-                otpCollection.document(email).set(new OtpRecord(newOtp, expiryTime));
+                firestore.collection(collectionName).document(email).set(new OtpRecord(newOtp, expiryTime));
             }
 
             emailService.sendOtpEmail(email, newOtp);
@@ -159,6 +220,8 @@ public class FirebaseAuthService {
             return false;
         }
     }
+
+
 
 
     public boolean updatePassword(String email, String newPassword) {
