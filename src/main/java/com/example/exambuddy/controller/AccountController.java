@@ -7,18 +7,24 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.SessionAttribute;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
-
+import java.nio.file.Path;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.MediaType;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.ResponseBody;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 @Controller
 public class AccountController {
     @Autowired
@@ -60,19 +66,26 @@ public class AccountController {
     }
     @PostMapping("/profile/upload")
     public String uploadAvatar(@RequestParam("avatar") MultipartFile file,
-                               String username,
+                               @RequestParam String username,
                                Model model) throws IOException {
 
         // Kiểm tra nếu file không rỗng
         if (!file.isEmpty()) {
+            System.out.println("user name = "+username);
+            System.out.println("user name = "+username);
             // Đặt tên file là username.jpg
             String fileName = username + ".jpg";
             // Lấy đường dẫn thư mục để lưu ảnh
-            String uploadDir = "src/main/resources/static/img/";
+            String uploadDir = "C:/upload/avatar/";
 
             // Tạo file mới và lưu
-            File dest = new File(uploadDir + fileName);
-            file.transferTo(dest);
+            File uploadFile = new File(uploadDir + fileName);
+            if (uploadFile.exists()) {
+                uploadFile.delete();  // Xóa file cũ
+            }
+
+            // Lưu file vào thư mục
+            file.transferTo(uploadFile);
 
             // Lưu lại đường dẫn ảnh vào database hoặc thực hiện xử lý khác nếu cần
 
@@ -82,5 +95,18 @@ public class AccountController {
         }
 
         return "profile";  // Trở về trang profile
+    }
+    @GetMapping("/avatar/{filename}")
+    @ResponseBody
+    public ResponseEntity<Resource> getAvatar(@PathVariable String filename) {
+        Path filePath = Paths.get("C:/upload/avatar/").resolve(filename);
+        Resource resource = new FileSystemResource(filePath);
+
+        if (resource.exists()) {
+            return ResponseEntity.ok()
+                    .contentType(MediaType.IMAGE_JPEG)
+                    .body(resource);
+        }
+        return ResponseEntity.notFound().build();
     }
 }
