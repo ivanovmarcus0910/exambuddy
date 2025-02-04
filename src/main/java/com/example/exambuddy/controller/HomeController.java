@@ -14,4 +14,9 @@ public class HomeController {
     public String handleAllRequests() {
         return "home"; // Trả về view "home" cho tất cả các URL không khớp
     }
+    @RequestMapping("/profile")
+    public String profilePage() {
+        return "profile";
+    }
+
 }
