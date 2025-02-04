@@ -129,7 +129,7 @@
   <p class="text-gray-400 mt-2">Nhập mã OTP đã được gửi tới email của bạn.</p>
 
   <!-- Form nhập OTP -->
-  <form action="/verifyOTP" method="post" class="mt-6">
+  <form action="/verifyOTPresetpass" method="post" class="mt-6">
     <input type="hidden" name="email" id="email" th:value="${email}">
     <input type="text" name="otp" placeholder="Nhập mã OTP" required>
     <p class="error-message" th:if="${error}" th:text="${error}"></p>
@@ -141,7 +141,7 @@
   </form>
 
   <!-- Form ẩn để gửi lại OTP -->
-  <form id="resendOtpForm" action="/resendOTP" method="post">
+  <form id="resendOtpForm" action="/forgotPass" method="post">
     <input type="hidden" name="email" id="hiddenEmail">
   </form>
 

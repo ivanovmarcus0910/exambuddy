@@ -13,53 +13,29 @@ public class FirebaseAuthService {
     @Autowired
     private  EmailService emailService;
     private static final String COLLECTION_NAME = "users";
-    private static final String OTP_COLLECTION = "password_reset_otps";
+    private static final String OTP_COLLECTION = "otp";
 
     // Đăng ký người dùng mới và gửi email xác thực
     public String registerUser(String email, String phone, String username, String password) {
         Firestore firestore = FirestoreClient.getFirestore();
         CollectionReference users = firestore.collection(COLLECTION_NAME);
+        CollectionReference otpCollection = firestore.collection(OTP_COLLECTION);
+        String otp = emailService.generateOtp();
+        User user = new User(null, email, phone, username, password, otp);
 
-        String verificationToken = UUID.randomUUID().toString();
-        User user = new User(null, email, phone, username, password, verificationToken);
-
+        long expiryTime = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(5);
         try {
-            // ✅ Gửi email xác thực trước khi lưu tài khoản
-            System.out.println("📧 Gửi email xác thực đến: " + email);
-            emailService.sendVerificationEmail(email, verificationToken);
-
-            // ✅ Chỉ lưu tài khoản nếu email gửi thành công
+            otpCollection.document(email).set(new OtpRecord(otp, expiryTime));
+            emailService.sendVerificationEmail(email, otp);
             users.document(username).set(user);
-            System.out.println("✅ Tài khoản đã được lưu vào Firestore: " + username);
-            return verificationToken;
-
+            return otp;
         } catch (Exception e) {
-            System.out.println("❌ Lỗi khi gửi email xác thực: " + e.getMessage());
             e.printStackTrace();
-            return "Error: Không thể gửi email xác thực!";
+            return "Error: Không thể gửi OTP xác thực!";
         }
     }
 
-    //Xác thực email bằng token
-    public boolean verifyEmail(String token) {
-        Firestore firestore = FirestoreClient.getFirestore();
-        try {
-            Query query = firestore.collection(COLLECTION_NAME).whereEqualTo("verificationToken", token);
-            QuerySnapshot querySnapshot = query.get().get();
 
-            if (!querySnapshot.isEmpty()) {
-                DocumentSnapshot doc = querySnapshot.getDocuments().get(0);
-                DocumentReference userRef = doc.getReference();
-
-                // Cập nhật trạng thái xác thực
-                userRef.update("verified", true, "verificationToken", null);
-                return true;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
 
     /**
      * Gửi OTP đặt lại mật khẩu và lưu vào Firestore
@@ -230,5 +206,12 @@ public class FirebaseAuthService {
             e.printStackTrace();
             return false;
         }
+    }
+    public void makeVerification(String username) {
+        Firestore firestore = FirestoreClient.getFirestore();
+        CollectionReference users = firestore.collection(COLLECTION_NAME);
+
+        users.document(username).update("verified", true);
+
     }
 }

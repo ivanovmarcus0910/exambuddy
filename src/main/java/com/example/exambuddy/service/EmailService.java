@@ -12,7 +12,11 @@ public class EmailService {
 
     private final String senderEmail = "apartmentprovjp@gmail.com"; // Email gửi
     private final String senderPassword = "ijws suhs qiwz zmuk"; // Mật khẩu ứng dụng (App Password)
-
+    public String generateOtp() {
+        Random random = new Random();
+        int otp = 100000 + random.nextInt(900000); // OTP 6 chữ số
+        return String.valueOf(otp);
+    }
     /**
      * Gửi email xác thực tài khoản
      * @param recipientEmail Email của người dùng cần xác thực
@@ -20,8 +24,8 @@ public class EmailService {
      */
     public void sendVerificationEmail(String recipientEmail, String token) throws MessagingException {
         String subject = "Xác thực tài khoản E-Learning của bạn";
-        String verificationUrl = "http://localhost:8080/verify-email?token=" + token;
-        String message = "Chào bạn,\n\nVui lòng nhấp vào đường link sau để xác thực tài khoản của bạn:\n"
+        String verificationUrl = "OTP : " + token;
+        String message = "Chào bạn,\n\nVui lòng nhập mã OTP sau để xác thực tài khoản của bạn:\n"
                 + verificationUrl + "\n\nCảm ơn bạn đã đăng ký!";
 
         sendEmail(recipientEmail, subject, message);
@@ -82,9 +86,5 @@ public class EmailService {
     /**
      * Tạo mã OTP ngẫu nhiên gồm 6 chữ số
      */
-    public String generateOtp() {
-        Random random = new Random();
-        int otp = 100000 + random.nextInt(900000); // OTP 6 chữ số
-        return String.valueOf(otp);
-    }
+
 }

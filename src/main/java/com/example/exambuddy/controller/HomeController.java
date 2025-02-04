@@ -18,5 +18,9 @@ public class HomeController {
     public String profilePage() {
         return "profile";
     }
+    @RequestMapping("/signup")
+    public String signupPage() {
+        return "signup";
+    }
 
 }

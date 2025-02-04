@@ -18,9 +18,6 @@ public class AuthController {
         return "login";
     }
 
-    // Điều hướng trang Home
-
-
     // Xử lý đăng nhập
     @PostMapping("/login")
     public String login(@RequestParam String username, @RequestParam String password, Model model) {
@@ -37,16 +34,7 @@ public class AuthController {
     }
 
 
-    // Xử lý xác thực email
-    @GetMapping("/verify-email")
-    public String verifyEmail(@RequestParam String token, Model model) {
-        if (authService.verifyEmail(token)) {
-            model.addAttribute("message", "Xác thực email thành công! Bạn có thể đăng nhập.");
-        } else {
-            model.addAttribute("error", "Mã xác thực không hợp lệ hoặc đã được sử dụng.");
-        }
-        return "login";
-    }
+
 
     @GetMapping("/forgotPass")
     public String forgotPasswordPage() {
@@ -62,6 +50,7 @@ public class AuthController {
         return "verifyOTP";
     }
 
+
     @PostMapping("/resendOTP")
     public String resendOtp(@RequestParam String email, Model model) {
         System.out.println("📩 Đang gửi lại OTP cho email: " + email);
@@ -69,18 +58,32 @@ public class AuthController {
         model.addAttribute("message", result);
         model.addAttribute("email", email);
 
-        return "verifyOTP";
+        return "verifyOTPreset";
     }
 
-
+    @GetMapping("/verifyNewUser")
+    public String verifyNewUser(Model model) {
+        return "verifyOTP";
+    }
     @PostMapping("/verifyOTP")
-    public String verifyOtp(@RequestParam String email, @RequestParam String otp, Model model) {
+    public String verifyOTP(@RequestParam String email, @RequestParam String otp, Model model) {
+        System.out.println(email+" :: "+otp);
+        if (authService.verifyOtp(email, otp)) {
+
+            return "login";
+        } else {
+            model.addAttribute("error", "Mã OTP không hợp lệ hoặc đã hết hạn.");
+            return "verifyOTP";
+        }
+    }
+    @PostMapping("/verifyOTPresetpass")
+    public String verifyOTPreset(@RequestParam String email, @RequestParam String otp, Model model) {
         if (authService.verifyOtp(email, otp)) {
             model.addAttribute("email", email);
             return "resetPass";
         } else {
             model.addAttribute("error", "Mã OTP không hợp lệ hoặc đã hết hạn.");
-            return "verifyOTP";
+            return "verifyOTPreset";
         }
     }
 
@@ -107,13 +110,6 @@ public class AuthController {
         }
     }
 
-    // Tra ve trang signup
-    @GetMapping("/signup")
-    public String signupPage() {
-        return "signup";
-    }
-
-    // Xu li signup
     @PostMapping("/signup")
     public String signup(@RequestParam String email,
                          @RequestParam String phone,
@@ -168,16 +164,12 @@ public class AuthController {
         }
 
         // Đăng ký và gửi email xác thực
-        System.out.println("👉 Đăng ký người dùng: " + email);
         String result = authService.registerUser(email, phone, username, password);
         if (result.startsWith("Error")) {
             model.addAttribute("error", result);
             return "signup";
         }
-        System.out.println("👉 Gửi email xác thực với token: " + result);
-
-        // Chuyển đến trang register.html
         model.addAttribute("email", email);
-        return "register.html";
+        return "verifyOTP";
     }
 }
