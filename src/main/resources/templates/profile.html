@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - HKT E-Learning</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #0D0D1A, #1A1A40);
+            color: white;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        nav ul {
+            list-style: none;
+            display: flex;
+            gap: 20px;
+        }
+        nav ul li a {
+            text-decoration: none;
+            color: white;
+            font-weight: bold;
+            transition: color 0.3s;
+        }
+        nav ul li a:hover {
+            color: #8A2BE2;
+        }
+        .container {
+            display: flex;
+            max-width: 900px;
+            margin: 50px auto;
+            background: rgba(20, 20, 40, 0.95);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+        }
+        .sidebar {
+            width: 200px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding-right: 20px;
+            border-right: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        .sidebar a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.3s;
+        }
+        .sidebar a:hover {
+            color: #8A2BE2;
+        }
+        .profile-content {
+            flex: 1;
+            padding-left: 20px;
+        }
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .avatar {
+            width: 100px;
+            height: 100px;
+            background: #5A5A8E;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+        }
+        .edit-profile {
+            margin-top: 20px;
+            display: inline-block;
+            padding: 10px 20px;
+            background: linear-gradient(90deg, #8A2BE2, #3B82F6);
+            color: white;
+            font-weight: bold;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: 0.3s;
+        }
+        .edit-profile:hover {
+            box-shadow: 0 0 10px rgba(138, 43, 226, 0.5);
+        }
+    </style>
+</head>
+<body>
+<header>
+    <div class="logo">
+        <img src="../img/logo.jpg" alt="Logo">
+    </div>
+    <nav>
+        <ul>
+            <li><a href="/home">Trang chủ</a></li>
+            <li><a href="/forum">Diễn đàn</a></li>
+            <li><a href="/theory">Lý thuyết</a></li>
+            <li><a href="/contact">Liên hệ</a></li>
+        </ul>
+    </nav>
+</header>
+<div class="container">
+    <div class="sidebar">
+        <a href="/profile"><span>&#128100;</span> Personal Detail</a>
+        <a href="#"><span>&#128179;</span> Payment History</a>
+        <a href="#"><span>&#128273;</span> Reset Password</a>
+        <a href="/logout"><span>&#128682;</span> Log out</a>
+    </div>
+    <div class="profile-content">
+        <div class="profile-header">
+            <div class="avatar">Avatar User</div>
+            <div>
+                <p><strong>Role</strong></p>
+                <h2>Welcome, Username</h2>
+            </div>
+        </div>
+        <p><strong>First Name:</strong> James</p>
+        <p><strong>Last Name:</strong> Pham</p>
+        <p><strong>Email:</strong> example@gmail.com</p>
+        <a href="#" class="edit-profile">✎ Edit profile</a>
+    </div>
+</div>
+</body>
+</html>

@@ -22,6 +22,7 @@ public class EmailService {
      * @param recipientEmail Email của người dùng cần xác thực
      * @param token Mã xác thực duy nhất
      */
+    /*
     public void sendVerificationEmail(String recipientEmail, String token) throws MessagingException {
         String subject = "Xác thực tài khoản E-Learning của bạn";
         String verificationUrl = "OTP : " + token;
@@ -30,7 +31,7 @@ public class EmailService {
 
         sendEmail(recipientEmail, subject, message);
     }
-
+    */
     /**
      * Gửi email chứa mã OTP để đặt lại mật khẩu
      */

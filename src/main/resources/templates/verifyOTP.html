@@ -22,15 +22,9 @@
       align-items: center;
       height: 100vh;
       margin: 0;
-      padding: 0 500px;
+      padding: 0 20px;
       animation: fadeIn 0.8s ease-in-out;
-      transition: padding 0.3s ease-in-out;
     }
-
-    /* Responsive padding */
-    @media (max-width: 1200px) { body { padding: 0 200px; } }
-    @media (max-width: 800px) { body { padding: 0 50px; } }
-    @media (max-width: 500px) { body { padding: 0 20px; } }
 
     /* Fade-in animation */
     @keyframes fadeIn {
@@ -52,6 +46,7 @@
     .disabled {
       opacity: 0.5;
       cursor: not-allowed;
+      pointer-events: none;
     }
 
     /* Container */
@@ -60,7 +55,8 @@
       padding: 40px;
       border-radius: 15px;
       box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
-      width: 400px;
+      width: 100%;
+      max-width: 400px;
       text-align: center;
       animation: fadeIn 1s ease-in-out;
     }
@@ -131,7 +127,9 @@
   <!-- Form nhập OTP -->
   <form action="/verifyOTP" method="post" class="mt-6">
     <input type="hidden" name="email" id="email" th:value="${email}">
-    <input type="text" name="otp" placeholder="Nhập mã OTP" required>
+    <input type="hidden" name="actionType" id="actionType" th:value="${actionType}">
+
+    <input type="text" name="otp" id="otpInput" placeholder="Nhập mã OTP" required>
     <p class="error-message" th:if="${error}" th:text="${error}"></p>
 
     <!-- Nút xác nhận OTP -->
@@ -140,17 +138,18 @@
     </button>
   </form>
 
-  <!-- Form ẩn để gửi lại OTP -->
-  <form id="resendOtpForm" action="/resendOTP" method="post">
-    <input type="hidden" name="email" id="hiddenEmail">
-  </form>
-
   <!-- Dòng chữ gửi lại OTP -->
   <div class="resend-container">
     <span class="text-gray-400 text-sm">Bạn chưa nhận được mã OTP?</span>
-    <span id="resendOTP" class="resend-btn">Gửi lại</span>
+    <span id="resendOTP" class="resend-btn disabled">Gửi lại</span>
     <span id="countdown" class="countdown">(60s)</span>
   </div>
+
+  <!-- Form ẩn để gửi lại OTP -->
+  <form id="resendOtpForm" action="/resendOTP" method="post">
+    <input type="hidden" name="email" id="hiddenEmail" th:value="${email}">
+    <input type="hidden" name="actionType" id="hiddenActionType" th:value="${actionType}">
+  </form>
 </div>
 
 <script>
@@ -171,11 +170,18 @@
   }
 
   document.getElementById("resendOTP").addEventListener("click", function() {
+    if (countdown > 0) return; // Ngăn người dùng bấm liên tục
+
     let email = document.getElementById("email").value;
+    let actionType = document.getElementById("actionType").value;
+
     document.getElementById("hiddenEmail").value = email;
+    document.getElementById("hiddenActionType").value = actionType;
 
     countdown = 60;
     document.getElementById("countdown").innerText = `(${countdown}s)`;
+
+    document.getElementById("resendOTP").classList.add("disabled");
 
     clearInterval(countdownInterval);
     countdownInterval = setInterval(updateCountdown, 1000);

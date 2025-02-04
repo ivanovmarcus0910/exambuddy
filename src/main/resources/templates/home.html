@@ -125,6 +125,7 @@
             padding: 10px;
             width: 200px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            z-index: 100; /* Đảm bảo menu nằm trên các thành phần khác */
         }
 
         .user-menu a {
@@ -255,23 +256,33 @@
 
     <nav>
         <ul>
-            <li><a href="#">Trang chủ</a></li>
+            <li><a href="/home">Trang chủ</a></li>
             <li><a href="#">Diễn đàn</a></li>
             <li><a href="#">Lý thuyết</a></li>
             <li><a href="#">Liên hệ</a></li>
         </ul>
     </nav>
-
+    <div class="search-bar">
+        <input type="text" placeholder="Tìm kiếm khóa học, bài viết...">
+    </div>
     <div class="user-section">
-        <div class="search-bar">
-            <input type="text" placeholder="Tìm kiếm khóa học, bài viết...">
-        </div>
-        <div class="user-avatar"></div>
-        <div class="user-menu">
-            <a href="#">Thông tin cá nhân</a>
-            <a href="#">Thông báo</a>
-            <a href="#">Đăng xuất</a>
-        </div>
+        <!-- Kiểm tra nếu đã đăng nhập -->
+        <th:block th:if="${session.loggedInUser}">
+            <div class="user-avatar"></div>
+            <div class="user-menu">
+                <a href="/profile">Thông tin cá nhân</a>
+                <a href="#">Thông báo</a>
+                <form th:action="@{/logout}" method="post">
+                    <button type="submit">Đăng xuất</button>
+                </form>
+            </div>
+        </th:block>
+
+        <!-- Nếu chưa đăng nhập, hiển thị nút đăng nhập và đăng ký -->
+        <th:block th:unless="${session.loggedInUser}">
+            <a href="/login"><button>Đăng nhập</button></a>
+            <a href="/register"><button>Đăng ký</button></a>
+        </th:block>
     </div>
 </header>
 
