@@ -26,7 +26,7 @@ public class FirebaseAuthService {
         try {
             // ✅ Tạo OTP xác thực tài khoản
             String otp = emailService.generateOtp();
-            long expiryTime = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(5); // Hết hạn sau 5 phút
+            long expiryTime = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(1); // Hết hạn sau 1 phút
 
             // ✅ Lưu OTP vào Firestore
             firestore.collection(ACCOUNT_OTP_COLLECTION).document(email).set(new OtpRecord(otp, expiryTime));
@@ -220,8 +220,6 @@ public class FirebaseAuthService {
             return false;
         }
     }
-
-
 
 
     public boolean updatePassword(String email, String newPassword) {
