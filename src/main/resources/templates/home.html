@@ -266,13 +266,23 @@
         <input type="text" placeholder="Tìm kiếm khóa học, bài viết...">
     </div>
     <div class="user-section">
+        <!-- Kiểm tra nếu đã đăng nhập -->
+        <th:block th:if="${session.loggedInUser}">
+            <div class="user-avatar"></div>
+            <div class="user-menu">
+                <a href="/profile">Thông tin cá nhân</a>
+                <a href="#">Thông báo</a>
+                <form th:action="@{/logout}" method="post">
+                    <button type="submit">Đăng xuất</button>
+                </form>
+            </div>
+        </th:block>
 
-        <div class="user-avatar"></div>
-        <div class="user-menu">
-            <a href="/profile">Thông tin cá nhân</a>
-            <a href="#">Thông báo</a>
-            <a href="#">Đăng xuất</a>
-        </div>
+        <!-- Nếu chưa đăng nhập, hiển thị nút đăng nhập và đăng ký -->
+        <th:block th:unless="${session.loggedInUser}">
+            <a href="/login"><button>Đăng nhập</button></a>
+            <a href="/register"><button>Đăng ký</button></a>
+        </th:block>
     </div>
 </header>
 
