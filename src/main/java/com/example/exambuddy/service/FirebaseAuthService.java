@@ -29,7 +29,7 @@ public class FirebaseAuthService {
             long expiryTime = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(5); // Hết hạn sau 5 phút
 
             // ✅ Lưu OTP vào Firestore
-            firestore.collection(OTP_COLLECTION).document(email).set(new OtpRecord(otp, expiryTime));
+            firestore.collection(ACCOUNT_OTP_COLLECTION).document(email).set(new OtpRecord(otp, expiryTime));
 
             // ✅ Gửi OTP qua email
             emailService.sendOtpEmail(email, otp);
@@ -96,7 +96,7 @@ public class FirebaseAuthService {
     public boolean verifyAccountOtp(String email, String otp) {
         Firestore firestore = FirestoreClient.getFirestore();
         try {
-            DocumentSnapshot otpSnapshot = firestore.collection(OTP_COLLECTION).document(email).get().get();
+            DocumentSnapshot otpSnapshot = firestore.collection(ACCOUNT_OTP_COLLECTION).document(email).get().get();
             if (!otpSnapshot.exists()) return false;
 
             OtpRecord otpRecord = otpSnapshot.toObject(OtpRecord.class);
@@ -114,7 +114,7 @@ public class FirebaseAuthService {
                 }
 
                 // ✅ Xóa OTP sau khi xác thực thành công
-                firestore.collection(OTP_COLLECTION).document(email).delete();
+                firestore.collection(ACCOUNT_OTP_COLLECTION).document(email).delete();
                 return true;
             }
         } catch (Exception e) {
