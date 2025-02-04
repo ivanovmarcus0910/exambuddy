@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng ký thành công</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+
+        /* Body */
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #0D0D1A, #1A1A40);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            padding: 0 500px; /* Giữ form nhỏ trên màn hình lớn */
+            animation: fadeIn 0.8s ease-in-out;
+            transition: padding 0.3s ease-in-out; /* Làm mềm mượt khi resize */
+        }
+
+        /* Khi màn hình nhỏ hơn 1200px, giảm padding */
+        @media (max-width: 1200px) {
+            body {
+                padding: 0 200px;
+            }
+        }
+
+        /* Khi màn hình nhỏ hơn 800px, giảm padding nhiều hơn */
+        @media (max-width: 800px) {
+            body {
+                padding: 0 50px;
+            }
+        }
+
+        /* Khi màn hình nhỏ hơn 500px, bỏ padding để form không bị mất */
+        @media (max-width: 500px) {
+            body {
+                padding: 0 20px;
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .container {
+            background: #15152D;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            max-width: 350px; /* Để form không bị quá rộng trên màn hình lớn */
+            width: 100%;
+        }
+
+        .btn {
+            background: linear-gradient(90deg, #8A2BE2, #3B82F6);
+            padding: 12px 24px;
+            border-radius: 8px;
+            display: inline-block;
+            color: white;
+            font-weight: bold;
+            text-decoration: none;
+            margin-top: 20px;
+            transition: all 0.3s ease-in-out;
+            width: 100%; /* Để nút chiếm toàn bộ chiều rộng */
+            max-width: 300px;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(138, 43, 226, 0.5);
+        }
+
+        @media (max-width: 400px) {
+            .container {
+                max-width: 300px; /* Điều chỉnh form nhỏ hơn khi trên mobile */
+                padding: 20px;
+            }
+            .btn {
+                font-size: 14px;
+                padding: 10px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2 class="text-2xl font-bold">🎉 Đăng ký thành công!</h2>
+    <p class="mt-4 text-sm">Một email xác thực đã được gửi đến <strong th:text="${email}"></strong>.</p>
+    <p class="text-sm">Vui lòng kiểm tra email của bạn và nhấp vào liên kết để xác nhận tài khoản.</p>
+
+
+</div>
+</body>
+</html>
