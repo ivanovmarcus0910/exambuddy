@@ -19,10 +19,12 @@ public class AuthController {
     @Autowired
     private FirebaseAuthService authService;
 
-    //Tra ve trang login
     @GetMapping("/login")
-    public String loginPage() {
-        return "login";
+    public String showLoginPage(HttpSession session) {
+        if (session.getAttribute("loggedInUser") != null) {
+            return "redirect:/home"; // Nếu đã đăng nhập, chuyển hướng về home
+        }
+        return "login"; // Nếu chưa đăng nhập, hiển thị trang login
     }
 
     // Điều hướng trang Home
@@ -314,23 +316,6 @@ public class AuthController {
             return "signup";
         }
 
-        /**
-         * Đăng ký và gửi email xác thực
-         */
-        /*
-        System.out.println("👉 Đăng ký người dùng: " + email);
-        String result = authService.registerUser(email, phone, username, password);
-        if (result.startsWith("Error")) {
-            model.addAttribute("error", result);
-            return "signup";
-        }
-        System.out.println("👉 Gửi email xác thực với token: " + result);
-
-        // Chuyển đến trang register.html
-        model.addAttribute("email", email);
-        return "register.html";
-
-         */
         String result = authService.registerUser(email, phone, username, password);
         model.addAttribute("email", email);
         model.addAttribute("actionType", "register");  // Xác thực tài khoản

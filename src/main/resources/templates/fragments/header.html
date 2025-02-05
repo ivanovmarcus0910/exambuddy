@@ -1,0 +1,37 @@
+<div th:fragment="header">
+<header>
+  <div class="logo">
+    <img src="/img/logo.png" alt="Logo">
+  </div>
+
+  <nav>
+    <ul>
+      <li><a href="/home">Trang chủ</a></li>
+      <li><a href="#">Diễn đàn</a></li>
+      <li><a href="#">Lý thuyết</a></li>
+      <li><a href="#">Liên hệ</a></li>
+    </ul>
+  </nav>
+  <div class="search-bar">
+    <input type="text" placeholder="Tìm kiếm khóa học, bài viết...">
+  </div>
+  <div class="user-section">
+    <!-- Kiểm tra nếu đã đăng nhập -->
+    <th:block th:if="${session.loggedInUser}">
+      <div class="user-avatar"></div>
+      <div class="user-menu">
+        <a href="/profile">Thông tin cá nhân</a>
+        <a href="#">Thông báo</a>
+        <a href="logout">Đăng xuất</a>
+
+      </div>
+    </th:block>
+
+    <!-- Nếu chưa đăng nhập, hiển thị nút đăng nhập và đăng ký -->
+    <th:block th:unless="${session.loggedInUser}">
+      <a href="/login"><button class="button-gradient">Đăng nhập</button></a>
+      <a href="/register"><button class="button-gradient">Đăng ký</button></a>
+    </th:block>
+  </div>
+</header>
+</div>
