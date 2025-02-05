@@ -32,7 +32,7 @@ public class FirebaseAuthService {
             firestore.collection(ACCOUNT_OTP_COLLECTION).document(email).set(new OtpRecord(otp, expiryTime));
 
             // ✅ Gửi OTP qua email
-            emailService.sendOtpEmail(email, otp);
+            emailService.sendOtpEmailAccount(email, otp);
             System.out.println("📧 Đã gửi mã OTP xác thực tài khoản cho: " + email);
 
             // ✅ Lưu thông tin tài khoản vào Firestore (chưa xác thực)
@@ -149,7 +149,7 @@ public class FirebaseAuthService {
         String collectionName = actionType.equals("register") ? ACCOUNT_OTP_COLLECTION : OTP_COLLECTION;
 
         String newOtp = emailService.generateOtp();
-        long expiryTime = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(5);
+        long expiryTime = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(1);
 
         try {
             DocumentSnapshot existingOtp = firestore.collection(collectionName).document(email).get().get();
@@ -160,7 +160,15 @@ public class FirebaseAuthService {
                 firestore.collection(collectionName).document(email).set(new OtpRecord(newOtp, expiryTime));
             }
 
-            emailService.sendOtpEmail(email, newOtp);
+            // ✅ Gửi đúng OTP theo loại yêu cầu
+            if (actionType.equals("register")) {
+                System.out.println("📧 Gửi lại OTP xác thực tài khoản đến: " + email);
+                emailService.sendOtpEmailAccount(email, newOtp);
+            } else {
+                System.out.println("📧 Gửi lại OTP đặt lại mật khẩu đến: " + email);
+                emailService.sendOtpEmail(email, newOtp);
+            }
+
             return "Mã OTP mới đã được gửi!";
         } catch (Exception e) {
             return "Lỗi khi gửi lại OTP: " + e.getMessage();
@@ -292,4 +300,35 @@ public class FirebaseAuthService {
             return false;
         }
     }
+
+    public boolean updatePasswordForUser(String username, String currentPassword, String newPassword) {
+        Firestore firestore = FirestoreClient.getFirestore();
+        try {
+            // 🔍 Tìm người dùng theo username trong Firestore
+            DocumentSnapshot userSnapshot = firestore.collection(COLLECTION_NAME).document(username).get().get();
+
+            if (!userSnapshot.exists()) {
+                System.out.println("❌ Không tìm thấy tài khoản với username: " + username);
+                return false;
+            }
+
+            // ✅ Xác thực mật khẩu hiện tại trước khi cập nhật
+            String storedPassword = userSnapshot.getString("password");
+            if (!storedPassword.equals(currentPassword)) {
+                System.out.println("❌ Mật khẩu hiện tại không đúng cho username: " + username);
+                return false;
+            }
+
+            // ✅ Cập nhật mật khẩu mới
+            userSnapshot.getReference().update("password", newPassword);
+            System.out.println("✅ Mật khẩu của " + username + " đã được cập nhật!");
+
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("❌ Lỗi khi cập nhật mật khẩu: " + e.getMessage());
+            return false;
+        }
+    }
+
 }

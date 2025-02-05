@@ -169,11 +169,12 @@
       isValid = false;
     }
 
-    // Kiểm tra mật khẩu không trống
-    if (password.length < 6) {
-      showError("passwordError", "Mật khẩu phải có ít nhất 6 ký tự!");
+    // Kiểm tra mật khẩu mạnh
+    if (!password.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/)) {
+      showError("passwordError", "Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt!");
       isValid = false;
     }
+
 
     // Kiểm tra xác nhận mật khẩu
     if (password !== confirmPassword) {

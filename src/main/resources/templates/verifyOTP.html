@@ -13,6 +13,7 @@
       overflow-x: hidden;
     }
 
+    /* Body */
     body {
       font-family: 'Poppins', sans-serif;
       background: linear-gradient(135deg, #0D0D1A, #1A1A40);
@@ -22,8 +23,30 @@
       align-items: center;
       height: 100vh;
       margin: 0;
-      padding: 0 20px;
+      padding: 0 500px; /* Giữ form nhỏ trên màn hình lớn */
       animation: fadeIn 0.8s ease-in-out;
+      transition: padding 0.3s ease-in-out; /* Làm mềm mượt khi resize */
+    }
+
+    /* Khi màn hình nhỏ hơn 1200px, giảm padding */
+    @media (max-width: 1200px) {
+      body {
+        padding: 0 200px;
+      }
+    }
+
+    /* Khi màn hình nhỏ hơn 800px, giảm padding nhiều hơn */
+    @media (max-width: 800px) {
+      body {
+        padding: 0 50px;
+      }
+    }
+
+    /* Khi màn hình nhỏ hơn 500px, bỏ padding để form không bị mất */
+    @media (max-width: 500px) {
+      body {
+        padding: 0 20px;
+      }
     }
 
     /* Fade-in animation */

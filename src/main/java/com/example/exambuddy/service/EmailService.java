@@ -43,6 +43,13 @@ public class EmailService {
         sendEmail(recipientEmail, subject, message);
     }
 
+    public void sendOtpEmailAccount(String recipientEmail, String otp) throws MessagingException {
+        String subject = "Mã OTP để xác thực tài khoản";
+        String message = "Chào bạn,\n\nMã OTP của bạn để xác thực tài khoản là: " + otp
+                + "\nMã có hiệu lực trong 60 giây.\n\nNếu bạn không xác thực tài khoản, vui lòng bỏ qua email này.";
+
+        sendEmail(recipientEmail, subject, message);
+    }
     /**
      * Cấu hình và gửi email qua SMTP với SSL (Port 465)
      * @param recipientEmail Địa chỉ email nhận

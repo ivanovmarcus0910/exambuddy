@@ -129,6 +129,8 @@
             margin-left: 14px; /* Dịch chuyển phần này sang phải */
             width: 100%;
             max-width: 370px; /* Giới hạn chiều rộng */
+            position: relative;
+
         }
 
         /* Căn chỉnh ô nhập */
@@ -251,6 +253,21 @@
             margin: auto;
         }
 
+        .eye-icon {
+            position: absolute;
+            right: 15px;  /* Điều chỉnh khoảng cách với mép phải */
+            top: 75%;
+            transform: translateY(-50%);
+            width: 20px;  /* Kích thước phù hợp */
+            height: 20px;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.3s;
+        }
+
+        .eye-icon:hover {
+            opacity: 1;
+        }
 
     </style>
 </head>
@@ -261,7 +278,7 @@
     <div class="left-section">
         <div class="login-box">
             <div class="text-left">
-                <img src="https://via.placeholder.com/150x40?text=Edumall" alt="Logo">
+                <img th:src="@{/static/logo.png}" >
             </div>
 
             <div class="text-center">
@@ -283,11 +300,14 @@
                 </div>
 
                 <!-- Ô nhập Mật khẩu -->
-                <div class="input-container mt-3">
-                    <label class="block text-white text-sm mb-1">Mật khẩu</label>
-                    <input type="password" name="password" placeholder="Mật khẩu" class="input-field">
+                <div class="input-container">
+                    <label class="input-label">Mật khẩu</label>
+                    <input type="password" id="password" name="password" placeholder="Mật khẩu" class="input-field">
+                    <img src="https://cdn-icons-png.flaticon.com/512/2767/2767146.png" class="eye-icon"
+                         onclick="togglePassword('password', this)">
                     <p id="password-error" class="text-red-500 text-sm mt-1 hidden">Ô không được để trống</p>
                 </div>
+
 
                 <!-- Ghi nhớ đăng nhập và Quên mật khẩu -->
                 <div class="remember-forgot-container">
@@ -341,6 +361,16 @@
     </div>
 </div>
 <script>
+    function togglePassword(fieldId, icon) {
+        const field = document.getElementById(fieldId);
+        if (field.type === "password") {
+            field.type = "text";
+            icon.src = "https://cdn-icons-png.flaticon.com/512/709/709612.png";
+        } else {
+            field.type = "password";
+            icon.src = "https://cdn-icons-png.flaticon.com/512/2767/2767146.png";
+        }
+    }
     function validateForm() {
         let username = document.getElementById("username").value.trim();
         let password = document.getElementById("password").value.trim();

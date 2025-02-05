@@ -153,9 +153,22 @@ public class AuthController {
     }
 
     @GetMapping("/resetPass")
-    public String ressetPassPage() {
+    public String resetPassPage(@RequestParam(required = false) String email,
+                                HttpSession session, Model model) {
+        if (email != null) {
+            // Trường hợp đặt lại mật khẩu (quên mật khẩu)
+            model.addAttribute("email", email);
+        } else {
+            // Trường hợp đổi mật khẩu từ trang cá nhân
+            String username = (String) session.getAttribute("loggedInUser");
+            if (username == null) {
+                return "redirect:/login"; // Chưa đăng nhập thì chuyển về login
+            }
+            model.addAttribute("email", username); // Dùng username làm email
+        }
         return "resetPass";
     }
+
 
     // Xử lý đặt lại mật khẩu
     @PostMapping("/resetPass")
@@ -178,6 +191,47 @@ public class AuthController {
             model.addAttribute("error", "Lỗi khi cập nhật mật khẩu. Vui lòng thử lại!");
             return "resetPass";
         }
+    }
+
+    @GetMapping("/changePass")
+    public String changePasswordPage(HttpSession session, Model model) {
+        String username = (String) session.getAttribute("loggedInUser");
+        if (username == null) {
+            return "redirect:/login"; // Nếu chưa đăng nhập, chuyển hướng về login
+        }
+        return "changePass"; // Trả về trang HTML để đổi mật khẩu
+    }
+
+    @PostMapping("/changePass")
+    public String changePassword(@RequestParam String currentPassword,
+                                 @RequestParam String newPassword,
+                                 @RequestParam String confirmPassword,
+                                 HttpSession session,
+                                 Model model) {
+
+        // 🔥 Lấy username của người dùng đã đăng nhập từ session
+        String username = (String) session.getAttribute("loggedInUser");
+        if (username == null) {
+            return "redirect:/login"; // Nếu chưa đăng nhập, chuyển hướng về login
+        }
+
+        // 🔍 Kiểm tra xác nhận mật khẩu mới
+        if (!newPassword.equals(confirmPassword)) {
+            model.addAttribute("error", "Mật khẩu xác nhận không khớp!");
+            return "changePass";
+        }
+
+        System.out.println("📌 Đang thực hiện đổi mật khẩu cho username: " + username);
+
+        // ✅ Gọi `updatePasswordForLoggedInUser` để kiểm tra mật khẩu hiện tại & cập nhật mật khẩu mới
+        boolean isUpdated = authService.updatePasswordForUser(username, currentPassword, newPassword);
+        if (isUpdated) {
+            model.addAttribute("success", "Mật khẩu đã cập nhật thành công!");
+        } else {
+            model.addAttribute("error", "Mật khẩu hiện tại không đúng hoặc có lỗi khi cập nhật!");
+        }
+
+        return "changePass";
     }
 
     // Tra ve trang signup
@@ -263,4 +317,6 @@ public class AuthController {
         model.addAttribute("message", result);
         return "verifyOTP"; // Dùng chung trang verifyOTP.html
     }
+
+
 }

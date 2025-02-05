@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thay Đổi Mật Khẩu</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #0D0D1A, #1A1A40);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            padding: 0 500px; /* Giữ form nhỏ trên màn hình lớn */
+            animation: fadeIn 0.8s ease-in-out;
+            transition: padding 0.3s ease-in-out; /* Làm mềm mượt khi resize */
+        }
+
+        /* Khi màn hình nhỏ hơn 1200px, giảm padding */
+        @media (max-width: 1200px) {
+            body {
+                padding: 0 200px;
+            }
+        }
+
+        /* Khi màn hình nhỏ hơn 800px, giảm padding nhiều hơn */
+        @media (max-width: 800px) {
+            body {
+                padding: 0 50px;
+            }
+        }
+
+        /* Khi màn hình nhỏ hơn 500px, bỏ padding để form không bị mất */
+        @media (max-width: 500px) {
+            body {
+                padding: 0 20px;
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .container {
+            background: rgba(21, 21, 45, 0.95);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            width: 380px;
+            text-align: center;
+            animation: fadeIn 0.8s ease-in-out;
+        }
+
+        .input-group {
+            position: relative;
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px; /* Khoảng cách giữa các ô nhập */
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(43, 43, 92, 0.85);
+            color: white;
+            font-size: 14px;
+            outline: none;
+            padding-right: 40px; /* Dành chỗ cho icon */
+        }
+
+        .eye-icon {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.3s;
+            width: 20px;
+            height: 20px;
+        }
+
+        .eye-icon:hover {
+            opacity: 1;
+        }
+
+        .gradient-btn {
+            background: linear-gradient(90deg, #8A2BE2, #3B82F6);
+            transition: all 0.3s ease-in-out;
+            padding: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            color: white;
+            width: 100%;
+            border-radius: 8px;
+            margin-top: 10px;
+            cursor: pointer;
+            box-shadow: 0px 4px 8px rgba(138, 43, 226, 0.5);
+        }
+
+        .gradient-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .error-message {
+            color: red;
+            font-size: 13px;
+            margin-bottom: 10px;
+        }
+
+        .success-message {
+            color: limegreen;
+            font-size: 13px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2 class="text-lg font-semibold">🔑 Thay Đổi Mật Khẩu</h2>
+    <p class="text-gray-400 text-xs mt-1">Nhập thông tin để thay đổi mật khẩu</p>
+
+    <!-- Hiển thị thông báo lỗi hoặc thành công -->
+    <p class="error-message" th:if="${error}" th:text="${error}"></p>
+    <p class="success-message" th:if="${success}" th:text="${success}"></p>
+
+    <form action="/changePass" method="post">
+        <!-- Ô nhập mật khẩu hiện tại -->
+        <div class="input-group">
+            <input type="password" id="currentPassword" name="currentPassword" placeholder="🔒 Mật khẩu hiện tại" required>
+            <img src="https://cdn-icons-png.flaticon.com/512/709/709612.png" class="eye-icon" onclick="togglePassword('currentPassword', this)">
+        </div>
+
+        <!-- Ô nhập mật khẩu mới -->
+        <div class="input-group">
+            <input type="password" id="newPassword" name="newPassword" placeholder="🔑 Mật khẩu mới" required>
+            <img src="https://cdn-icons-png.flaticon.com/512/709/709612.png" class="eye-icon" onclick="togglePassword('newPassword', this)">
+        </div>
+
+        <!-- Ô nhập lại mật khẩu mới -->
+        <div class="input-group">
+            <input type="password" id="confirmPassword" name="confirmPassword" placeholder="✅ Xác nhận mật khẩu" required>
+            <img src="https://cdn-icons-png.flaticon.com/512/709/709612.png" class="eye-icon" onclick="togglePassword('confirmPassword', this)">
+        </div>
+
+        <!-- Nút cập nhật mật khẩu -->
+        <button type="submit" class="gradient-btn">Cập Nhật Mật Khẩu</button>
+    </form>
+
+    <p class="text-gray-400 text-xs mt-3">
+        Quay lại <a href="/profile" class="text-white font-semibold hover:underline">Trang cá nhân</a>
+    </p>
+</div>
+
+<script>
+    function togglePassword(fieldId, icon) {
+        const field = document.getElementById(fieldId);
+        if (field.type === "password") {
+            field.type = "text";
+            icon.src = "https://cdn-icons-png.flaticon.com/512/2767/2767146.png"; // Icon mắt mở
+        } else {
+            field.type = "password";
+            icon.src = "https://cdn-icons-png.flaticon.com/512/709/709612.png"; // Icon mắt đóng
+        }
+    }
+</script>
+
+</body>
+</html>
