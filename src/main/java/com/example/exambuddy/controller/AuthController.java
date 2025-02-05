@@ -108,7 +108,7 @@ public class AuthController {
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
             for (Cookie cookie : cookies) {
-                if ("rememberedUsername".equals(cookie.getName()) || "rememberedPassword".equals(cookie.getName()) || "noname".equals(cookie.getName())) {
+                if ("noname".equals(cookie.getName())) {
                     cookie.setMaxAge(0);
                     cookie.setPath("/");
                     response.addCookie(cookie);
