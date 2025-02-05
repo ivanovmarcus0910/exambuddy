@@ -29,10 +29,6 @@ import java.nio.file.Paths;
 public class AccountController {
     @Autowired
     private FirebaseAuthService authService;
-//    @RequestMapping("/logout")
-//    public String profilePage() {
-//        return "profile";
-//    }
     @RequestMapping("/profile")
     public String profilePage(HttpServletRequest request, Model model) {
         Cookie[] cookies = request.getCookies();

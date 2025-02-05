@@ -21,8 +21,11 @@ public class AuthController {
 
     //Tra ve trang login
     @GetMapping("/login")
-    public String loginPage() {
-        return "login";
+    public String showLoginPage(HttpSession session) {
+        if (session.getAttribute("loggedInUser") != null) {
+            return "redirect:/home"; // Nếu đã đăng nhập, chuyển hướng về home
+        }
+        return "login"; // Nếu chưa đăng nhập, hiển thị trang login
     }
 
     // Điều hướng trang Home
@@ -108,7 +111,7 @@ public class AuthController {
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
             for (Cookie cookie : cookies) {
-                if ( "noname".equals(cookie.getName())) {
+                if ("rememberedUsername".equals(cookie.getName()) || "rememberedPassword".equals(cookie.getName()) || "noname".equals(cookie.getName())) {
                     cookie.setMaxAge(0);
                     cookie.setPath("/");
                     response.addCookie(cookie);
