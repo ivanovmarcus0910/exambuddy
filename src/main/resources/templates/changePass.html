@@ -1,9 +1,132 @@
 <!DOCTYPE html>
 <html lang="vi">
-<div th:insert="fragments/head :: head"></div>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thay Đổi Mật Khẩu</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #0D0D1A, #1A1A40);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            padding: 0 500px; /* Giữ form nhỏ trên màn hình lớn */
+            animation: fadeIn 0.8s ease-in-out;
+            transition: padding 0.3s ease-in-out; /* Làm mềm mượt khi resize */
+        }
+
+        /* Khi màn hình nhỏ hơn 1200px, giảm padding */
+        @media (max-width: 1200px) {
+            body {
+                padding: 0 200px;
+            }
+        }
+
+        /* Khi màn hình nhỏ hơn 800px, giảm padding nhiều hơn */
+        @media (max-width: 800px) {
+            body {
+                padding: 0 50px;
+            }
+        }
+
+        /* Khi màn hình nhỏ hơn 500px, bỏ padding để form không bị mất */
+        @media (max-width: 500px) {
+            body {
+                padding: 0 20px;
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .container {
+            background: rgba(21, 21, 45, 0.95);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            width: 380px;
+            text-align: center;
+            animation: fadeIn 0.8s ease-in-out;
+        }
+
+        .input-group {
+            position: relative;
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px; /* Khoảng cách giữa các ô nhập */
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(43, 43, 92, 0.85);
+            color: white;
+            font-size: 14px;
+            outline: none;
+            padding-right: 40px; /* Dành chỗ cho icon */
+        }
+
+        .eye-icon {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.3s;
+            width: 20px;
+            height: 20px;
+        }
+
+        .eye-icon:hover {
+            opacity: 1;
+        }
+
+        .gradient-btn {
+            background: linear-gradient(90deg, #8A2BE2, #3B82F6);
+            transition: all 0.3s ease-in-out;
+            padding: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            color: white;
+            width: 100%;
+            border-radius: 8px;
+            margin-top: 10px;
+            cursor: pointer;
+            box-shadow: 0px 4px 8px rgba(138, 43, 226, 0.5);
+        }
+
+        .gradient-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .error-message {
+            color: red;
+            font-size: 13px;
+            margin-bottom: 10px;
+        }
+
+        .success-message {
+            color: limegreen;
+            font-size: 13px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
 
 <body>
-<div th:insert="fragments/header :: header"></div>
+
 
 <div class="container">
     <h2 class="text-lg font-semibold">🔑 Thay Đổi Mật Khẩu</h2>
@@ -22,14 +145,20 @@
 
         <!-- Ô nhập mật khẩu mới -->
         <div class="input-group">
-            <input type="password" id="newPassword" name="newPassword" placeholder="🔑 Mật khẩu mới" required>
+            <input type="password" id="newPassword" name="newPassword" placeholder="🔑 Mật khẩu mới"
+                   class="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-600 text-white focus:border-blue-400 focus:outline-none"
+                   oninput="clearError('passwordError')">
             <img src="https://cdn-icons-png.flaticon.com/512/709/709612.png" class="eye-icon" onclick="togglePassword('newPassword', this)">
+            <p class="error-message text-red-500 mt-1 text-sm" id="confirmPasswordError" style="display: none;"></p>
         </div>
 
         <!-- Ô nhập lại mật khẩu mới -->
         <div class="input-group">
-            <input type="password" id="confirmPassword" name="confirmPassword" placeholder="✅ Xác nhận mật khẩu" required>
+            <input type="password" id="confirmPassword" name="confirmPassword" placeholder="✅ Xác nhận mật khẩu"
+                   class="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-600 text-white focus:border-blue-400 focus:outline-none"
+                   oninput="clearError('passwordError')">
             <img src="https://cdn-icons-png.flaticon.com/512/709/709612.png" class="eye-icon" onclick="togglePassword('confirmPassword', this)">
+            <p class="error-message text-red-500 mt-1 text-sm" id="passwordError" style="display: none;"></p>
         </div>
 
         <!-- Nút cập nhật mật khẩu -->
@@ -51,6 +180,50 @@
             field.type = "password";
             icon.src = "https://cdn-icons-png.flaticon.com/512/709/709612.png"; // Icon mắt đóng
         }
+    }
+    function validateForm() {
+        let isValid = true;
+
+        const password = document.getElementById("newPassword").value;
+        const confirmPassword = document.getElementById("confirmPassword").value;
+
+        // Reset lỗi
+        clearAllErrors();
+
+        // Kiểm tra mật khẩu mạnh
+        if (!password.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/)) {
+            showError("passwordError", "Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt!");
+            isValid = false;
+        }
+
+        // Kiểm tra xác nhận mật khẩu
+        if (password !== confirmPassword) {
+            showError("confirmPasswordError", "Mật khẩu xác nhận không khớp!");
+            isValid = false;
+        }
+
+        return isValid;
+    }
+
+    // Hiển thị lỗi
+    function showError(id, message) {
+        const errorElement = document.getElementById(id);
+        errorElement.textContent = message;
+        errorElement.style.display = "block";
+    }
+
+    // Ẩn lỗi khi nhập lại
+    function clearError(id) {
+        const errorElement = document.getElementById(id);
+        if (errorElement) {
+            errorElement.style.display = "none";
+        }
+    }
+
+    // Ẩn tất cả lỗi khi tải lại trang
+    function clearAllErrors() {
+        document.querySelectorAll(".error-message").forEach(e => e.style.display = "none");
+
     }
 </script>
 <div th:insert="fragments/footer :: footer"></div>
