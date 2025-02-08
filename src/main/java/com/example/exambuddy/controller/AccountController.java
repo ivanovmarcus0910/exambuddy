@@ -2,9 +2,11 @@ package com.example.exambuddy.controller;
 
 import com.example.exambuddy.model.User;
 import com.example.exambuddy.service.FirebaseAuthService;
+import com.example.exambuddy.service.PasswordService;
 import com.example.exambuddy.service.UserService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -29,6 +31,12 @@ import java.nio.file.Paths;
 public class AccountController {
     @Autowired
     private FirebaseAuthService authService;
+    private PasswordService passService;
+
+    public AccountController(PasswordService passService) {
+        this.passService = passService;
+    }
+
     @RequestMapping("/profile")
     public String profilePage(HttpServletRequest request, Model model) {
         Cookie[] cookies = request.getCookies();
@@ -104,5 +112,49 @@ public class AccountController {
                     .body(resource);
         }
         return ResponseEntity.notFound().build();
+    }
+
+    /**
+    Thay đổi mật khẩu
+     */
+    @GetMapping("/changePass")
+    public String changePasswordPage(HttpSession session, Model model) {
+        String username = (String) session.getAttribute("loggedInUser");
+        if (username == null) {
+            return "redirect:/login"; // Nếu chưa đăng nhập, chuyển hướng về login
+        }
+        return "changePass"; // Trả về trang HTML để đổi mật khẩu
+    }
+
+    @PostMapping("/changePass")
+    public String changePassword(@RequestParam String currentPassword,
+                                 @RequestParam String newPassword,
+                                 @RequestParam String confirmPassword,
+                                 HttpSession session,
+                                 Model model) {
+
+        // 🔥 Lấy username của người dùng đã đăng nhập từ session
+        String username = (String) session.getAttribute("loggedInUser");
+        if (username == null) {
+            return "redirect:/login"; // Nếu chưa đăng nhập, chuyển hướng về login
+        }
+
+        // 🔍 Kiểm tra xác nhận mật khẩu mới
+        if (!newPassword.equals(confirmPassword)) {
+            model.addAttribute("error", "Mật khẩu xác nhận không khớp!");
+            return "changePass";
+        }
+
+        System.out.println("📌 Đang thực hiện đổi mật khẩu cho username: " + username);
+
+        // ✅ Gọi `updatePasswordForLoggedInUser` để kiểm tra mật khẩu hiện tại & cập nhật mật khẩu mới
+        boolean isUpdated = passService.updatePasswordForUser(username, currentPassword, newPassword);
+        if (isUpdated) {
+            model.addAttribute("success", "Mật khẩu đã cập nhật thành công!");
+        } else {
+            model.addAttribute("error", "Mật khẩu hiện tại không đúng hoặc có lỗi khi cập nhật!");
+        }
+
+        return "changePass";
     }
 }

@@ -4,6 +4,7 @@ import com.example.exambuddy.model.User;
 import com.google.cloud.firestore.*;
 import com.google.firebase.cloud.FirestoreClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -12,6 +13,8 @@ import java.util.concurrent.TimeUnit;
 public class FirebaseAuthService {
     @Autowired
     private  EmailService emailService;
+    @Autowired
+    private PasswordService passService;
     private static final String COLLECTION_NAME = "users";
     private static final String ACCOUNT_OTP_COLLECTION = "account_verify_otps"; // xac thuc account
     private static final String OTP_COLLECTION = "password_reset_otps"; // quen pass
@@ -21,7 +24,9 @@ public class FirebaseAuthService {
         Firestore firestore = FirestoreClient.getFirestore();
         CollectionReference users = firestore.collection(COLLECTION_NAME);
 
-        User user = new User(null, email, phone, username, password, false); // Chưa xác thực tài khoản
+        // ✅ Mã hóa mật khẩu trước khi lưu vào Firestore
+        String hashedPassword = passService.encodePassword(password);
+        User user = new User(null, email, phone, username, hashedPassword, false); // Chưa xác thực tài khoản
 
         try {
             // ✅ Tạo OTP xác thực tài khoản
@@ -46,6 +51,8 @@ public class FirebaseAuthService {
             return "Error: Không thể gửi OTP xác thực!";
         }
     }
+
+
         /*
         String verificationToken = UUID.randomUUID().toString();
         User user = new User(null, email, phone, username, password, verificationToken);
@@ -91,38 +98,6 @@ public class FirebaseAuthService {
     */
 
     /**
-     * Xác thực tài khoản bằng OTP
-     */
-    public boolean verifyAccountOtp(String email, String otp) {
-        Firestore firestore = FirestoreClient.getFirestore();
-        try {
-            DocumentSnapshot otpSnapshot = firestore.collection(ACCOUNT_OTP_COLLECTION).document(email).get().get();
-            if (!otpSnapshot.exists()) return false;
-
-            OtpRecord otpRecord = otpSnapshot.toObject(OtpRecord.class);
-            if (otpRecord == null || System.currentTimeMillis() > otpRecord.getExpiryTime()) return false;
-            System.out.println("Đã qua đây");
-            if (otpRecord.getOtp().equals(otp)) {
-                // ✅ Cập nhật trạng thái xác thực tài khoản
-                Query query = firestore.collection(COLLECTION_NAME).whereEqualTo("email", email);
-                QuerySnapshot querySnapshot = query.get().get();
-
-                if (!querySnapshot.isEmpty()) {
-                    DocumentSnapshot doc = querySnapshot.getDocuments().get(0);
-                    doc.getReference().update("verified", true);
-                    System.out.println("✅ Tài khoản đã được xác thực: " + email);
-                }
-
-                // ✅ Xóa OTP sau khi xác thực thành công
-                firestore.collection(ACCOUNT_OTP_COLLECTION).document(email).delete();
-                return true;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-    /**
      * Gửi OTP đặt lại mật khẩu và lưu vào Firestore
      */
     public String sendPasswordResetOtp(String email) {
@@ -130,7 +105,7 @@ public class FirebaseAuthService {
         CollectionReference otpCollection = firestore.collection(OTP_COLLECTION);
 
         String otp = emailService.generateOtp();
-        long expiryTime = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(5); // Hết hạn sau 5 phút
+        long expiryTime = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(1); // Hết hạn sau 1 phút
 
         try {
             otpCollection.document(email).set(new OtpRecord(otp, expiryTime));
@@ -176,7 +151,7 @@ public class FirebaseAuthService {
     }
 
     /**
-     * Xác thực OTP trước khi cho phép đặt lại mật khẩu
+     * Xác thực OTP trước khi cho phép đặt lại mật khẩu khi quên mật khẩu
      */
     public boolean verifyOtp(String email, String otp) {
         Firestore firestore = FirestoreClient.getFirestore();
@@ -195,6 +170,39 @@ public class FirebaseAuthService {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    /**
+     * Xác thực tài khoản bằng OTP
+     */
+    public boolean verifyAccountOtp(String email, String otp) {
+        Firestore firestore = FirestoreClient.getFirestore();
+        try {
+            DocumentSnapshot otpSnapshot = firestore.collection(ACCOUNT_OTP_COLLECTION).document(email).get().get();
+            if (!otpSnapshot.exists()) return false;
+
+            OtpRecord otpRecord = otpSnapshot.toObject(OtpRecord.class);
+            if (otpRecord == null || System.currentTimeMillis() > otpRecord.getExpiryTime()) return false;
+            System.out.println("Đã qua đây");
+            if (otpRecord.getOtp().equals(otp)) {
+                // ✅ Cập nhật trạng thái xác thực tài khoản
+                Query query = firestore.collection(COLLECTION_NAME).whereEqualTo("email", email);
+                QuerySnapshot querySnapshot = query.get().get();
+
+                if (!querySnapshot.isEmpty()) {
+                    DocumentSnapshot doc = querySnapshot.getDocuments().get(0);
+                    doc.getReference().update("verified", true);
+                    System.out.println("✅ Tài khoản đã được xác thực: " + email);
+                }
+
+                // ✅ Xóa OTP sau khi xác thực thành công
+                firestore.collection(ACCOUNT_OTP_COLLECTION).document(email).delete();
+                return true;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     static class OtpRecord {
@@ -229,47 +237,25 @@ public class FirebaseAuthService {
         }
     }
 
-
-    public boolean updatePassword(String email, String newPassword) {
-        Firestore firestore = FirestoreClient.getFirestore();
-        try {
-            // Tìm người dùng theo email
-            Query query = firestore.collection(COLLECTION_NAME).whereEqualTo("email", email);
-            QuerySnapshot querySnapshot = query.get().get();
-
-            if (!querySnapshot.isEmpty()) {
-                DocumentSnapshot doc = querySnapshot.getDocuments().get(0);
-                DocumentReference userRef = doc.getReference();
-
-                // Cập nhật mật khẩu mới
-                userRef.update("password", newPassword);
-                System.out.println("✅ Mật khẩu của " + email + " đã được cập nhật!");
-
-                // Xóa OTP sau khi cập nhật mật khẩu thành công
-                firestore.collection(OTP_COLLECTION).document(email).delete();
-
-                return true;
-            } else {
-                System.out.println("❌ Không tìm thấy tài khoản có email: " + email);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println("❌ Lỗi khi cập nhật mật khẩu: " + e.getMessage());
-        }
-        return false;
-    }
-
-
     // Xác thực đăng nhập bằng username & password
     public boolean authenticate(String username, String password) {
         Firestore firestore = FirestoreClient.getFirestore();
         try {
-            DocumentSnapshot userSnapshot = firestore.collection(COLLECTION_NAME).document(username).get().get();
-            if (!userSnapshot.exists()) {
-                return false;
+            // ✅ Lấy mật khẩu mã hóa từ Firestore
+            String hashedPasswordFromDB = passService.getPasswordByUsername(username);
+            if (hashedPasswordFromDB == null) {
+                System.out.println("Không tìm thấy user: "+ username);
+                return false; // Không tìm thấy user
             }
-            User user = userSnapshot.toObject(User.class);
-            return user != null && user.getPassword().equals(password);
+
+            System.out.println("Password nhập vào: "+ password);
+            System.out.println("Password từ Firebase: "+ hashedPasswordFromDB);
+
+            // ✅ So sánh mật khẩu nhập vào với mật khẩu mã hóa trong database
+            boolean match = passService.matches(password, hashedPasswordFromDB);
+            System.out.println("Ket qua la: "+match);
+            return match;
+
         } catch (Exception e) {
             e.printStackTrace();
             return false;
@@ -297,36 +283,6 @@ public class FirebaseAuthService {
             return userSnapshot.exists();
         } catch (Exception e) {
             e.printStackTrace();
-            return false;
-        }
-    }
-
-    public boolean updatePasswordForUser(String username, String currentPassword, String newPassword) {
-        Firestore firestore = FirestoreClient.getFirestore();
-        try {
-            // 🔍 Tìm người dùng theo username trong Firestore
-            DocumentSnapshot userSnapshot = firestore.collection(COLLECTION_NAME).document(username).get().get();
-
-            if (!userSnapshot.exists()) {
-                System.out.println("❌ Không tìm thấy tài khoản với username: " + username);
-                return false;
-            }
-
-            // ✅ Xác thực mật khẩu hiện tại trước khi cập nhật
-            String storedPassword = userSnapshot.getString("password");
-            if (!storedPassword.equals(currentPassword)) {
-                System.out.println("❌ Mật khẩu hiện tại không đúng cho username: " + username);
-                return false;
-            }
-
-            // ✅ Cập nhật mật khẩu mới
-            userSnapshot.getReference().update("password", newPassword);
-            System.out.println("✅ Mật khẩu của " + username + " đã được cập nhật!");
-
-            return true;
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println("❌ Lỗi khi cập nhật mật khẩu: " + e.getMessage());
             return false;
         }
     }

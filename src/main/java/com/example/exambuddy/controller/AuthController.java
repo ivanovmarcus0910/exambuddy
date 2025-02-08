@@ -1,6 +1,7 @@
 package com.example.exambuddy.controller;
 
 import com.example.exambuddy.service.FirebaseAuthService;
+import com.example.exambuddy.service.PasswordService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -18,6 +19,8 @@ public class AuthController {
 
     @Autowired
     private FirebaseAuthService authService;
+    @Autowired
+    private PasswordService passService;
 
     //Tra ve trang login
     @GetMapping("/login")
@@ -51,6 +54,7 @@ public class AuthController {
         }
 
         // Xác thực tài khoản
+
         if (authService.authenticate(username, password)) {
             // Lưu thông tin đăng nhập vào session
             session.setAttribute("loggedInUser", username);
@@ -61,18 +65,22 @@ public class AuthController {
                 Cookie passwordCookie = new Cookie("rememberedPassword", URLEncoder.encode(password, "UTF-8"));
                 Cookie noname = new Cookie("noname", URLEncoder.encode(username, "UTF-8"));
 
-                usernameCookie.setMaxAge(24 * 60 * 60); // Lưu trong 7 ngày
+                usernameCookie.setMaxAge(24 * 60 * 60); // Lưu trong 1 ngày
                 passwordCookie.setMaxAge(24 * 60 * 60);
-                noname.setMaxAge(24 * 60 * 60/7);
+                noname.setMaxAge(24 * 60 * 60);
+
                 usernameCookie.setHttpOnly(false); // Cho phép truy cập từ JavaScript
                 passwordCookie.setHttpOnly(false);
                 noname.setHttpOnly(false);
+
                 usernameCookie.setSecure(false); // Cho phép trên HTTP
                 passwordCookie.setSecure(false);
                 noname.setSecure(false);
+
                 usernameCookie.setPath("/");
                 passwordCookie.setPath("/");
                 noname.setPath("/");
+
                 response.addCookie(usernameCookie);
                 response.addCookie(passwordCookie);
                 response.addCookie(noname);
@@ -80,7 +88,7 @@ public class AuthController {
                 // Xoá cookie nếu không chọn "Ghi nhớ đăng nhập"
                 Cookie[] cookies = request.getCookies();
                 Cookie noname = new Cookie("noname", URLEncoder.encode(username, "UTF-8"));
-                noname.setMaxAge(24 * 60 * 60/7);
+                noname.setMaxAge(24 * 60 * 60);
                 noname.setHttpOnly(false);
                 noname.setSecure(false);
                 response.addCookie(noname);
@@ -111,7 +119,7 @@ public class AuthController {
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
             for (Cookie cookie : cookies) {
-                if ("rememberedUsername".equals(cookie.getName()) || "rememberedPassword".equals(cookie.getName()) || "noname".equals(cookie.getName())) {
+                if ("noname".equals(cookie.getName())) {
                     cookie.setMaxAge(0);
                     cookie.setPath("/");
                     response.addCookie(cookie);
@@ -134,45 +142,6 @@ public class AuthController {
         model.addAttribute("message", result);
         model.addAttribute("email", email);
         return "verifyOTP";
-    }
-
-    @PostMapping("/resendOTP")
-    public String resendOtp(@RequestParam String email, @RequestParam String actionType, Model model) {
-        System.out.println("📩 Đang gửi lại OTP cho email: " + email);
-        String result = authService.resendOtp(email, actionType);
-        model.addAttribute("message", result);
-        model.addAttribute("email", email);
-        model.addAttribute("actionType", actionType);
-
-        return "verifyOTP";
-    }
-
-
-    @PostMapping("/verifyOTP")
-    public String verifyOtp(@RequestParam String email, @RequestParam String otp,
-                            @RequestParam String actionType, Model model) {
-        boolean success;
-
-        if ("register".equals(actionType)) {
-            success = authService.verifyAccountOtp(email, otp);
-        } else {
-            success = authService.verifyOtp(email, otp);
-        }
-
-        if (success) {
-            if ("register".equals(actionType)) {
-                model.addAttribute("message", "Tài khoản đã được xác thực! Hãy đăng nhập.");
-                return "login";
-            } else {
-                model.addAttribute("email", email);
-                return "resetPass";
-            }
-        } else {
-            model.addAttribute("error", "Mã OTP không hợp lệ hoặc đã hết hạn.");
-            model.addAttribute("email", email);
-            model.addAttribute("actionType", actionType);
-            return "verifyOTP";
-        }
     }
 
     @GetMapping("/resetPass")
@@ -206,7 +175,7 @@ public class AuthController {
         }
 
         // Cập nhật mật khẩu
-        boolean isUpdated = authService.updatePassword(email, newPassword);
+        boolean isUpdated = passService.updatePassword(email, newPassword);
         if (isUpdated) {
             model.addAttribute("success", "Mật khẩu đã cập nhật thành công! Hãy đăng nhập lại.");
             return "login";  // Chuyển về trang đăng nhập
@@ -214,47 +183,6 @@ public class AuthController {
             model.addAttribute("error", "Lỗi khi cập nhật mật khẩu. Vui lòng thử lại!");
             return "resetPass";
         }
-    }
-
-    @GetMapping("/changePass")
-    public String changePasswordPage(HttpSession session, Model model) {
-        String username = (String) session.getAttribute("loggedInUser");
-        if (username == null) {
-            return "redirect:/login"; // Nếu chưa đăng nhập, chuyển hướng về login
-        }
-        return "changePass"; // Trả về trang HTML để đổi mật khẩu
-    }
-
-    @PostMapping("/changePass")
-    public String changePassword(@RequestParam String currentPassword,
-                                 @RequestParam String newPassword,
-                                 @RequestParam String confirmPassword,
-                                 HttpSession session,
-                                 Model model) {
-
-        // 🔥 Lấy username của người dùng đã đăng nhập từ session
-        String username = (String) session.getAttribute("loggedInUser");
-        if (username == null) {
-            return "redirect:/login"; // Nếu chưa đăng nhập, chuyển hướng về login
-        }
-
-        // 🔍 Kiểm tra xác nhận mật khẩu mới
-        if (!newPassword.equals(confirmPassword)) {
-            model.addAttribute("error", "Mật khẩu xác nhận không khớp!");
-            return "changePass";
-        }
-
-        System.out.println("📌 Đang thực hiện đổi mật khẩu cho username: " + username);
-
-        // ✅ Gọi `updatePasswordForLoggedInUser` để kiểm tra mật khẩu hiện tại & cập nhật mật khẩu mới
-        boolean isUpdated = authService.updatePasswordForUser(username, currentPassword, newPassword);
-        if (isUpdated) {
-            model.addAttribute("success", "Mật khẩu đã cập nhật thành công!");
-        } else {
-            model.addAttribute("error", "Mật khẩu hiện tại không đúng hoặc có lỗi khi cập nhật!");
-        }
-
-        return "changePass";
     }
 
     // Tra ve trang signup
@@ -317,6 +245,10 @@ public class AuthController {
             return "signup";
         }
 
+        // Mã hoá pass trước khi lưu và db
+        String hashPass = passService.encodePassword(password);
+
+
         /**
          * Đăng ký và gửi email xác thực
          */
@@ -334,7 +266,7 @@ public class AuthController {
         return "register.html";
 
          */
-        String result = authService.registerUser(email, phone, username, password);
+        String result = authService.registerUser(email, phone, username, hashPass);
         model.addAttribute("email", email);
         model.addAttribute("actionType", "register");  // Xác thực tài khoản
         model.addAttribute("message", result);
