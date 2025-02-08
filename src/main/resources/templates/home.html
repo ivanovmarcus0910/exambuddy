@@ -1,7 +1,62 @@
 <!DOCTYPE html>
 <html lang="vi">
 
-<div th:insert="fragments/head :: head"></div>
+
+<style>
+        .search-filter {
+            margin-top: 40px;
+            display: flex;
+            justify-content: center;
+            padding: 20px 0;
+
+        }
+
+        /* Container chứa các phần tử tìm kiếm */
+        .search-container {
+            display: flex;
+            gap: 15px;
+            background: linear-gradient(135deg, #0D0D1A, #1A1A40);
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Các item trong search bar */
+        .search-item {
+            padding: 12px 15px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            width: 200px;
+            color: black;
+        }
+
+        /* Thêm màu nền cho các item khi hover */
+        .search-item:hover {
+            border-color: #007bff;
+            background-color: #f0f8ff;
+        }
+
+        /* Nút tìm kiếm */
+        .search-btn {
+            padding: 12px 20px;
+            font-size: 16px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        /* Thêm hiệu ứng hover cho nút tìm kiếm */
+        .search-btn:hover {
+            background-color: #218838;
+        }
+    </style>
+
+    <div th:insert="fragments/head :: head"></div>
+
 
 <body>
 
@@ -19,33 +74,68 @@
             <img src="hero-image.png" alt="Học viên VR">
         </div>
     </section>
+    <!-- Thanh tìm kiếm -->
+<p class="search-text" style="display: flex; justify-content: center">Tìm kiếm đề thi mong muốn của bạn</p>
+    <section class="search-filter">
+        <div class="search-container">
+
+            <select class="search-item">
+                <option selected>Chọn khối lớp</option>
+                <option value="1">Lớp 10</option>
+                <option value="2">Lớp 11</option>
+                <option value="3">Lớp 12</option>
+            </select>
+
+            <select class="search-item">
+                <option selected>Chọn môn học</option>
+                <option value="math">Toán</option>
+                <option value="physics">Vật lý</option>
+                <option value="chemistry">Hóa học</option>
+            </select>
+
+            <select class="search-item">
+                <option selected>Chọn dạng đề</option>
+                <option value="exam">Đề kiểm tra</option>
+                <option value="practice">Đề luyện tập</option>
+            </select>
+
+            <select class="search-item">
+                <option selected>Chọn thành phố</option>
+                <option value="hanoi">Hà Nội</option>
+                <option value="hcm">Hồ Chí Minh</option>
+            </select>
+
+            <button class="search-btn">Tìm kiếm</button>
+        </div>
+    </section>
+
 
     <section class="popular-exams">
         <div class="exam-grid">
-            <div class="exam-card">Exam Detail</div>
-            <div class="exam-card">Exam Detail</div>
-            <div class="exam-card">Exam Detail</div>
-            <div class="exam-card">Exam Detail</div>
-            <div class="exam-card">Exam Detail</div>
-            <div class="exam-card">Exam Detail</div>
+            <div class="exam-card">Chi tiết đề thi</div>
+            <div class="exam-card">Chi tiết đề thi</div>
+            <div class="exam-card">Chi tiết đề thi</div>
+            <div class="exam-card">Chi tiết đề thi</div>
+            <div class="exam-card">Chi tiết đề thi</div>
+            <div class="exam-card">Chi tiết đề thi</div>
         </div>
 
         <div class="rank-panel">
-            <h4>Rank the highest scoring users</h4>
+            <h4>BXH học sinh có điểm số cao nhất</h4>
             <ul>
-                <li><div class="avatar">A</div> Username1 - Score</li>
-                <li><div class="avatar">B</div> Username2 - Score</li>
-                <li><div class="avatar">C</div> Username3 - Score</li>
-                <li><div class="avatar">D</div> Username4 - Score</li>
-                <li><div class="avatar">E</div> Username5 - Score</li>
+                <li><div class="avatar">A</div> Username1 - Điểm</li>
+                <li><div class="avatar">B</div> Username2 - Điểm</li>
+                <li><div class="avatar">C</div> Username3 - Điểm</li>
+                <li><div class="avatar">D</div> Username4 - Điểm</li>
+                <li><div class="avatar">E</div> Username5 - Điểm</li>
             </ul>
-            <h4>Rank contribution</h4>
+            <h4>BXH đóng góp</h4>
             <ul>
-                <li><div class="avatar">A</div> Username1 - Contribution</li>
-                <li><div class="avatar">B</div> Username2 - Contribution</li>
-                <li><div class="avatar">C</div> Username3 - Contribution</li>
-                <li><div class="avatar">D</div> Username4 - Contribution</li>
-                <li><div class="avatar">E</div> Username5 - Contribution</li>
+                <li><div class="avatar">A</div> Username1 - Điểm đóng góp</li>
+                <li><div class="avatar">B</div> Username2 - Điểm đóng góp</li>
+                <li><div class="avatar">C</div> Username3 - Điểm đóng góp</li>
+                <li><div class="avatar">D</div> Username4 - Điểm đóng góp</li>
+                <li><div class="avatar">E</div> Username5 - Điểm đóng góp</li>
             </ul>
         </div>
     </section>
