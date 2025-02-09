@@ -96,6 +96,7 @@ public class PasswordService {
         try {
             DocumentSnapshot userSnapshot = firestore.collection(COLLECTION_NAME).document(username).get().get();
             if (!userSnapshot.exists()) {
+                System.out.println("❌ Không tìm thấy user với username: " + username);
                 return null;
             }
             return userSnapshot.getString("password"); // Trả về mật khẩu đã mã hóa

@@ -246,7 +246,7 @@ public class AuthController {
         }
 
         // Mã hoá pass trước khi lưu và db
-        String hashPass = passService.encodePassword(password);
+        //String hashPass = passService.encodePassword(password);
 
 
         /**
@@ -266,7 +266,7 @@ public class AuthController {
         return "register.html";
 
          */
-        String result = authService.registerUser(email, phone, username, hashPass);
+        String result = authService.registerUser(email, phone, username, password);
         model.addAttribute("email", email);
         model.addAttribute("actionType", "register");  // Xác thực tài khoản
         model.addAttribute("message", result);

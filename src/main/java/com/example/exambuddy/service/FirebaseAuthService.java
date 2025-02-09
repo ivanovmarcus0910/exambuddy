@@ -24,8 +24,10 @@ public class FirebaseAuthService {
         Firestore firestore = FirestoreClient.getFirestore();
         CollectionReference users = firestore.collection(COLLECTION_NAME);
 
+        System.out.println("Mật khẩu trước khi mã hoá: "+password);
         // ✅ Mã hóa mật khẩu trước khi lưu vào Firestore
         String hashedPassword = passService.encodePassword(password);
+        System.out.println("Mật khẩu sau khi mã hoá: "+hashedPassword);
         User user = new User(null, email, phone, username, hashedPassword, false); // Chưa xác thực tài khoản
 
         try {
@@ -251,7 +253,6 @@ public class FirebaseAuthService {
             System.out.println("Password nhập vào: "+ password);
             System.out.println("Password từ Firebase: "+ hashedPasswordFromDB);
 
-            // ✅ So sánh mật khẩu nhập vào với mật khẩu mã hóa trong database
             boolean match = passService.matches(password, hashedPasswordFromDB);
             System.out.println("Ket qua la: "+match);
             return match;
