@@ -1,0 +1,261 @@
+/* Phông chữ hiện đại */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #0D0D1A, #1A1A40);
+    color: white;
+    animation: fadeIn 1s ease-in-out;
+}
+
+/* Hiệu ứng fade-in */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Gradient màu cho nút */
+.gradient-btn {
+    background: linear-gradient(90deg, #8A2BE2, #3B82F6);
+    transition: all 0.3s ease-in-out;
+}
+
+.gradient-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px rgba(138, 43, 226, 0.5);
+}
+
+/* Form input */
+input {
+    background: transparent;
+    border: 1px solid #555;
+    padding: 12px;
+    border-radius: 8px;
+    color: white;
+    width: 100%;
+}
+
+input:focus {
+    border-color: #8A2BE2;
+    box-shadow: 0px 0px 8px rgba(138, 43, 226, 0.5);
+    transition: all 0.3s ease-in-out;
+    outline: none;
+}
+
+/* Checkbox tùy chỉnh */
+.custom-checkbox {
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border: 2px solid #ffffff;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.custom-checkbox:checked {
+    background-color: #3B82F6;
+    border-color: #3B82F6;
+}
+
+.custom-checkbox:checked::after {
+    content: "✔";
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+/* Layout */
+.login-container {
+    display: flex;
+    height: 100vh;
+    width: 100%;
+}
+
+.left-section {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.login-box {
+    width: 420px;
+}
+
+.right-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: url('https://source.unsplash.com/600x800/?technology,education') no-repeat center center/cover;
+}
+
+/* Font chữ tiêu đề nổi bật */
+.title-text {
+    font-family: 'Poppins', sans-serif;
+    font-size: 31px; /* Tăng kích thước chữ */
+    font-weight: 500; /* Chữ đậm hơn */
+    color: white; /* Giữ màu trắng */
+    text-transform: uppercase; /* Chữ in hoa */
+    letter-spacing: 1px; /* Giãn chữ nhẹ */
+}
+
+/* Font chữ mô tả nhỏ hơn */
+.subtitle-text {
+    font-family: 'Poppins', sans-serif;
+    font-size: 15px; /* Nhỏ hơn tiêu đề */
+    color: #B0B0B0; /* Màu xám nhẹ */
+    margin-top: 9px;
+}
+
+/* Căn chỉnh toàn bộ input field sang phải một chút */
+.input-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* Giữ canh lề trái nhưng cách vào trong */
+    margin-left: 14px; /* Dịch chuyển phần này sang phải */
+    width: 100%;
+    max-width: 370px; /* Giới hạn chiều rộng */
+    position: relative;
+
+}
+
+/* Căn chỉnh ô nhập */
+.input-field {
+    width: 100%;
+    padding: 10px;
+    font-size: 14px;
+    border: 1px solid #555;
+    border-radius: 12px;
+    background: transparent;
+    color: white;
+    margin-top: 5px; /* Tăng khoảng cách giữa label và input */
+
+}
+
+/* Khi focus vào input */
+.input-field:focus {
+    border-color: #8A2BE2;
+    box-shadow: 0px 0px 8px rgba(138, 43, 226, 0.5);
+    transition: all 0.3s ease-in-out;
+    outline: none;
+}
+
+/* Căn chỉnh khoảng cách của label */
+.input-label {
+    display: block;
+    color: white;
+    font-size: 14px;
+    margin-bottom: 4px; /* Khoảng cách giữa chữ và ô nhập */
+    margin-top: 12px; /* Dời phần label xuống dưới 1 chút */
+    margin-left: 10px;
+}
+
+/* Căn chỉnh phần Ghi nhớ & Quên mật khẩu theo chiều rộng của ô nhập */
+.remember-forgot-container {
+    display: flex;
+    justify-content: space-between; /* Căn 2 phần về 2 phía */
+    align-items: center;
+    width: 95%; /* Đồng nhất với ô nhập mật khẩu */
+    max-width: 370px; /* Giới hạn chiều rộng tối đa */
+    margin-left: 14px; /* Dịch sang phải một chút */
+    margin-top: 15px; /* Tạo khoảng cách với ô nhập trên */
+    margin-bottom: 25px;
+    font-size: 13px;
+}
+
+/* Căn giữa phần "Hoặc tiếp tục với" */
+.social-login-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin: auto;
+    margin-left: 14px;
+    margin-top: 16px;
+    max-width: 370px;
+    text-align: center;
+    position: relative;
+}
+
+/* Định dạng đoạn gạch ngang 2 bên */
+.social-login-container::before,
+.social-login-container::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: #555;
+    margin: 0 10px;
+}
+
+/* Nút đăng nhập mạng xã hội */
+.social-buttons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    margin: auto;
+    margin-right: 18px;
+    margin-top: 12px;
+}
+
+/* Nút đăng nhập đồng bộ với ô nhập */
+.login-button {
+    width: 95%; /* Giống với ô nhập */
+    max-width: 370px; /* Giới hạn chiều rộng */
+    padding: 12px;
+    font-size: 15px;
+    text-align: center;
+    border-radius: 12px;
+    background: linear-gradient(90deg, #8A2BE2, #3B82F6);
+    transition: all 0.3s ease-in-out;
+    cursor: pointer;
+    margin-left: 14px;
+    margin-bottom: 10px;
+}
+
+/* Điều chỉnh kích thước và căn giữa icon */
+.social-buttons button {
+    width: 48px; /* Kích thước tròn */
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: white;
+    border: none;
+    padding: 0;
+    transition: transform 0.2s ease-in-out;
+}
+
+.social-buttons button:hover {
+    transform: scale(1.1);
+}
+
+/* Đảm bảo icon ở chính giữa */
+.social-buttons img {
+    width: 20px;
+    height: 20px;
+    display: block;
+    margin: auto;
+}
+
+.eye-icon {
+    position: absolute;
+    right: 15px;  /* Điều chỉnh khoảng cách với mép phải */
+    top: 75%;
+    transform: translateY(-50%);
+    width: 20px;  /* Kích thước phù hợp */
+    height: 20px;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.3s;
+}
+
+.eye-icon:hover {
+    opacity: 1;
+}
