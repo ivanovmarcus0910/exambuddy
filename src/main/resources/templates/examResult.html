@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Kết quả bài thi</title>
+</head>
+<body>
+<h2>Kết quả bài thi: <span th:text="${exam.title}"></span></h2>
+<p>Điểm của bạn: <b th:text="${score}"></b>/<b th:text="${totalQuestions}"></b></p>
+<a href="/exams">Quay lại danh sách đề thi</a>
+</body>
+</html>
