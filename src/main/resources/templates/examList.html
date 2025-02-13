@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Danh sách đề thi</title>
+</head>
+<body>
+<h2>Danh sách đề thi</h2>
+<ul>
+  <li th:each="exam : ${exams}">
+    <span th:text="${exam.examName}"></span> - <span th:text="${exam.subject}"></span>
+
+    <!-- Kiểm tra examID có tồn tại không -->
+    <div th:if="${exam.examID}">
+      <form th:action="@{/exams/{id}/detail(id=${exam.examID})}" method="get" style="display: inline;">
+        <button type="submit">Xem chi tiết</button>
+      </form>
+
+      <form th:action="@{/exams/{id}/start(id=${exam.examID})}" method="get" style="display: inline;">
+        <button type="submit">Làm bài</button>
+      </form>
+    </div>
+    <div th:unless="${exam.examID}">
+      <span style="color: red;">Lỗi: examID không tồn tại!</span>
+    </div>
+  </li>
+</ul>
+</body>
+</html>

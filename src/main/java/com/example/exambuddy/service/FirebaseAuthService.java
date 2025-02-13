@@ -28,7 +28,7 @@ public class FirebaseAuthService {
         // ✅ Mã hóa mật khẩu trước khi lưu vào Firestore
         String hashedPassword = passService.encodePassword(password);
         System.out.println("Mật khẩu sau khi mã hoá: "+hashedPassword);
-        User user = new User(null, email, phone, username, hashedPassword, false); // Chưa xác thực tài khoản
+        User user = new User(username, email, phone, username, hashedPassword, false); // Chưa xác thực tài khoản
 
         try {
             // ✅ Tạo OTP xác thực tài khoản
