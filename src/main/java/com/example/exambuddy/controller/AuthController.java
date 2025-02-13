@@ -7,6 +7,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -29,6 +31,23 @@ public class AuthController {
             return "redirect:/home"; // Nếu đã đăng nhập, chuyển hướng về home
         }
         return "login"; // Nếu chưa đăng nhập, hiển thị trang login
+    }
+
+    // Xử lý đăng nhập OAuth2
+    @GetMapping("/oauth2/success")
+    public String oauth2LoginSuccess(@AuthenticationPrincipal OidcUser oidcUser, HttpSession session) {
+        if (oidcUser != null) {
+            String email = oidcUser.getAttribute("email");
+            session.setAttribute("loggedInUser", email);
+            return "redirect:/home";
+        }
+        return "redirect:/login";
+    }
+
+    @GetMapping("/oauth2/failure")
+    public String oauth2LoginFailure(Model model) {
+        model.addAttribute("error", "Đăng nhập bằng Google/Facebook thất bại!");
+        return "login";
     }
 
     // Điều hướng trang Home

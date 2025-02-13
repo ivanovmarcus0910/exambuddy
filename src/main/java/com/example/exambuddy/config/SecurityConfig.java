@@ -1,4 +1,4 @@
-package com.example.exambuddy.security;
+package com.example.exambuddy.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,8 +17,14 @@ public class SecurityConfig {
                 .cors(cors -> cors.disable()) // Tắt CORS của Spring Security
                 .csrf(csrf -> csrf.disable()) // Tắt CSRF để tránh lỗi Forbidden
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/users/register","/api/users/login","/api/users/verify").permitAll() // Cho phép truy cập tất cả API
+                        //.requestMatchers("/api/users/register","/api/users/login","/api/users/verify").permitAll() // Cho phép truy cập tất cả API
+                        //.requestMatchers("/signup").permitAll()
                         .anyRequest().permitAll() // Cho phép tất cả request khác
+                )
+                .logout(logout -> logout
+                        .logoutUrl("/logout") // Đường dẫn logout
+                        .deleteCookies("noname") // Xóa cookie "noname"
+                        .logoutSuccessUrl("/home") // Chuyển hướng sau khi logout
                 );
 
 
