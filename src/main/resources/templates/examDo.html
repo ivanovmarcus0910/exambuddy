@@ -5,14 +5,16 @@
     <title>Làm bài thi</title>
 </head>
 <body>
-<h2 th:text="${exam.title}"></h2>
+<p><strong>Tên đề:</strong> <span th:text="${exam.examName}"></span></p>
+<p><strong>Môn học:</strong> <span th:text="${exam.subject}"></span></p>
+
 <form th:action="@{/exams/{id}/submit(id=${exam.examID})}" method="post">
     <ul>
         <li th:each="question, i : ${exam.questions}">
             <p th:text="${question.questionText}"></p>
             <ul>
                 <li th:each="option, j : ${question.options}">
-                    <input type="radio" th:name="'q' + ${i.index}" th:value="${j}">
+                    <input type="checkbox" th:name="'q' + ${i.index} + '[]'" th:value="${j.index}">
                     <span th:text="${option}"></span>
                 </li>
             </ul>

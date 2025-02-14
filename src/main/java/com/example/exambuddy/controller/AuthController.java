@@ -51,12 +51,8 @@ public class AuthController {
             UserService.saveOAuth2User(email, name, picture);
 
             session.setAttribute("loggedInUser", email);
-
             // Thêm cookie noname để thống nhất với đăng nhập thường
-            Cookie nonameCookie = new Cookie("noname", URLEncoder.encode(email, "UTF-8"));
-            nonameCookie.setMaxAge(24 * 60 * 60);
-            nonameCookie.setPath("/");
-            response.addCookie(nonameCookie);
+            cookieService.setCookie(response, "noname", URLEncoder.encode(email, "UTF-8"));
             System.out.println("Đăng nhập Google thành công với email: " + email);;
             return "redirect:/home";
         }
@@ -242,27 +238,7 @@ public class AuthController {
             return "signup";
         }
 
-        // Mã hoá pass trước khi lưu và db
-        //String hashPass = passService.encodePassword(password);
 
-
-        /**
-         * Đăng ký và gửi email xác thực
-         */
-        /*
-        System.out.println("👉 Đăng ký người dùng: " + email);
-        String result = authService.registerUser(email, phone, username, password);
-        if (result.startsWith("Error")) {
-            model.addAttribute("error", result);
-            return "signup";
-        }
-        System.out.println("👉 Gửi email xác thực với token: " + result);
-
-        // Chuyển đến trang register.html
-        model.addAttribute("email", email);
-        return "register.html";
-
-         */
         String result = authService.registerUser(email, phone, username, password);
         model.addAttribute("email", email);
         model.addAttribute("actionType", "register");  // Xác thực tài khoản

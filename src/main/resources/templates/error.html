@@ -26,7 +26,8 @@
 <main>
   <section class="error-container">
     <h1 class="error-message">Đã có lỗi xảy ra!</h1>
-    <p class="error-details">Xin lỗi, có một vấn đề xảy ra trong quá trình thực hiện. Vui lòng thử lại sau hoặc liên hệ với chúng tôi nếu cần hỗ trợ.</p>
+    <span th:text="${error}"></span>
+    <p class="error-details">Vui lòng thử lại sau hoặc liên hệ với chúng tôi nếu cần hỗ trợ.</p>
     <a href="/home">
       <button class="back-btn">Trở về trang chủ</button>
     </a>

@@ -1,10 +1,7 @@
 package com.example.exambuddy.controller;
 
 import com.example.exambuddy.model.User;
-import com.example.exambuddy.service.CloudinaryService;
-import com.example.exambuddy.service.FirebaseAuthService;
-import com.example.exambuddy.service.PasswordService;
-import com.example.exambuddy.service.UserService;
+import com.example.exambuddy.service.*;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -32,31 +29,23 @@ import java.nio.file.Paths;
 public class AccountController {
     @Autowired
     private FirebaseAuthService authService;
+    @Autowired
     private PasswordService passService;
+    @Autowired
+
     private CloudinaryService cloudinaryService=new CloudinaryService();
+    @Autowired
+    private CookieService cookieService;
     public AccountController(PasswordService passService) {
         this.passService = passService;
     }
 
     @RequestMapping("/profile")
     public String profilePage(HttpServletRequest request, Model model) {
-        Cookie[] cookies = request.getCookies();
-        String username = null;
 
-        // Duyệt qua tất cả các cookie để tìm cookie có tên "rememberedUsername"
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                if ("noname".equals(cookie.getName())) {
-                    try {
-                        // Giải mã giá trị cookie nếu có
-                        username = URLDecoder.decode(cookie.getValue(), "UTF-8");
-                    } catch (UnsupportedEncodingException e) {
-                        e.printStackTrace();
-                    }
-                    break;
-                }
-            }
-        }
+        // Duyệt qua tất cả các cookie để tìm cookie có tên "noname"
+
+        String username = URLDecoder.decode(cookieService.getCookie(request,"noname"));
 
         if (username != null) {
             // Lấy thông tin người dùng từ dịch vụ với username đã tìm thấy
@@ -64,7 +53,6 @@ public class AccountController {
             User user = userService.getUserData(username);
             model.addAttribute("user", user);
         } else {
-            // Xử lý khi không có cookie "rememberedUsername"
             model.addAttribute("user", null);
         }
         return "profile";

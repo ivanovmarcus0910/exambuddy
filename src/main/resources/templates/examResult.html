@@ -5,8 +5,30 @@
   <title>Kết quả bài thi</title>
 </head>
 <body>
-<h2>Kết quả bài thi: <span th:text="${exam.title}"></span></h2>
 <p>Điểm của bạn: <b th:text="${score}"></b>/<b th:text="${totalQuestions}"></b></p>
+
+<h3>Chi tiết bài làm</h3>
+<ul>
+  <li th:each="question, i : ${exam.questions}">
+    <p><b>Câu hỏi:</b> <span th:text="${question.questionText}"></span></p>
+
+    <!-- Hiển thị các lựa chọn -->
+    <ul>
+      <li th:each="option, j : ${question.options}">
+        <input type="checkbox" th:checked="${userAnswers[i.index] != null && userAnswers[i.index].contains(j)}" disabled>
+        <span th:text="${option}"></span>
+
+        <!-- Đánh dấu đáp án đúng -->
+        <span th:if="${question.correctAnswers.contains(j)}" style="color: green; font-weight: bold;">(Đáp án đúng)</span>
+      </li>
+    </ul>
+
+    <!-- Đánh dấu câu đúng/sai -->
+    <p style="color: red;" th:if="${!correctQuestions.contains(i.index)}">❌ Sai</p>
+    <p style="color: green;" th:if="${correctQuestions.contains(i.index)}">✅ Đúng</p>
+  </li>
+</ul>
+
 <a href="/exams">Quay lại danh sách đề thi</a>
 </body>
 </html>

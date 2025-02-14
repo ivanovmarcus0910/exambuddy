@@ -12,23 +12,26 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.ui.Model;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Controller
-@RequestMapping("/exams")
 public class ManageExamController {
 
     private Firestore db = FirestoreClient.getFirestore();
     @Autowired
     private CookieService cookieService;
-    @GetMapping
+    @Autowired
+    private ExamService examService;
+
+    @GetMapping("/exams")
     public String listExams(Model model) {
         try {
-            ExamService eS = new ExamService();
-            List<Exam> exams = eS.getExamList();
+            List<Exam> exams = examService.getExamList();
             model.addAttribute("exams", exams);
             return "examList"; // Trả về trang hiển thị danh sách đề thi
         } catch (Exception e) {
@@ -37,153 +40,105 @@ public class ManageExamController {
         }
     }
 
-    @GetMapping("/{examId}")
-    public String getExam(@PathVariable String examId, Model model) {
+    @GetMapping("/exams/{examId}/detail")
+    public String getExamDetail(@PathVariable String examId, Model model) {
         try {
-            DocumentReference examRef = db.collection("exams").document(examId);
-            DocumentSnapshot document = examRef.get().get();
-
-            if (!document.exists()) {
-                model.addAttribute("error", "Đề thi không tồn tại!");
-                return "error";
-            }
-
-            Exam exam = document.toObject(Exam.class);
+            Exam exam = examService.getExam(examId);
             model.addAttribute("exam", exam);
+            model.addAttribute("questions", exam.getQuestions());
             return "examDetail"; // Trả về trang HTML hiển thị đề thi
         } catch (Exception e) {
             model.addAttribute("error", "Lỗi khi tải đề thi: " + e.getMessage());
             return "error";
         }
     }
-    @GetMapping("/{id}/do")
-    public String doExam(@PathVariable String id, HttpSession session, HttpServletRequest request, HttpServletResponse response, Model model) {
+
+    @GetMapping("/exams/{examId}/do")
+    public String doExam(@PathVariable String examId, HttpSession session, HttpServletRequest request, HttpServletResponse response, Model model) {
         try {
             if (session.getAttribute("loggedInUser") == null) {
-                return "redirect:/home"; // Nếu đã đăng nhập, chuyển hướng về home
+                return "redirect:/home"; // Nếu chưa đăng nhập, chuyển hướng về home
             }
+
+            Exam exam = examService.getExam(examId);
+            model.addAttribute("exam", exam);
+            model.addAttribute("questions", exam.getQuestions()); // Gửi danh sách câu hỏi qua view
 
             Map<String, Object> examSession = new HashMap<>();
             examSession.put("startTime", System.currentTimeMillis()); // Lưu thời gian hiện tại
-            String username = cookieService.getCookie(request,"noname");
+            String username = cookieService.getCookie(request, "noname");
             examSession.put("username", username);
-            examSession.put("examId", id);
+            examSession.put("examId", examId);
+            db.collection("exam_sessions").document(username + "_" + examId).set(examSession);
 
-            db.collection("exam_sessions").document(username + "_" + id).set(examSession);
-
-            DocumentSnapshot document = db.collection("exams").document(id).get().get();
-            if (!document.exists()) {
-                model.addAttribute("error", "Đề thi không tồn tại!");
-                return "error";
-            }
-
-            // Chuyển dữ liệu document thành đối tượng Exam
-            Exam exam = document.toObject(Exam.class);
-            exam.setExamID(document.getId());
-
-            // Lấy danh sách câu hỏi từ subcollection "questions"
-            List<Question> questions = new ArrayList<>();
-            ApiFuture<QuerySnapshot> future = db.collection("exams").document(id).collection("questions").get();
-            List<QueryDocumentSnapshot> questionDocs = future.get().getDocuments();
-
-            for (QueryDocumentSnapshot questionDoc : questionDocs) {
-                Question question = questionDoc.toObject(Question.class);
-                questions.add(question);
-            }
-
-            exam.setQuestions(questions);
-            model.addAttribute("exam", exam);
-            model.addAttribute("questions", questions); // Gửi danh sách câu hỏi qua view
-
-            return "examDo"; // Trả về trang chi tiết đề thi
+            return "examDo";
         } catch (Exception e) {
             model.addAttribute("error", "Lỗi khi lấy đề thi: " + e.getMessage());
             return "error";
         }
     }
-//    @PostMapping("/{examId}/submit")
-//    public String submitExam(@PathVariable String examId, @RequestParam Map<String, String> answers, Model model) {
-//        try {
-//            DocumentReference examRef = db.collection("exams").document(examId);
-//            DocumentSnapshot document = examRef.get().get();
-//
-//            if (!document.exists()) {
-//                model.addAttribute("error", "Đề thi không tồn tại!");
-//                return "error";
-//            }
-//
-//            Exam exam = document.toObject(Exam.class);
-//            List<Question> questions = exam.getQuestions();
-//
-//            int score = 0;
-//            for (int i = 0; i < questions.size(); i++) {
-//                String answerKey = "q" + i;
-//                if (answers.containsKey(answerKey) && answers.get(answerKey) != null) {
-//                    try {
-//                        int userAnswer = Integer.parseInt(answers.get(answerKey));
-//                        int correctAnswer = Integer.parseInt(questions.get(i).getCorrectAnswers()); // Nếu đúng là String
-//
-//                        if (userAnswer == correctAnswer) {
-//                            score++;
-//                        }
-//                    } catch (NumberFormatException e) {
-//                        System.out.println("Lỗi: Đáp án không hợp lệ - " + answers.get(answerKey));
-//                    }
-//                }
-//            }
-//
-//            model.addAttribute("exam", exam);
-//            model.addAttribute("score", score);
-//            model.addAttribute("totalQuestions", questions.size());
-//
-//            return "examResult";
-//        } catch (Exception e) {
-//            model.addAttribute("error", "Lỗi khi chấm điểm: " + e.getMessage());
-//            return "error";
-//        }
-//    }
 
-    @GetMapping("/{id}/detail")
-    public String viewExamDetail(@PathVariable String id, Model model) {
+    @PostMapping("exams/{examId}/submit")
+    public String submitExam(@PathVariable String examId, @RequestParam MultiValueMap<String, String> userAnswers, Model model) {
+
+        userAnswers.forEach((questionID, answers) ->
+                System.out.println("Câu " + questionID + " => " + answers)
+        );
+
+        // Chuyển đổi dữ liệu thành map đúng
+        Map<String, List<Integer>> parsedAnswers = new HashMap<>();
+        for (Map.Entry<String, List<String>> entry : userAnswers.entrySet()) {
+            List<Integer> selectedIndexes = entry.getValue().stream()
+                    .map(Integer::parseInt) // Chuyển từ String sang Integer
+                    .collect(Collectors.toList());
+            parsedAnswers.put(entry.getKey(), selectedIndexes);
+        }
+
+        // In ra kết quả sau khi parse
+
+
         try {
-            DocumentSnapshot document = db.collection("exams").document(id).get().get();
-            if (!document.exists()) {
-                model.addAttribute("error", "Đề thi không tồn tại!");
-                return "error";
+            Exam exam = examService.getExam(examId);
+            List<Question> questions = exam.getQuestions();
+            int totalQuestions = exam.getQuestions().size();
+            int correctCount = 0;
+            Question question ;
+            List<String> correctQuestions = new ArrayList<>();
+            for (int i = 0; i < totalQuestions; i++) {
+                String questionKey = "q" + i;
+                question = questions.get(i);
+
+                List<Integer> correctAnswers = question.getCorrectAnswers(); // Đáp án đúng
+                List<Integer> userSelected = parsedAnswers.getOrDefault(questionKey, new ArrayList<>()); // Đáp án người dùng chọn
+
+                // So sánh danh sách đáp án đúng với đáp án người dùng chọn
+                if (new HashSet<>(correctAnswers).equals(new HashSet<>(userSelected))) {
+                    correctCount++;
+                    correctQuestions.add(questionKey); // Thêm vào danh sách câu đúng
+                }
             }
 
-            // Chuyển dữ liệu document thành đối tượng Exam
-            Exam exam = document.toObject(Exam.class);
-            exam.setExamID(document.getId());
+            double score = (double) correctCount / totalQuestions * 10;
 
-            // Lấy danh sách câu hỏi từ subcollection "questions"
-            List<Question> questions = new ArrayList<>();
-            ApiFuture<QuerySnapshot> future = db.collection("exams").document(id).collection("questions").get();
-            List<QueryDocumentSnapshot> questionDocs = future.get().getDocuments();
-
-            for (QueryDocumentSnapshot questionDoc : questionDocs) {
-                Question question = questionDoc.toObject(Question.class);
-                questions.add(question);
-            }
-
-            exam.setQuestions(questions);
             model.addAttribute("exam", exam);
-            model.addAttribute("questions", questions); // Gửi danh sách câu hỏi qua view
-
-            return "examDetail"; // Trả về trang chi tiết đề thi
+            model.addAttribute("score", score);
+            model.addAttribute("totalQuestions", questions.size());
+            model.addAttribute("userAnswers", userAnswers);
+            model.addAttribute("correctQuestions", correctQuestions);
+            return "examResult";
         } catch (Exception e) {
-            model.addAttribute("error", "Lỗi khi lấy đề thi: " + e.getMessage());
+            model.addAttribute("error", "Lỗi khi nộp bài: " + e.getMessage());
             return "error";
         }
     }
 
 
-    @GetMapping("/addExam")
+    @GetMapping("/exams/addExam")
     public String addQuestionPage() {
         return "addExam.html";
     }
 
-    @PostMapping("/addExam")
+    @PostMapping("/exams/addExam")
     public String addQuestion(@RequestBody Map<String, Object> examData) {
         try {
             // Tạo ID ngẫu nhiên cho đề thi
