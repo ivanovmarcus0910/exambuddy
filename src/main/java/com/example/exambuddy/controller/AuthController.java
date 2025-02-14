@@ -1,7 +1,9 @@
 package com.example.exambuddy.controller;
 
+import com.example.exambuddy.service.CookieService;
 import com.example.exambuddy.service.FirebaseAuthService;
 import com.example.exambuddy.service.PasswordService;
+import com.example.exambuddy.service.UserService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -23,7 +25,8 @@ public class AuthController {
     private FirebaseAuthService authService;
     @Autowired
     private PasswordService passService;
-
+    @Autowired
+    private CookieService cookieService;
     //Tra ve trang login
     @GetMapping("/login")
     public String showLoginPage(HttpSession session) {
@@ -77,50 +80,16 @@ public class AuthController {
         if (authService.authenticate(username, password)) {
             // Lưu thông tin đăng nhập vào session
             session.setAttribute("loggedInUser", username);
-
-
             if (rememberMe) {
-                Cookie usernameCookie = new Cookie("rememberedUsername", URLEncoder.encode(username, "UTF-8"));
-                Cookie passwordCookie = new Cookie("rememberedPassword", URLEncoder.encode(password, "UTF-8"));
-                Cookie noname = new Cookie("noname", URLEncoder.encode(username, "UTF-8"));
-
-                usernameCookie.setMaxAge(24 * 60 * 60); // Lưu trong 1 ngày
-                passwordCookie.setMaxAge(24 * 60 * 60);
-                noname.setMaxAge(24 * 60 * 60);
-
-                usernameCookie.setHttpOnly(false); // Cho phép truy cập từ JavaScript
-                passwordCookie.setHttpOnly(false);
-                noname.setHttpOnly(false);
-
-                usernameCookie.setSecure(false); // Cho phép trên HTTP
-                passwordCookie.setSecure(false);
-                noname.setSecure(false);
-
-                usernameCookie.setPath("/");
-                passwordCookie.setPath("/");
-                noname.setPath("/");
-
-                response.addCookie(usernameCookie);
-                response.addCookie(passwordCookie);
-                response.addCookie(noname);
+                cookieService.setCookie(response, "rememberedUsername", URLEncoder.encode(username, "UTF-8"));
+                cookieService.setCookie(response, "rememberedPassword", URLEncoder.encode(password, "UTF-8"));
+                cookieService.setCookie(response, "noname", URLEncoder.encode(username, "UTF-8"));
             } else {
                 // Xoá cookie nếu không chọn "Ghi nhớ đăng nhập"
-                Cookie[] cookies = request.getCookies();
-                Cookie noname = new Cookie("noname", URLEncoder.encode(username, "UTF-8"));
-                noname.setMaxAge(24 * 60 * 60);
-                noname.setHttpOnly(false);
-                noname.setSecure(false);
-                response.addCookie(noname);
+                cookieService.setCookie(response, "noname", URLEncoder.encode(username, "UTF-8"));
+                cookieService.removeCookie(response,"rememberedUsername");
+                cookieService.removeCookie(response,"rememberedPassword");
 
-                if (cookies != null) {
-                    for (Cookie cookie : cookies) {
-                        if ("rememberedUsername".equals(cookie.getName()) || "rememberedPassword".equals(cookie.getName())) {
-                            cookie.setMaxAge(0);
-                            cookie.setPath("/");
-                            response.addCookie(cookie);
-                        }
-                    }
-                }
             }
             return "redirect:/home";
         }
@@ -135,16 +104,9 @@ public class AuthController {
     public String logout(HttpSession session, HttpServletResponse response, HttpServletRequest request) {
         session.removeAttribute("loggedInUser");
         session.invalidate();
-        Cookie[] cookies = request.getCookies();
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                if ("noname".equals(cookie.getName())) {
-                    cookie.setMaxAge(0);
-                    cookie.setPath("/");
-                    response.addCookie(cookie);
-                }
-            }
-        }
+        cookieService.removeCookie(response,"rememberedUsername");
+        cookieService.removeCookie(response,"rememberedPassword");
+        cookieService.removeCookie(response,"noname");
         System.out.println("Đã logout");
         return "home"; // Chuyển hướng về trang home, đảm bảo session đã bị xóa
     }

@@ -2,24 +2,28 @@ package com.example.exambuddy.controller;
 
 import com.example.exambuddy.model.Exam;
 import com.example.exambuddy.model.Question;
+import com.example.exambuddy.service.CookieService;
 import com.example.exambuddy.service.ExamService;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.*;
 import com.google.firebase.cloud.FirestoreClient;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.ui.Model;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-import java.util.Map;
+import java.util.*;
 
 @Controller
 @RequestMapping("/exams")
 public class ManageExamController {
-    private Firestore db = FirestoreClient.getFirestore();
 
+    private Firestore db = FirestoreClient.getFirestore();
+    @Autowired
+    private CookieService cookieService;
     @GetMapping
     public String listExams(Model model) {
         try {
@@ -49,6 +53,51 @@ public class ManageExamController {
             return "examDetail"; // Trả về trang HTML hiển thị đề thi
         } catch (Exception e) {
             model.addAttribute("error", "Lỗi khi tải đề thi: " + e.getMessage());
+            return "error";
+        }
+    }
+    @GetMapping("/{id}/do")
+    public String doExam(@PathVariable String id, HttpSession session, HttpServletRequest request, HttpServletResponse response, Model model) {
+        try {
+            if (session.getAttribute("loggedInUser") == null) {
+                return "redirect:/home"; // Nếu đã đăng nhập, chuyển hướng về home
+            }
+
+            Map<String, Object> examSession = new HashMap<>();
+            examSession.put("startTime", System.currentTimeMillis()); // Lưu thời gian hiện tại
+            String username = cookieService.getCookie(request,"noname");
+            examSession.put("username", username);
+            examSession.put("examId", id);
+
+            db.collection("exam_sessions").document(username + "_" + id).set(examSession);
+
+            DocumentSnapshot document = db.collection("exams").document(id).get().get();
+            if (!document.exists()) {
+                model.addAttribute("error", "Đề thi không tồn tại!");
+                return "error";
+            }
+
+            // Chuyển dữ liệu document thành đối tượng Exam
+            Exam exam = document.toObject(Exam.class);
+            exam.setExamID(document.getId());
+
+            // Lấy danh sách câu hỏi từ subcollection "questions"
+            List<Question> questions = new ArrayList<>();
+            ApiFuture<QuerySnapshot> future = db.collection("exams").document(id).collection("questions").get();
+            List<QueryDocumentSnapshot> questionDocs = future.get().getDocuments();
+
+            for (QueryDocumentSnapshot questionDoc : questionDocs) {
+                Question question = questionDoc.toObject(Question.class);
+                questions.add(question);
+            }
+
+            exam.setQuestions(questions);
+            model.addAttribute("exam", exam);
+            model.addAttribute("questions", questions); // Gửi danh sách câu hỏi qua view
+
+            return "examDo"; // Trả về trang chi tiết đề thi
+        } catch (Exception e) {
+            model.addAttribute("error", "Lỗi khi lấy đề thi: " + e.getMessage());
             return "error";
         }
     }

@@ -13,19 +13,10 @@
 <ul>
   <li th:each="question : ${questions}">
     <p><strong>Câu hỏi:</strong> <span th:text="${question.questionText}"></span></p>
-    <ul>
-      <li th:each="option, index : ${question.options}">
-        <input type="checkbox"
-               th:name="'q' + ${question.questionText}"
-               th:value="${index}"
-               th:checked="${#lists.contains(question.correctAnswers, index)}" />
-        <span th:text="${option}"></span>
-      </li>
-    </ul>
   </li>
 </ul>
 
-<form th:action="@{/exams/{id}/start(id=${exam.examID})}" method="get">
+<form th:action="@{/exams/{id}/do(id=${exam.examID})}" method="get">
   <button type="submit">Bắt đầu làm bài</button>
 </form>
 </body>
