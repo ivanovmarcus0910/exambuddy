@@ -21,6 +21,11 @@ public class SecurityConfig {
                         //.requestMatchers("/signup").permitAll()
                         .anyRequest().permitAll() // Cho phép tất cả request khác
                 )
+                .oauth2Login(oauth2 -> oauth2
+                        .loginPage("/login")
+                        .defaultSuccessUrl("/oauth2/success", true)
+                        .failureUrl("/oauth2/failure")
+                )
                 .logout(logout -> logout
                         .logoutUrl("/logout") // Đường dẫn logout
                         .deleteCookies("noname") // Xóa cookie "noname"

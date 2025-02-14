@@ -2,6 +2,7 @@ package com.example.exambuddy.controller;
 
 import com.example.exambuddy.service.FirebaseAuthService;
 import com.example.exambuddy.service.PasswordService;
+import com.example.exambuddy.service.UserService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -23,6 +24,8 @@ public class AuthController {
     private FirebaseAuthService authService;
     @Autowired
     private PasswordService passService;
+    @Autowired
+    private UserService userService;
 
     //Tra ve trang login
     @GetMapping("/login")
@@ -35,10 +38,23 @@ public class AuthController {
 
     // Xử lý đăng nhập OAuth2
     @GetMapping("/oauth2/success")
-    public String oauth2LoginSuccess(@AuthenticationPrincipal OidcUser oidcUser, HttpSession session) {
+    public String oauth2LoginSuccess(@AuthenticationPrincipal OidcUser oidcUser, HttpSession session, HttpServletResponse response) throws UnsupportedEncodingException {
         if (oidcUser != null) {
             String email = oidcUser.getAttribute("email");
+            String name = oidcUser.getAttribute("name");
+            String picture = oidcUser.getAttribute("picture");
+
+            // Lưu thông tin vào Firestore nếu chưa có
+            UserService.saveOAuth2User(email, name, picture);
+
             session.setAttribute("loggedInUser", email);
+
+            // Thêm cookie noname để thống nhất với đăng nhập thường
+            Cookie nonameCookie = new Cookie("noname", URLEncoder.encode(email, "UTF-8"));
+            nonameCookie.setMaxAge(24 * 60 * 60);
+            nonameCookie.setPath("/");
+            response.addCookie(nonameCookie);
+            System.out.println("Đăng nhập Google thành công với email: " + email);;
             return "redirect:/home";
         }
         return "redirect:/login";
