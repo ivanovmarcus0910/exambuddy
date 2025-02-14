@@ -1,6 +1,8 @@
 package com.example.exambuddy.controller;
+
 import com.example.exambuddy.model.Exam;
 import com.example.exambuddy.model.Question;
+import com.example.exambuddy.service.ExamService;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.*;
 import com.google.firebase.cloud.FirestoreClient;
@@ -17,19 +19,12 @@ import java.util.Map;
 @RequestMapping("/exams")
 public class ManageExamController {
     private Firestore db = FirestoreClient.getFirestore();
+
     @GetMapping
     public String listExams(Model model) {
         try {
-            List<Exam> exams = new ArrayList<>();
-            ApiFuture<QuerySnapshot> future = db.collection("exams").get();
-            List<QueryDocumentSnapshot> documents = future.get().getDocuments();
-
-            for (QueryDocumentSnapshot doc : documents) {
-                Exam exam = doc.toObject(Exam.class);
-                exam.setExamID(doc.getId()); // Gán ID Firestore vào Exam
-                exams.add(exam);
-            }
-
+            ExamService eS = new ExamService();
+            List<Exam> exams = eS.getExamList();
             model.addAttribute("exams", exams);
             return "examList"; // Trả về trang hiển thị danh sách đề thi
         } catch (Exception e) {
@@ -77,7 +72,7 @@ public class ManageExamController {
 //                if (answers.containsKey(answerKey) && answers.get(answerKey) != null) {
 //                    try {
 //                        int userAnswer = Integer.parseInt(answers.get(answerKey));
-//                        int correctAnswer = Integer.parseInt(questions.get(i).getCorrectAnswer()); // Nếu đúng là String
+//                        int correctAnswer = Integer.parseInt(questions.get(i).getCorrectAnswers()); // Nếu đúng là String
 //
 //                        if (userAnswer == correctAnswer) {
 //                            score++;
@@ -123,7 +118,6 @@ public class ManageExamController {
             }
 
             exam.setQuestions(questions);
-
             model.addAttribute("exam", exam);
             model.addAttribute("questions", questions); // Gửi danh sách câu hỏi qua view
 
@@ -139,6 +133,7 @@ public class ManageExamController {
     public String addQuestionPage() {
         return "addExam.html";
     }
+
     @PostMapping("/addExam")
     public String addQuestion(@RequestBody Map<String, Object> examData) {
         try {
@@ -167,7 +162,6 @@ public class ManageExamController {
         } catch (Exception e) {
             return "Lỗi khi lưu đề thi: " + e.getMessage();
         }
-        }
-
+    }
 }
 
