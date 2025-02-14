@@ -7,7 +7,7 @@ public class User {
     private String username;
     private String password;
     private boolean verified;
-
+    private String avatarUrl;
 
     public User() {}
 
@@ -18,6 +18,7 @@ public class User {
         this.username = username;
         this.password = password;
         this.verified = false; // Mặc định chưa xác thực
+        this.avatarUrl = "https://res.cloudinary.com/dsuav027e/image/upload/v1739367972/halnqohla5mqr3seve3d.png";
     }
 
     public boolean isVerified() {
@@ -66,5 +67,11 @@ public class User {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
     }
 }

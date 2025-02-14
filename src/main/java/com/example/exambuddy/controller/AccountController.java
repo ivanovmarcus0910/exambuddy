@@ -1,6 +1,7 @@
 package com.example.exambuddy.controller;
 
 import com.example.exambuddy.model.User;
+import com.example.exambuddy.service.CloudinaryService;
 import com.example.exambuddy.service.FirebaseAuthService;
 import com.example.exambuddy.service.PasswordService;
 import com.example.exambuddy.service.UserService;
@@ -32,7 +33,7 @@ public class AccountController {
     @Autowired
     private FirebaseAuthService authService;
     private PasswordService passService;
-
+    private CloudinaryService cloudinaryService=new CloudinaryService();
     public AccountController(PasswordService passService) {
         this.passService = passService;
     }
@@ -69,49 +70,16 @@ public class AccountController {
         return "profile";
     }
     @PostMapping("/profile/upload")
-    public String uploadAvatar(@RequestParam("avatar") MultipartFile file,
+    public String uploadAvatar(@RequestParam("image") MultipartFile file,
                                @RequestParam String username,
                                Model model) throws IOException {
-
-        // Kiểm tra nếu file không rỗng
-        if (!file.isEmpty()) {
-            System.out.println("user name = "+username);
-            System.out.println("user name = "+username);
-            // Đặt tên file là username.jpg
-            String fileName = username + ".jpg";
-            // Lấy đường dẫn thư mục để lưu ảnh
-            String uploadDir = "C:/upload/avatar/";
-
-            // Tạo file mới và lưu
-            File uploadFile = new File(uploadDir + fileName);
-            if (uploadFile.exists()) {
-                uploadFile.delete();  // Xóa file cũ
-            }
-
-            // Lưu file vào thư mục
-            file.transferTo(uploadFile);
-
-            // Lưu lại đường dẫn ảnh vào database hoặc thực hiện xử lý khác nếu cần
-
-            // Thêm thông tin user vào model và trả về trang profile
+        String url = this.cloudinaryService.upLoadFile(file);
+        System.out.println("URL="+url);
+        UserService.changeAvatar(username, url);
             User user = UserService.getUserData(username);
-            model.addAttribute("user", user);
-        }
+        model.addAttribute("user", user);
 
         return "profile";  // Trở về trang profile
-    }
-    @GetMapping("/avatar/{filename}")
-    @ResponseBody
-    public ResponseEntity<Resource> getAvatar(@PathVariable String filename) {
-        Path filePath = Paths.get("C:/upload/avatar/").resolve(filename);
-        Resource resource = new FileSystemResource(filePath);
-
-        if (resource.exists()) {
-            return ResponseEntity.ok()
-                    .contentType(MediaType.IMAGE_JPEG)
-                    .body(resource);
-        }
-        return ResponseEntity.notFound().build();
     }
 
     /**
@@ -157,4 +125,5 @@ public class AccountController {
 
         return "changePass";
     }
+
 }

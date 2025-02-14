@@ -6,23 +6,17 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.*;
-
-@Configuration
 public class CloudinaryConfig {
-    @Value("$cloudinary.cloud-name")
-    private String cloudName;
-    @Value("${cloudinary.api-key}")
-    private String apiKey;
 
-    @Value("${cloudinary.api-secret}")
-    private String apiSecret;
-
-    @Bean
-    public Cloudinary cloudinary() {
-        Map<String, String> config = new HashMap<>();
-        config.put("cloud_name", cloudName);
-        config.put("api_key", apiKey);
-        config.put("api_secret", apiSecret);
-        return new Cloudinary(config);
+    public Cloudinary getCloudinary() {
+        Cloudinary cloudinary = null;
+        Map config = new HashMap();
+        config.put("cloud_name","dsuav027e");
+        config.put("api_key", "197582935118964");
+        config.put("api_secret", "xiN2BKGHCHmPdFTYt71ueYKR_To");
+        cloudinary = new Cloudinary(config);
+        return cloudinary;
     }
+
+
 }
