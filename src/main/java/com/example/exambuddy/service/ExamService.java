@@ -10,10 +10,12 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 @Service
 public class ExamService {
-    private Firestore db = FirestoreClient.getFirestore();
+    private final Firestore db = FirestoreClient.getFirestore();
 
     public List<Exam> getExamList() {
         List<Exam> exams = new ArrayList<>();
@@ -57,5 +59,34 @@ public class ExamService {
             return null;
         }
 
+    }
+    public boolean addExam(Map<String, Object> examData) {
+        System.out.println("Bắt đầu add đề");
+        try {
+            String examId = UUID.randomUUID().toString();
+            System.out.println("examID:"+examId);
+            // Thêm dữ liệu đề thi vào collection "exams"
+            db.collection("exams").document(examId).set(Map.of(
+                    "examName", examData.get("examName"),
+                    "subject", examData.get("subject"),
+                    "tags", examData.get("tags"),
+                    "username", examData.get("username"),
+                    "date", examData.get("date")
+            )).get();
+
+            // Thêm danh sách câu hỏi vào subcollection "questions"
+            List<Map<String, Object>> questions = (List<Map<String, Object>>) examData.get("questions");
+            WriteBatch batch = db.batch();
+            for (Map<String, Object> question : questions) {
+                String questionId = UUID.randomUUID().toString();
+                batch.set(db.collection("exams").document(examId).collection("questions").document(questionId), question);
+            }
+            batch.commit().get();
+            System.out.println("Size"+questions.size());
+            return true;
+        }
+        catch (Exception e) {
+            return false;
+        }
     }
 }

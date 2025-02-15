@@ -5,7 +5,7 @@
   <title>Kết quả bài thi</title>
 </head>
 <body>
-<p>Điểm của bạn: <b th:text="${score}"></b>/<b th:text="${totalQuestions}"></b></p>
+<p>Điểm của bạn: <b th:text="${score}"></b>/10</p>
 
 <h3>Chi tiết bài làm</h3>
 <ul>
@@ -15,17 +15,20 @@
     <!-- Hiển thị các lựa chọn -->
     <ul>
       <li th:each="option, j : ${question.options}">
-        <input type="checkbox" th:checked="${userAnswers[i.index] != null && userAnswers[i.index].contains(j)}" disabled>
+        <input type="checkbox"
+               th:checked="${userAnswers['q' + i.index] != null
+                   && #lists.contains(userAnswers['q' + i.index], j.index + '')}"
+               disabled>
         <span th:text="${option}"></span>
 
         <!-- Đánh dấu đáp án đúng -->
-        <span th:if="${question.correctAnswers.contains(j)}" style="color: green; font-weight: bold;">(Đáp án đúng)</span>
+        <span th:if="${question.correctAnswers.contains(j.index)}" style="color: green; font-weight: bold;">(Đáp án đúng)</span>
       </li>
     </ul>
 
     <!-- Đánh dấu câu đúng/sai -->
-    <p style="color: red;" th:if="${!correctQuestions.contains(i.index)}">❌ Sai</p>
-    <p style="color: green;" th:if="${correctQuestions.contains(i.index)}">✅ Đúng</p>
+    <p style="color: red;" th:if="${!correctQuestions.contains('q'+i.index)}">❌ Sai</p>
+    <p style="color: green;" th:if="${correctQuestions.contains('q'+i.index)}">✅ Đúng</p>
   </li>
 </ul>
 

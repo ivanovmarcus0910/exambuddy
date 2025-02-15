@@ -10,6 +10,7 @@ import com.google.firebase.cloud.FirestoreClient;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.MultiValueMap;
@@ -19,9 +20,9 @@ import org.springframework.ui.Model;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Controller
 public class ManageExamController {
-
     private Firestore db = FirestoreClient.getFirestore();
     @Autowired
     private CookieService cookieService;
@@ -64,12 +65,12 @@ public class ManageExamController {
             model.addAttribute("exam", exam);
             model.addAttribute("questions", exam.getQuestions()); // Gửi danh sách câu hỏi qua view
 
-            Map<String, Object> examSession = new HashMap<>();
-            examSession.put("startTime", System.currentTimeMillis()); // Lưu thời gian hiện tại
-            String username = cookieService.getCookie(request, "noname");
-            examSession.put("username", username);
-            examSession.put("examId", examId);
-            db.collection("exam_sessions").document(username + "_" + examId).set(examSession);
+//            Map<String, Object> examSession = new HashMap<>();
+//            examSession.put("startTime", System.currentTimeMillis()); // Lưu thời gian hiện tại
+//            String username = cookieService.getCookie(request, "noname");
+//            examSession.put("username", username);
+//            examSession.put("examId", examId);
+//            db.collection("exam_sessions").document(username + "_" + examId).set(examSession);
 
             return "examDo";
         } catch (Exception e) {
@@ -113,13 +114,17 @@ public class ManageExamController {
 
                 // So sánh danh sách đáp án đúng với đáp án người dùng chọn
                 if (new HashSet<>(correctAnswers).equals(new HashSet<>(userSelected))) {
+                    //System.out.println("Đúng "+ i);
                     correctCount++;
                     correctQuestions.add(questionKey); // Thêm vào danh sách câu đúng
                 }
+                //System.out.println(i+":"+correctAnswers +" vs "+ userSelected);
             }
 
             double score = (double) correctCount / totalQuestions * 10;
-
+            userAnswers.forEach((questionID, answers) ->
+                    System.out.println(questionID + " => " + answers)
+            );
             model.addAttribute("exam", exam);
             model.addAttribute("score", score);
             model.addAttribute("totalQuestions", questions.size());
@@ -140,29 +145,17 @@ public class ManageExamController {
 
     @PostMapping("/exams/addExam")
     public String addQuestion(@RequestBody Map<String, Object> examData) {
+        System.out.println("Đã tới Controller");
         try {
             // Tạo ID ngẫu nhiên cho đề thi
-            String examId = UUID.randomUUID().toString();
+            System.out.println("Đã tới lúc gọi");
 
-            // Thêm dữ liệu đề thi vào collection "exams"
-            db.collection("exams").document(examId).set(Map.of(
-                    "examName", examData.get("examName"),
-                    "subject", examData.get("subject"),
-                    "tags", examData.get("tags"),
-                    "username", examData.get("username"),
-                    "date", examData.get("date")
-            )).get();
+            boolean status = examService.addExam(examData);
+            System.out.println("kết quả"+status);
 
-            // Thêm danh sách câu hỏi vào subcollection "questions"
-            List<Map<String, Object>> questions = (List<Map<String, Object>>) examData.get("questions");
-            WriteBatch batch = db.batch();
-            for (Map<String, Object> question : questions) {
-                String questionId = UUID.randomUUID().toString();
-                batch.set(db.collection("exams").document(examId).collection("questions").document(questionId), question);
-            }
-            batch.commit().get();
-
-            return "Đề thi đã được lưu thành công!";
+            if (status)
+                return "Đề thi đã được lưu thành công!";
+            else throw new Exception();
         } catch (Exception e) {
             return "Lỗi khi lưu đề thi: " + e.getMessage();
         }

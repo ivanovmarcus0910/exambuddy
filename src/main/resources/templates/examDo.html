@@ -14,7 +14,7 @@
             <p th:text="${question.questionText}"></p>
             <ul>
                 <li th:each="option, j : ${question.options}">
-                    <input type="checkbox" th:name="'q' + ${i.index} + '[]'" th:value="${j.index}">
+                    <input type="checkbox" th:name="'q' + ${i.index} " th:value="${j.index}">
                     <span th:text="${option}"></span>
                 </li>
             </ul>
