@@ -8,10 +8,7 @@ import com.google.firebase.cloud.FirestoreClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class ExamService {
@@ -61,10 +58,8 @@ public class ExamService {
 
     }
     public boolean addExam(Map<String, Object> examData) {
-        System.out.println("Bắt đầu add đề");
         try {
             String examId = UUID.randomUUID().toString();
-            System.out.println("examID:"+examId);
             // Thêm dữ liệu đề thi vào collection "exams"
             db.collection("exams").document(examId).set(Map.of(
                     "examName", examData.get("examName"),
@@ -88,5 +83,73 @@ public class ExamService {
         catch (Exception e) {
             return false;
         }
+    }
+    public boolean addExamSession(String examID, String username, long duration) {
+        try {
+            DocumentReference docRef = db.collection("examSessions").document(username + "_" + examID);
+            Map<String, Object> data = new HashMap<>();
+            data.put("startTime", System.currentTimeMillis());
+            data.put("duration", duration);
+            data.put("submitted", false);
+            docRef.set(data);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+    public boolean isSubmitted(String userId, String examId) {
+        DocumentReference docRef = db.collection("examSessions").document(userId + "_" + examId);
+        try {
+            DocumentSnapshot snapshot = docRef.get().get();
+            return snapshot.exists() && Boolean.TRUE.equals(snapshot.getBoolean("submitted"));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public void saveProgress(String userId, String examId, Map<String, Object> answers) {
+        DocumentReference docRef = db.collection("examProgress").document(userId + "_" + examId);
+        docRef.set(Map.of("answers", answers), SetOptions.merge());
+    }
+    public Map<String, Object> getProgress(String userId, String examId) {
+        DocumentReference docRef = db.collection("examProgress").document(userId + "_" + examId);
+        try {
+            DocumentSnapshot snapshot = docRef.get().get();
+            return snapshot.exists() ? snapshot.getData() : new HashMap<>();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new HashMap<>();
+        }
+    }
+    public long getRemainingTime(String userId, String examId) {
+        System.out.println("Ở service : userId = " + userId + ", examId = " + examId);
+        DocumentReference docRef = db.collection("examSessions").document(userId + "_" + examId);
+        try {
+            DocumentSnapshot snapshot = docRef.get().get();
+            if (snapshot.exists()) {
+                long startTime = snapshot.getLong("startTime");
+                long duration = snapshot.getLong("duration");
+                long currentTime = System.currentTimeMillis();
+                System.out.println("start:"+startTime+" duration:"+duration+" currentTime:"+currentTime);
+                return Math.max(0, (startTime + duration) - currentTime);
+            }
+            System.out.println("Có vào đây");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+    public void submitExam(String userId, String examId) {
+        DocumentReference docRef = db.collection("examSessions").document(userId + "_" + examId);
+        docRef.update("submitted", true);
+    }
+    public void saveExamResult(String examId, double score, Map<String, List<Integer>> userAnswers) {
+        DocumentReference docRef = db.collection("examResults").document(examId);
+        docRef.set(Map.of(
+                "score", score,
+                "answers", userAnswers,
+                "submittedAt", System.currentTimeMillis()
+        ), SetOptions.merge());
     }
 }

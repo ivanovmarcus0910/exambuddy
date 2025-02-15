@@ -12,6 +12,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
@@ -62,15 +63,13 @@ public class ManageExamController {
             }
 
             Exam exam = examService.getExam(examId);
+            String username = cookieService.getCookie(request, "noname");
+            examService.addExamSession(examId, username, 1000*60*30);
             model.addAttribute("exam", exam);
+            model.addAttribute("username", username);
             model.addAttribute("questions", exam.getQuestions()); // Gửi danh sách câu hỏi qua view
+            model.addAttribute("timeduration", 1000*60*30);
 
-//            Map<String, Object> examSession = new HashMap<>();
-//            examSession.put("startTime", System.currentTimeMillis()); // Lưu thời gian hiện tại
-//            String username = cookieService.getCookie(request, "noname");
-//            examSession.put("username", username);
-//            examSession.put("examId", examId);
-//            db.collection("exam_sessions").document(username + "_" + examId).set(examSession);
 
             return "examDo";
         } catch (Exception e) {
@@ -80,7 +79,7 @@ public class ManageExamController {
     }
 
     @PostMapping("exams/{examId}/submit")
-    public String submitExam(@PathVariable String examId, @RequestParam MultiValueMap<String, String> userAnswers, Model model) {
+    public String submitExam(@PathVariable String examId, @RequestParam MultiValueMap<String, String> userAnswers, HttpServletRequest request ,Model model) {
 
         userAnswers.forEach((questionID, answers) ->
                 System.out.println("Câu " + questionID + " => " + answers)
@@ -125,6 +124,9 @@ public class ManageExamController {
             userAnswers.forEach((questionID, answers) ->
                     System.out.println(questionID + " => " + answers)
             );
+            String username = cookieService.getCookie(request, "noname");
+            examService.submitExam(username, examId);
+            examService.saveExamResult(examId, score, parsedAnswers);
             model.addAttribute("exam", exam);
             model.addAttribute("score", score);
             model.addAttribute("totalQuestions", questions.size());
@@ -145,20 +147,38 @@ public class ManageExamController {
 
     @PostMapping("/exams/addExam")
     public String addQuestion(@RequestBody Map<String, Object> examData) {
-        System.out.println("Đã tới Controller");
         try {
-            // Tạo ID ngẫu nhiên cho đề thi
-            System.out.println("Đã tới lúc gọi");
-
             boolean status = examService.addExam(examData);
-            System.out.println("kết quả"+status);
-
             if (status)
                 return "Đề thi đã được lưu thành công!";
             else throw new Exception();
         } catch (Exception e) {
             return "Lỗi khi lưu đề thi: " + e.getMessage();
         }
+    }
+
+    @GetMapping("exams/progress")
+    public ResponseEntity<?> getProgress(@RequestParam String userId, @RequestParam String examId) {
+        Map<String, Object> progress = examService.getProgress(userId, examId);
+        return ResponseEntity.ok(progress);
+    }
+
+    @PostMapping("exams/progress")
+    public ResponseEntity<?> saveProgress(@RequestBody Map<String, Object> payload) {
+        String userId = (String) payload.get("userId");
+        String examId = (String) payload.get("examId");
+        Map<String, Object> answers = (Map<String, Object>) payload.get("answers");
+
+        examService.saveProgress(userId, examId, answers);
+        return ResponseEntity.ok(Collections.singletonMap("status", "success"));
+    }
+    @GetMapping("exams/time-left")
+    public ResponseEntity<?> getTimeLeft(@RequestParam String userId, @RequestParam String examId) {
+        System.out.println(" Ở controller :userId = " + userId + " examId = " + examId);
+        long timeLeft = examService.getRemainingTime(userId, examId);
+        boolean submitted = examService.isSubmitted(userId, examId);
+        System.out.println("Time left in controller : " + timeLeft);
+        return ResponseEntity.ok(Map.of("timeLeft", timeLeft, "submitted", submitted));
     }
 }
 
