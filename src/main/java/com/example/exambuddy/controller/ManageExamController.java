@@ -1,6 +1,7 @@
 package com.example.exambuddy.controller;
 
 import com.example.exambuddy.model.Exam;
+import com.example.exambuddy.model.ExamResult;
 import com.example.exambuddy.model.Question;
 import com.example.exambuddy.service.CookieService;
 import com.example.exambuddy.service.ExamService;
@@ -68,9 +69,7 @@ public class ManageExamController {
             model.addAttribute("exam", exam);
             model.addAttribute("username", username);
             model.addAttribute("questions", exam.getQuestions()); // Gửi danh sách câu hỏi qua view
-            model.addAttribute("timeduration", 1000*60*30);
-
-
+            model.addAttribute("timeduration", 60*30);
             return "examDo";
         } catch (Exception e) {
             model.addAttribute("error", "Lỗi khi lấy đề thi: " + e.getMessage());
@@ -126,7 +125,7 @@ public class ManageExamController {
             );
             String username = cookieService.getCookie(request, "noname");
             examService.submitExam(username, examId);
-            examService.saveExamResult(examId, score, parsedAnswers);
+            examService.saveExamResult(username, examId, score, exam, userAnswers, correctQuestions);
             model.addAttribute("exam", exam);
             model.addAttribute("score", score);
             model.addAttribute("totalQuestions", questions.size());
@@ -177,8 +176,19 @@ public class ManageExamController {
         System.out.println(" Ở controller :userId = " + userId + " examId = " + examId);
         long timeLeft = examService.getRemainingTime(userId, examId);
         boolean submitted = examService.isSubmitted(userId, examId);
-        System.out.println("Time left in controller : " + timeLeft);
-        return ResponseEntity.ok(Map.of("timeLeft", timeLeft, "submitted", submitted));
+        System.out.println("Time left in controller : " + timeLeft/1000);
+        return ResponseEntity.ok(Map.of("timeLeft", timeLeft/1000, "submitted", submitted));
+    }
+    @GetMapping("exams/result-list")
+    public String getResultList(HttpServletRequest request, HttpSession session, Model model) {
+        if (session.getAttribute("loggedInUser") == null) {
+            return "redirect:/home"; // Nếu chưa đăng nhập, chuyển hướng về home
+        }
+        String username = cookieService.getCookie(request, "noname");
+        List<ExamResult> results = username != null ? examService.getExamResultByUsername(username) : new ArrayList<>();
+        model.addAttribute("results", results);
+        model.addAttribute("username", username);
+        return "examResultList";
     }
 }
 

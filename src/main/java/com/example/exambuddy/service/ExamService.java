@@ -1,12 +1,14 @@
 package com.example.exambuddy.service;
 
 import com.example.exambuddy.model.Exam;
+import com.example.exambuddy.model.ExamResult;
 import com.example.exambuddy.model.Question;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.*;
 import com.google.firebase.cloud.FirestoreClient;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.stereotype.Service;
+import org.springframework.util.MultiValueMap;
 
 import java.util.*;
 
@@ -87,6 +89,10 @@ public class ExamService {
     public boolean addExamSession(String examID, String username, long duration) {
         try {
             DocumentReference docRef = db.collection("examSessions").document(username + "_" + examID);
+            if (docRef.get().get().exists()) {
+                System.out.println("Session đã tồn tại, không thêm mới.");
+                return false;
+            }
             Map<String, Object> data = new HashMap<>();
             data.put("startTime", System.currentTimeMillis());
             data.put("duration", duration);
@@ -131,7 +137,7 @@ public class ExamService {
                 long startTime = snapshot.getLong("startTime");
                 long duration = snapshot.getLong("duration");
                 long currentTime = System.currentTimeMillis();
-                System.out.println("start:"+startTime+" duration:"+duration+" currentTime:"+currentTime);
+                System.out.println("start:"+startTime+" duration:"+duration+" currentTime:"+currentTime+" timeremaining "+((startTime + duration) - currentTime));
                 return Math.max(0, (startTime + duration) - currentTime);
             }
             System.out.println("Có vào đây");
@@ -142,14 +148,41 @@ public class ExamService {
     }
     public void submitExam(String userId, String examId) {
         DocumentReference docRef = db.collection("examSessions").document(userId + "_" + examId);
-        docRef.update("submitted", true);
+        docRef.delete();
+        docRef = db.collection("examProgress").document(userId + "_" + examId);
+        docRef.delete();
     }
-    public void saveExamResult(String examId, double score, Map<String, List<Integer>> userAnswers) {
-        DocumentReference docRef = db.collection("examResults").document(examId);
+    public void saveExamResult(String userId, String examId, double score, Exam exam, MultiValueMap<String, String> userAnswers, List<String> correctAnswers) {
+        String ResultID = UUID.randomUUID().toString();
+        DocumentReference docRef = db.collection("examResults").document(userId + "_" + examId+"_"+ResultID);
         docRef.set(Map.of(
+                "examID",examId,
                 "score", score,
                 "answers", userAnswers,
-                "submittedAt", System.currentTimeMillis()
+                "submittedAt", System.currentTimeMillis(),
+                "correctAnswers", correctAnswers
+
         ), SetOptions.merge());
+    }
+    public  List<ExamResult> getExamResultByUsername(String userId) {
+        List<ExamResult> results = new ArrayList<>();
+
+        try {
+            CollectionReference collectionReference = db.collection("examResults");
+            ApiFuture<QuerySnapshot> future = collectionReference
+                    .whereGreaterThanOrEqualTo(FieldPath.documentId(), userId + "_")
+                    .whereLessThan(FieldPath.documentId(), userId + "_\uf8ff")
+                    .get();
+
+            List<QueryDocumentSnapshot> documents = future.get().getDocuments();
+
+            for (DocumentSnapshot doc : documents) {
+                ExamResult examResult = doc.toObject(ExamResult.class);
+                results.add(examResult);
+            }
+        }
+        catch (Exception e) {
+        }
+        return  results;
     }
 }

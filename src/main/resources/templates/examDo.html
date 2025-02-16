@@ -7,8 +7,8 @@
         let userId = "[[${username}]]";
         let examId = "[[${exam.examID}]]";
         let timeLeft = "[[${timeduration}]]"; // Thời gian từ server tính bằng giây
-        saveProgress();
         syncTime();
+        saveProgress();
         // Đếm ngược thời gian
         function updateTimer() {
             if (timeLeft <= 0) {
@@ -76,12 +76,14 @@
                         }
                     }
                 });
+            syncTime();
         }
 
         let timerInterval = setInterval(updateTimer, 1000);
-        setInterval(syncTime, 60000);
-        setInterval(saveProgress, 60000);
+        setInterval(syncTime, 30000);
+        setInterval(saveProgress, 30000);
         loadProgress();
+
     </script>
 </head>
 <body>
