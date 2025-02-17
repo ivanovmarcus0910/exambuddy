@@ -11,12 +11,14 @@ import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.Map;
 
 @Controller
 public class AuthController {
@@ -41,21 +43,38 @@ public class AuthController {
 
     // Xử lý đăng nhập OAuth2
     @GetMapping("/oauth2/success")
-    public String oauth2LoginSuccess(@AuthenticationPrincipal OidcUser oidcUser, HttpSession session, HttpServletResponse response) throws UnsupportedEncodingException {
-        if (oidcUser != null) {
-            String email = oidcUser.getAttribute("email");
-            String name = oidcUser.getAttribute("name");
-            String picture = oidcUser.getAttribute("picture");
+    public String oauth2LoginSuccess(@AuthenticationPrincipal OidcUser oidcUser, @AuthenticationPrincipal OAuth2User oauth2User, HttpSession session, HttpServletResponse response) throws UnsupportedEncodingException {
+        String email = null;
+        String name = null;
+        String picture = null;
 
-            // Lưu thông tin vào Firestore nếu chưa có
+        if (oidcUser != null) { // Google
+            email = oidcUser.getAttribute("email");
+            name = oidcUser.getAttribute("name");
+            picture = oidcUser.getAttribute("picture");
+        } else if (oauth2User != null) { // Facebook
+            email = oauth2User.getAttribute("email");
+            name = oauth2User.getAttribute("name");
+            if (oauth2User.getAttribute("picture") != null) {
+                picture = ((Map<String, Object>) oauth2User.getAttribute("picture")).get("data").toString();
+                picture = picture.substring(picture.indexOf("url=") + 4, picture.indexOf("}"));
+            }
+        }
+
+        if (email != null) {
             UserService.saveOAuth2User(email, name, picture);
 
             session.setAttribute("loggedInUser", email);
-            // Thêm cookie noname để thống nhất với đăng nhập thường
-            cookieService.setCookie(response, "noname", URLEncoder.encode(email, "UTF-8"));
-            System.out.println("Đăng nhập Google thành công với email: " + email);;
+
+            Cookie nonameCookie = new Cookie("noname", URLEncoder.encode(email, "UTF-8"));
+            nonameCookie.setMaxAge(24 * 60 * 60);
+            nonameCookie.setPath("/");
+            response.addCookie(nonameCookie);
+
+            System.out.println("Đăng nhập thành công với email: " + email);
             return "redirect:/home";
         }
+
         return "redirect:/login";
     }
 
