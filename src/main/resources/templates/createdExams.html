@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Bài kiểm tra đã tạo</title>
+</head>
+<body>
+<h2>Bài kiểm tra đã tạo</h2>
+
+<div class="exam-grid">
+    <div class="exam-card" th:each="exam : ${createdExams}">
+        <strong th:text="${exam.examName}"></strong>
+        <br>
+        <span><b>Môn học:</b> <span th:text="${exam.subject}"></span></span>
+        <br>
+        <span><b>Ngày đăng:</b> <span th:text="${#dates.format(exam.date,'dd/MM/yyyy')}"></span></span>
+        <br>
+        <div th:if="${exam.examID}">
+            <form th:action="@{/exams/{id}/detail(id=${exam.examID})}" method="get">
+                <button type="submit">Xem chi tiết</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<a href="/exams">Quay lại danh sách bài kiểm tra</a>
+</body>
+</html>

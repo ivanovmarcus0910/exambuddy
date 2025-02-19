@@ -101,6 +101,7 @@ nav ul li a:hover {
 
 .search-bar:hover {
     background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.2);
 }
 
 .user-section {
@@ -247,16 +248,17 @@ nav ul li a:hover {
 
 .popular-exams {
     display: flex;
+    align-items: stretch; /* Cả hai phần sẽ có chiều cao bằng nhau */
     gap: 20px;
-    padding: 50px;
+    padding: 20px;
 }
-
 .exam-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 20px;
-    flex: 2;
+    flex: 2; /* Ưu tiên mở rộng */
 }
+
 
 .exam-card {
     background: rgba(255, 255, 255, 0.1);
@@ -267,6 +269,57 @@ nav ul li a:hover {
     font-weight: bold;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
 }
+.exam-card:hover {
+    transform: scale(1.05);
+}
+
+
+.exam-card strong {
+    font-size: 20px; /* Chữ to hơn */
+    font-weight: bold;
+    display: block;
+    margin-bottom: 5px;
+}
+
+
+.exam-card span {
+    font-size: 14px; /* Cỡ chữ nhỏ hơn */
+    color: #666; /* Màu xám nhẹ */
+    display: inline; /* Giữ trên cùng một dòng */
+}
+
+
+.exam-card form {
+    margin-top: 10px;
+}
+
+
+.exam-card button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    font-size: 14px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s ease-in-out;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+
+.exam-card button:hover {
+    background-color: #0056b3;
+}
+
+
+/* Biểu tượng mũi tên */
+.exam-card button::after {
+    content: " ➜";
+    font-weight: bold;
+}
+
 
 .rank-panel {
     flex: 1;
