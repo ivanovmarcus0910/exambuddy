@@ -55,10 +55,14 @@ public class AuthController {
         } else if (oauth2User != null) { // Facebook
             email = oauth2User.getAttribute("email");
             name = oauth2User.getAttribute("name");
-            if (oauth2User.getAttribute("picture") != null) {
-                picture = ((Map<String, Object>) oauth2User.getAttribute("picture")).get("data").toString();
-                picture = picture.substring(picture.indexOf("url=") + 4, picture.indexOf("}"));
+            Map<String, Object> pictureObj = oauth2User.getAttribute("picture");
+            if (pictureObj != null) {
+                Map<String, Object> data = (Map<String, Object>) pictureObj.get("data");
+                if (data != null) {
+                    picture = (String) data.get("url");
+                }
             }
+            System.out.println("Avatar URL: " + picture);
         }
 
         if (email != null) {
