@@ -10,6 +10,7 @@ import com.google.firebase.cloud.FirestoreClient;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 @Service
@@ -26,12 +27,53 @@ public class ExamService {
             for (QueryDocumentSnapshot doc : documents) {
                 Exam exam = doc.toObject(Exam.class);
                 exam.setExamID(doc.getId()); // Gán ID Firestore vào Exam
+
+                // Đếm số câu hỏi cho mỗi đề thi và gán vào exam
+                int questionCount = countQuestions(exam.getExamID());
+                exam.setQuestionCount(questionCount);
+                // Chuyển đổi và format ngày
+                if (exam.getDate() != null) {
+                    String formattedDate = formatDate(exam.getDate());
+                    exam.setDate(formattedDate);
+                }
+
                 exams.add(exam);
             }
         } catch (Exception e) {
-
+            e.printStackTrace(); // Bạn có thể log lỗi ở đây
         }
         return exams;
+    }
+
+
+    // Phương thức đếm số câu hỏi trong subcollection "questions"
+    public int countQuestions(String examId) throws Exception {
+        ApiFuture<QuerySnapshot> query = db.collection("exams")
+                .document(examId)
+                .collection("questions")
+                .get();
+        List<QueryDocumentSnapshot> questionsSnapshot = query.get().getDocuments();
+        return questionsSnapshot.size();
+    }
+
+
+
+
+    // Phương thức format lại ngày
+    public String formatDate(String dateString) {
+        try {
+            // Định dạng chuỗi Firebase: yyyy-MM-dd'T'HH:mm:ss.SSS'Z'
+            SimpleDateFormat originalFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+            // Định dạng ngày muốn hiển thị: dd/MM/yyyy
+            SimpleDateFormat targetFormat = new SimpleDateFormat("dd/MM/yyyy");
+
+            // Chuyển chuỗi thành Date
+            Date date = originalFormat.parse(dateString);
+            return targetFormat.format(date); // Trả về ngày đã định dạng
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null; // Trả về null nếu có lỗi
+        }
     }
 
     public Exam getExam(String examID) {
@@ -185,4 +227,76 @@ public class ExamService {
         }
         return  results;
     }
+
+    public void likeExam(String userId, String examId) {
+        DocumentReference docRef = db.collection("likedExams").document(userId + "_" + examId);
+        docRef.set(Map.of(
+                "userId", userId,
+                "examId", examId,
+                "likedAt", System.currentTimeMillis()
+        ), SetOptions.merge());
+    }
+
+    public List<Exam> getLikedExamsByUser(String userId) {
+        List<Exam> likedExams = new ArrayList<>();
+
+        try {
+            CollectionReference collectionReference = db.collection("likedExams");
+            ApiFuture<QuerySnapshot> future = collectionReference
+                    .whereEqualTo("userId", userId) // Tìm bài thi đã thích theo userId
+                    .get();
+
+            List<QueryDocumentSnapshot> documents = future.get().getDocuments();
+            List<String> examIds = new ArrayList<>();
+
+            for (DocumentSnapshot doc : documents) {
+                examIds.add(doc.getString("examId"));
+            }
+
+            // Lấy thông tin bài thi từ danh sách examId
+            CollectionReference examCollection = db.collection("exams");
+            for (String id : examIds) {
+                DocumentSnapshot examDoc = examCollection.document(id).get().get();
+                if (examDoc.exists()) {
+                    Exam exam = examDoc.toObject(Exam.class);
+                    exam.setExamID(examDoc.getId()); // Đặt examID trực tiếp từ ID tài liệu
+                    likedExams.add(exam);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return likedExams;
+    }
+
+    public List<Exam> getHtoryCreateExamsByUsername(String username) {
+        List<Exam> exams = new ArrayList<>();
+
+        try {
+            CollectionReference collectionReference = db.collection("exams");
+            ApiFuture<QuerySnapshot> future = collectionReference
+                    .whereEqualTo("username", username) // Tìm bài thi theo username
+                    .get();
+
+            List<QueryDocumentSnapshot> documents = future.get().getDocuments();
+
+            for (DocumentSnapshot doc : documents) {
+                if (doc.exists()) {
+                    Exam exam = doc.toObject(Exam.class);
+                    exam.setExamID(doc.getId());
+                    if (exam.getDate() != null) {
+                        String formattedDate = formatDate(exam.getDate());
+                        exam.setDate(formattedDate);
+                    }// Đặt examID trực tiếp từ ID tài liệu
+                    exams.add(exam);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return exams;
+    }
+
 }

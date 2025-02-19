@@ -73,8 +73,7 @@ public class Exam {
     }
 
     public void setDate(String date) {
-        this.date = date;
-    }
+        this.date = date; }
 
     public int getQuestionCount() {
         return questionCount;

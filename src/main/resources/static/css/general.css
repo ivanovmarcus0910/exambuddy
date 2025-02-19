@@ -195,11 +195,7 @@ nav ul li a:hover {
     box-shadow: 0 0 15px rgba(138, 43, 226, 0.5);
 }
 
-.popular-exams {
-    display: flex;
-    gap: 20px;
-    padding: 50px;
-}
+
 
 .exam-grid {
     display: grid;

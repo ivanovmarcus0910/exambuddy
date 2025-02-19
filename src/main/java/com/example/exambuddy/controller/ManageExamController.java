@@ -190,5 +190,40 @@ public class ManageExamController {
         model.addAttribute("username", username);
         return "examResultList";
     }
+
+
+    @GetMapping("/exams/{id}/like")
+    public String likeExam(@PathVariable String id,HttpServletRequest request, HttpSession session) {
+        if (session.getAttribute("loggedInUser") == null) {
+            return "redirect:/login"; // Nếu chưa đăng nhập, chuyển hướng về home
+        }
+        String username = cookieService.getCookie(request, "noname");
+        examService.likeExam(username, id);
+        return "redirect:/home"; // Sau khi like, quay lại danh sách bài thi
+    }
+
+    @GetMapping("/exams/liked")
+    public String showLikedExams(Model model,HttpServletRequest request, HttpSession session) {
+        if (session.getAttribute("loggedInUser") == null) {
+            return "redirect:/login"; // Nếu chưa đăng nhập, chuyển hướng về home
+        }
+        String username = cookieService.getCookie(request, "noname");
+        List<Exam> likedExams = examService.getLikedExamsByUser(username);
+
+        model.addAttribute("likedExams", likedExams);
+        return "likedExams"; // Trả về giao diện liked-exams.html
+    }
+
+
+    @GetMapping("/exams/created")
+    public String showCreatedExams(Model model, HttpServletRequest request, HttpSession session) {
+        if (session.getAttribute("loggedInUser") == null) {
+            return "redirect:/login"; // Nếu chưa đăng nhập, chuyển hướng về home
+        }
+        String username = cookieService.getCookie(request, "noname");
+        List<Exam> createdExams = examService.getHtoryCreateExamsByUsername(username);
+        model.addAttribute("createdExams", createdExams);
+        return "createdExams"; // Tên file HTML để hiển thị các bài thi đã tạo
+    }
 }
 

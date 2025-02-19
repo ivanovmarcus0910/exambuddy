@@ -24,7 +24,6 @@ public class OtpController {
         return "verifyOTP";
     }
 
-
     @PostMapping("/verifyOTP")
     public String verifyOtp(@RequestParam String email, @RequestParam String otp,
                             @RequestParam String actionType, Model model) {

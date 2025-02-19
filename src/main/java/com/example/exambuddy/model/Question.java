@@ -10,6 +10,12 @@ public class Question {
     // Constructor mặc định
     public Question() {}
 
+    public Question(String questionText, List<String> options, List<Integer> correctAnswers) {
+        this.questionText = questionText;
+        this.options = options;
+        this.correctAnswers = correctAnswers;
+    }
+
     // Getter và Setter
     public String getQuestionText() {
         return questionText;
