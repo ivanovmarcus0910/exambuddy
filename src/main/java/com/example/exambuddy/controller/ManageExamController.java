@@ -34,7 +34,7 @@ public class ManageExamController {
     @GetMapping("/exams")
     public String listExams(Model model) {
         try {
-            List<Exam> exams = examService.getExamList();
+            List<Exam> exams = examService.getExamList(0,6);
             model.addAttribute("exams", exams);
             return "examList"; // Trả về trang hiển thị danh sách đề thi
         } catch (Exception e) {

@@ -17,30 +17,38 @@ import java.util.*;
 public class ExamService {
     private final Firestore db = FirestoreClient.getFirestore();
 
-    public List<Exam> getExamList() {
+    public List<Exam> getExamList(int page, int size) {
         List<Exam> exams = new ArrayList<>();
-
         try {
-            ApiFuture<QuerySnapshot> future = db.collection("exams").get();
+            // Lấy danh sách theo thứ tự mới nhất và giới hạn số lượng theo trang
+            Query query = db.collection("exams").orderBy("date", Query.Direction.DESCENDING).limit(size);
+
+            if (page > 0) {
+                ApiFuture<QuerySnapshot> previousFuture = db.collection("exams")
+                        .orderBy("date", Query.Direction.DESCENDING)
+                        .limit(size * page).get();
+
+                List<QueryDocumentSnapshot> previousDocs = previousFuture.get().getDocuments();
+                if (!previousDocs.isEmpty()) {
+                    query = query.startAfter(previousDocs.get(previousDocs.size() - 1));
+                }
+            }
+
+            ApiFuture<QuerySnapshot> future = query.get();
             List<QueryDocumentSnapshot> documents = future.get().getDocuments();
 
             for (QueryDocumentSnapshot doc : documents) {
                 Exam exam = doc.toObject(Exam.class);
-                exam.setExamID(doc.getId()); // Gán ID Firestore vào Exam
+                exam.setExamID(doc.getId());
+                exam.setQuestionCount(countQuestions(exam.getExamID()));
 
-                // Đếm số câu hỏi cho mỗi đề thi và gán vào exam
-                int questionCount = countQuestions(exam.getExamID());
-                exam.setQuestionCount(questionCount);
-                // Chuyển đổi và format ngày
                 if (exam.getDate() != null) {
-                    String formattedDate = formatDate(exam.getDate());
-                    exam.setDate(formattedDate);
+                    exam.setDate(formatDate(exam.getDate()));
                 }
-
                 exams.add(exam);
             }
         } catch (Exception e) {
-            e.printStackTrace(); // Bạn có thể log lỗi ở đây
+            e.printStackTrace();
         }
         return exams;
     }

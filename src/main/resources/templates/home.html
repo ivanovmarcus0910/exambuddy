@@ -85,6 +85,11 @@
                 </form>
             </div>
       </div>
+        <div class="pagination">
+            <a th:if="${currentPage > 0}" th:href="@{/home(page=${prevPage},size=${size})}">« </a>
+            <span> <span th:text="${currentPage + 1}"></span></span>
+            <a th:href="@{/home(page=${nextPage},size=${size})}"> »</a>
+        </div>
 
         <div class="rank-panel">
             <h4>BXH học sinh có điểm số cao nhất</h4>

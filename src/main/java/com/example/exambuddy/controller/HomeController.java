@@ -17,18 +17,22 @@ public class HomeController {
     @Autowired
     private ExamService examService;
     @GetMapping("/home")
-    public String homePage(Model model) {
+    public String homePage(@RequestParam(defaultValue = "0") int page,
+                           @RequestParam(defaultValue = "6") int size,
+                           Model model) {
         try {
-            List<Exam> exams = examService.getExamList();
+            List<Exam> exams = examService.getExamList(page, size);
             model.addAttribute("exams", exams);
-            return "home"; // Trả về trang hiển thị danh sách đề thi
+            model.addAttribute("currentPage", page);
+            model.addAttribute("size", size);
+            model.addAttribute("nextPage", page + 1);
+            model.addAttribute("prevPage", page > 0 ? page - 1 : 0);
+            return "home";
         } catch (Exception e) {
             model.addAttribute("error", "Lỗi khi tải danh sách đề thi: " + e.getMessage());
             return "error";
         }
     }
-
-
     @RequestMapping("*")
     public String handleAllRequests(HttpServletRequest request) {
         System.out.println("Request không khớp: " + request.getRequestURI());
