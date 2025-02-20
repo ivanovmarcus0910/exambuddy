@@ -1,56 +1,48 @@
 package com.example.exambuddy.controller;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import vn.payos.PayOS;
-import vn.payos.type.CheckoutResponseData;
-import vn.payos.type.ItemData;
-import vn.payos.type.PaymentData;
+import vn.payos.type.Webhook;
+import vn.payos.type.WebhookData;
 
-import java.io.IOException;
-
-@Controller
+@RestController
 public class PaymentController {
+  private final PayOS payOS;
 
-    String clientId = "aae60675-76d3-4fdf-897e-c6d2c8f4207f";
-    String apiKey = "fabf143e-0d7b-4712-93e2-be7014ee2f39";
-    String checksumKey = "780d39bae9a6bb0a1937fcd4d3e26e6eb8b4e3e504cf942df450daeaba763576";
+  public PaymentController(PayOS payOS) {
+    super();
+    this.payOS = payOS;
 
-    final PayOS payOS = new PayOS(clientId, apiKey, checksumKey);
-    @GetMapping("/payment")
-    public String index(){
-        return "index";
+  }
+
+  @PostMapping(path = "/payment/payos_transfer_handler")
+  public ObjectNode payosTransferHandler(@RequestBody ObjectNode body)
+      throws JsonProcessingException, IllegalArgumentException {
+
+    ObjectMapper objectMapper = new ObjectMapper();
+    ObjectNode response = objectMapper.createObjectNode();
+    Webhook webhookBody = objectMapper.treeToValue(body, Webhook.class);
+
+    try {
+      // Init Response
+      response.put("error", 0);
+      response.put("message", "Webhook delivered");
+      response.set("data", null);
+      WebhookData data = payOS.verifyPaymentWebhookData(webhookBody);
+      System.out.println(data);
+      return response;
+    } catch (Exception e) {
+      e.printStackTrace();
+      response.put("error", -1);
+      response.put("message", e.getMessage());
+      response.set("data", null);
+      return response;
     }
-    @PostMapping("/creatPayment")
-    public String createPayment(@RequestParam String orderId, @RequestParam long amount, Model model) throws IOException {
-        String domain = "http://localhost:8080";
-        Long orderCode = System.currentTimeMillis() / 1000;
-        ItemData itemData = ItemData
-                .builder()
-                .name("Mỳ tôm Hảo Hảo ly")
-                .quantity(1)
-                .price(2000)
-                .build();
-
-        PaymentData paymentData = PaymentData
-                .builder()
-                .orderCode(orderCode)
-                .amount(2000)
-                .description("Thanh toán đơn hàng")
-                .returnUrl(domain + "/payment-success.html")
-                .cancelUrl(domain + "/payment-cancel.html")
-                .item(itemData)
-                .build();
-        CheckoutResponseData result;
-        try {
-             result = payOS.createPaymentLink(paymentData);
-        return "redirect:" + result.getCheckoutUrl();
-        } catch (Exception e)
-        {
-            e.printStackTrace();
-        }
-        return "";
-
-    }
-
+  }
 }
