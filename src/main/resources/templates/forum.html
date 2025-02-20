@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>E-Learning - Học Online</title>
+  <link rel="stylesheet" th:href="@{/css/general.css}">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      color: black;
+    }
+    .container {
+      display: grid;
+      grid-template-columns: 1fr 3fr 1fr;
+      width: 90%;
+      max-width: 1200px;
+      gap: 20px;
+      margin-top: 20px;
+    }
+    .sidebar, .ranking, .main-content {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+    }
+    .posts .post {
+      background: #e8e8e8;
+      padding: 10px;
+      border-radius: 5px;
+      margin-bottom: 10px;
+    }
+    .post-images img {
+      width: 100%;
+      border-radius: 5px;
+    }
+    .post-images .image-container {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .post-images .image-container img {
+      width: calc(50% - 5px);
+    }
+    .post-images .more-images {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: rgba(0, 0, 0, 0.7);
+      color: white;
+      font-size: 16px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .hidden-images {
+      display: none;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .hidden-images img {
+      width: calc(50% - 5px);
+    }
+    .collapse-images {
+      display: none;
+      text-align: center;
+      margin-top: 10px;
+      padding: 5px;
+      background-color: #f0f0f0;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+      color: #333;
+    }
+
+    .collapse-images:hover {
+      background-color: #e0e0e0;
+    }
+
+    textarea {
+      border: 2px solid #000;
+      width: 100%;
+      padding: 10px;
+      resize: none;
+    }
+    .red-button {
+      background-color: red;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      cursor: pointer;
+    }
+    .like-button {
+      cursor: pointer; /* Hiển thị con trỏ khi di chuột qua */
+      font-size: 20px; /* Kích thước biểu tượng tim */
+      color: black; /* Màu mặc định (nếu cần) */
+    }
+
+    .like-button.liked {
+      color: red; /* Màu đỏ khi được like */
+    }
+
+    .like-count {
+      margin-left: 5px; /* Khoảng cách giữa biểu tượng tim và số lượt thích */
+      font-size: 16px; /* Kích thước số lượt thích */
+    }
+
+    .comment-image {
+      max-width: 100px; /* Giới hạn chiều rộng tối đa */
+      max-height: 100px; /* Giới hạn chiều cao tối đa */
+      cursor: pointer; /* Hiển thị con trỏ khi di chuột qua ảnh */
+      border-radius: 5px; /* Bo góc ảnh */
+      margin: 5px 0; /* Thêm khoảng cách giữa các ảnh */
+    }
+
+    .comment {
+      margin-bottom: 15px; /* Khoảng cách giữa các comment */
+      padding: 10px; /* Khoảng cách bên trong comment */
+      background-color: #f9f9f9; /* Màu nền nhẹ */
+      border-radius: 5px; /* Bo góc */
+    }
+
+    .comment-images {
+      display: flex;
+      gap: 10px; /* Khoảng cách giữa các ảnh */
+      flex-wrap: wrap; /* Xuống dòng nếu có nhiều ảnh */
+    }
+    .hidden {
+      display: none;
+    }
+
+    #lightbox {
+      display: none; /* Ẩn lightbox ban đầu */
+    }
+
+    #lightbox.show {
+      display: flex; /* Hiển thị lightbox khi cần */
+    }
+
+    #lightbox-close {
+      position: absolute;
+      top: 10px;
+      right: 20px;
+      font-size: 24px;
+      color: white;
+      cursor: pointer;
+    }
+
+  </style>
+</head>
+<body>
+<div th:insert="fragments/header :: header"></div>
+<div class="container">
+  <aside class="sidebar">
+    <h2>Other Test</h2>
+    <ul>
+      <li>Test 1</li>
+      <li>Test 2</li>
+      <li>Test 3</li>
+    </ul>
+  </aside>
+  <main class="main-content">
+    <div th:if="${username}">
+      <form action="/forum/create" method="post" enctype="multipart/form-data">
+        <input type="hidden" name="username" th:value="${username}">
+        <p>Username: <span th:text="${username}"></span></p>
+        <textarea name="content" placeholder="Hỏi gì đó ..." required></textarea><br>
+        <input type="file" name="images" multiple><br>
+        <button type="submit" class="red-button">Đăng bài</button>
+      </form>
+    </div>
+    <p th:if="${username == null}">Vui lòng đăng nhập để đăng bài.</p>
+    <div class="posts">
+      <div class="post" th:each="post : ${posts}">
+        <h3 th:text="${post.username}"></h3>
+        <p th:text="${post.content}"></p>
+        <div class="post-images">
+          <div th:if="${#lists.size(post.imageUrls) == 1}">
+            <img th:src="${post.imageUrls[0]}" alt="Post Image">
+          </div>
+          <div th:if="${#lists.size(post.imageUrls) > 1}" class="image-container">
+            <img th:each="imageUrl, iterStat : ${post.imageUrls}"
+                 th:if="${iterStat.index < 2}" th:src="${imageUrl}"
+                 onclick="openImage(this)" alt="Post Image">
+            <div th:if="${#lists.size(post.imageUrls) > 2}" class="more-images"
+                 th:text="'+' + (${#lists.size(post.imageUrls)} - 2) + ' ảnh nữa'"
+                 onclick="showAllImages(this)"></div>
+            <div class="hidden-images" style="display: none;">
+              <img th:each="imageUrl, iterStat : ${post.imageUrls}"
+                   th:if="${iterStat.index >= 2}"
+                   th:src="${imageUrl}" onclick="openImage(this)"
+                   alt="Post Image">
+            </div>
+            <div class="collapse-images" style="display: none;" onclick="collapseImages(this)">
+              Thu gọn
+            </div>
+          </div>
+        </div>
+        <div class="post-actions">
+          <span class="like-button" th:attr="data-post-id=${post.postId}"
+                th:classappend="${post.liked} ? 'liked' : ''"
+                onclick="toggleLike(this)">
+            <span th:text="${post.liked ? '❤️' : '🤍'}"></span>
+          </span>
+          <span class="like-count" th:text="${post.likeCount}">0</span>
+          <span class="toggle-comments">💬</span>
+          <span>🔄</span>
+          <span>⚠️</span>
+        </div>
+        <div class="post-comments hidden">
+          <div class="comments-list">
+            <div th:each="comment : ${post.comments}" class="comment">
+              <p><strong th:text="${comment.username}"></strong>: <span th:text="${comment.content}"></span></p>
+              <!-- Hiển thị ảnh trong comment -->
+              <div th:if="${comment.imageUrls != null and !comment.imageUrls.isEmpty()}">
+                <div class="comment-images">
+                  <img th:each="imageUrl : ${comment.imageUrls}"
+                       th:src="${imageUrl}"
+                       class="comment-image"
+                       onclick="openImage(this)"
+                       alt="Comment Image">
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="create-comment">
+            <form action="/forum/comment" method="post" enctype="multipart/form-data">
+              <input type="hidden" name="postId" th:value="${post.postId}">
+              <input type="hidden" name="username" th:value="${username}">
+              <textarea name="content" placeholder="Viết bình luận..." rows="1"></textarea><br>
+              <input type="file" name="commentImages" multiple><br>
+              <button type="submit" class="red-button">Bình luận</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+  <aside class="ranking">
+    <h2>Ranking</h2>
+    <ul>
+      <li>Username 1 - Score</li>
+      <li>Username 2 - Score</li>
+    </ul>
+  </aside>
+</div>
+
+<script>
+  document.querySelectorAll('.toggle-comments').forEach(button => {
+    button.addEventListener('click', function () {
+      const commentsSection = this.parentElement.nextElementSibling;
+      commentsSection.classList.toggle('hidden');
+    });
+  });
+  function showAllImages(element) {
+    const hiddenImages = element.nextElementSibling;
+    const collapseButton = hiddenImages.nextElementSibling;
+
+    hiddenImages.style.display = "flex";
+    collapseButton.style.display = "block";
+    element.style.display = "none";
+  }
+  function collapseImages(element) {
+    // Tìm phần tử chứa các ảnh ẩn
+    const hiddenImages = element.previousElementSibling;
+    // Tìm phần "+x ảnh"
+    const moreImagesButton = hiddenImages.previousElementSibling;
+
+    // Ẩn các ảnh thừa
+    hiddenImages.style.display = "none";
+    // Ẩn nút "Thu gọn"
+    element.style.display = "none";
+
+    // Hiển thị lại phần "+x ảnh"
+    moreImagesButton.style.display = "flex";
+  }
+
+  function toggleLike(button) {
+    const likeCountElement = button.nextElementSibling;
+    const postId = button.getAttribute("data-post-id");
+    const username = document.querySelector('input[name="username"]').value;
+    let liked = button.classList.contains("liked");
+
+    // Cập nhật giao diện trước khi gửi request
+    if (liked) {
+      button.classList.remove("liked");
+      button.textContent = "🤍";
+    } else {
+      button.classList.add("liked");
+      button.textContent = "❤️";
+    }
+
+    // Gửi request cập nhật trạng thái like
+    fetch("/forum/like", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded"
+      },
+      body: `postId=${postId}&username=${username}&liked=${!liked}`
+    })
+            .then(response => response.json())
+            .then(data => {
+              // Cập nhật số lượt thích mà không cần reload trang
+              if (data.likeCount !== undefined) {
+                likeCountElement.textContent = data.likeCount;
+              }
+            })
+            .catch(error => {
+              console.error('❌ Lỗi khi cập nhật số lượt thích:', error);
+            });
+  }
+
+  function openImage(img) {
+    // Lấy thẻ lightbox và ảnh lớn
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImage = document.getElementById('lightbox-image');
+    const lightboxClose = document.getElementById('lightbox-close');
+
+    // Gán ảnh nguồn vào lightbox
+    lightboxImage.src = img.src;
+
+    // Hiển thị lightbox
+    lightbox.classList.add('show');
+
+    // Đóng lightbox khi nhấn nút "X"
+    lightboxClose.onclick = function () {
+      lightbox.classList.remove('show');
+    };
+
+    // Đóng lightbox khi nhấn ra ngoài ảnh
+    lightbox.onclick = function (e) {
+      if (e.target === lightbox) {
+        lightbox.classList.remove('show');
+      }
+    };
+  }
+</script>
+<div id="lightbox" class="hidden fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
+  <img id="lightbox-image" class="max-w-full max-h-full object-contain" alt="Enlarged Image">
+  <button id="lightbox-close" class="absolute top-4 right-4 text-white text-3xl font-bold cursor-pointer">×</button>
+</div>
+</body>
+</html>
