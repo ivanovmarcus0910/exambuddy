@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Kết quả bài thi</title>
+</head>
+<body>
+<p>Điểm của bạn: <b th:text="${score}"></b>/10</p>
+
+<h3>Chi tiết bài làm</h3>
+<ul>
+    <li th:each="question, i : ${exam.questions}">
+        <p><b>Câu hỏi:</b> <span th:text="${question.questionText}"></span></p>
+
+        <!-- Hiển thị các lựa chọn -->
+        <ul>
+            <li th:each="option, j : ${question.options}">
+                <input type="checkbox"
+                       th:checked="${userAnswers['q' + i.index] != null
+                   && #lists.contains(userAnswers['q' + i.index], j.index + '')}"
+                       disabled>
+                <span th:text="${option}"></span>
+
+                <!-- Nếu người dùng đã chọn đáp án này -->
+                <span th:if="${userAnswers['q' + i.index] != null
+              && #lists.contains(userAnswers['q' + i.index], j.index + '')}">
+            <!-- Nếu đáp án đúng -->
+            <span th:if="${question.correctAnswers.contains(j.index)}"
+                  style="color: green; font-weight: bold;"> ✅</span>
+                    <!-- Nếu đáp án sai -->
+            <span th:unless="${question.correctAnswers.contains(j.index)}"
+                  style="color: red; font-weight: bold;"> ❌</span>
+        </span>
+
+                <!-- Đánh dấu đáp án đúng nếu người dùng không chọn -->
+                <span th:if="${question.correctAnswers.contains(j.index)
+              && (userAnswers['q' + i.index] == null
+                  || !#lists.contains(userAnswers['q' + i.index], j.index + ''))}"
+                      style="color: green; font-weight: bold;"> (Đáp án đúng)</span>
+            </li>
+        </ul>
+</ul>
+<a href="/exams/result-list">Quay lại danh sách bài thi</a>
+</body>
+</html>

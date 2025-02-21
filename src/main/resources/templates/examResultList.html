@@ -19,14 +19,20 @@
     <th>Username</th>
     <th>Score</th>
     <th>Submission Time</th>
+    <th>Detail</th>
   </tr>
   </thead>
   <tbody>
   <tr th:each="result : ${results}">
-    <td th:text="${result.getExamID()}"></td>
+    <td th:text="${result.getResultId()}"></td>
     <td th:text="${username}"></td>
     <td th:text="${result.getScore()}"></td>
     <td th:text="${#dates.format(result.getSubmittedAt(), 'dd/MM/yyyy HH:mm:ss')}"></td>
+    <td>
+      <a th:href="@{/exams/result/{resultId}/{examId}(resultId=${result.resultId},examId=${result.getExamID()})}" class="btn btn-primary btn-sm">
+        Xem chi tiết
+      </a>
+    </td>
 
 
   </tr>

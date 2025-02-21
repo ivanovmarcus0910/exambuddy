@@ -165,7 +165,7 @@
         subject: document.getElementById("subject").value,   // Lấy môn học từ input
         tags: document.getElementById("tags").value.split(","), // Tách tag thành mảng
         username: username, // Người tạo
-        date: new Date().toISOString(), // Ngày tạo
+        date: new Date().getDate(), // Ngày tạo
         questions: questions // Danh sách câu hỏi
       };
 

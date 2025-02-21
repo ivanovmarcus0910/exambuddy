@@ -69,7 +69,7 @@
 
                 <span><b>Môn học:</b> <span th:text="${exam.subject}"></span></span>
                 <br>
-                <span><b>Ngày đăng:</b> <span th:text="${#dates.format(exam.date,'dd/MM/yyyy')}"></span></span>
+                <span><b>Ngày đăng:</b> <span th:text="${exam.date}"></span></span>
                 <br>
                 <span><b>Câu hỏi:</b> <span th:text="${exam.questionCount}"></span></span>
 
@@ -85,11 +85,7 @@
                 </form>
             </div>
       </div>
-        <div class="pagination">
-            <a th:if="${currentPage > 0}" th:href="@{/home(page=${prevPage},size=${size})}">« </a>
-            <span> <span th:text="${currentPage + 1}"></span></span>
-            <a th:href="@{/home(page=${nextPage},size=${size})}"> »</a>
-        </div>
+
 
         <div class="rank-panel">
             <h4>BXH học sinh có điểm số cao nhất</h4>
@@ -112,13 +108,13 @@
 
     </div>
 
-
+    <div class="pagination">
+        <a th:if="${currentPage > 0}" th:href="@{/home(page=${prevPage},size=${size})}">«   </a>
+        <span> <span th:text="${currentPage + 1}"></span></span>
+        <a th:href="@{/home(page=${nextPage},size=${size})}">   »</a>
+    </div>
 
 </main>
-
-
-
-
 
 <div th:replace="fragments/footer :: footer"></div>
 

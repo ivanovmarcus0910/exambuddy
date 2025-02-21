@@ -12,6 +12,9 @@ import org.springframework.util.MultiValueMap;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.Date;
+import java.util.TimeZone;
 
 @Service
 public class ExamService {
@@ -68,21 +71,26 @@ public class ExamService {
 
 
     // Phương thức format lại ngày
-    public String formatDate(String dateString) {
+    public static String formatDate(String dateString) {
         try {
-            // Định dạng chuỗi Firebase: yyyy-MM-dd'T'HH:mm:ss.SSS'Z'
+            // Định dạng ban đầu từ Firebase (luôn là UTC)
             SimpleDateFormat originalFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-            // Định dạng ngày muốn hiển thị: dd/MM/yyyy
-            SimpleDateFormat targetFormat = new SimpleDateFormat("dd/MM/yyyy");
+            originalFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 
-            // Chuyển chuỗi thành Date
+            // Chuyển chuỗi Firebase thành đối tượng Date (mặc định là UTC)
             Date date = originalFormat.parse(dateString);
-            return targetFormat.format(date); // Trả về ngày đã định dạng
+            System.out.println("Parsed Date (UTC): " + date); // Debug
+
+            // Chuyển sang múi giờ hệ thống mà không làm sai lệch giá trị
+            SimpleDateFormat targetFormat = new SimpleDateFormat("dd/MM/yyyy");
+            return targetFormat.format(new Date(date.getTime())); // Chuyển đổi về đúng format
         } catch (Exception e) {
             e.printStackTrace();
-            return null; // Trả về null nếu có lỗi
+            return "Lỗi định dạng ngày!";
         }
     }
+
+
 
     public Exam getExam(String examID) {
         try {
@@ -203,9 +211,11 @@ public class ExamService {
         docRef.delete();
     }
     public void saveExamResult(String userId, String examId, double score, Exam exam, MultiValueMap<String, String> userAnswers, List<String> correctAnswers) {
-        String ResultID = UUID.randomUUID().toString();
-        DocumentReference docRef = db.collection("examResults").document(userId + "_" + examId+"_"+ResultID);
+        String idRandom = UUID.randomUUID().toString();
+        String ResultsId = userId + "_" + examId + "_" + idRandom;
+        DocumentReference docRef = db.collection("examResults").document(ResultsId);
         docRef.set(Map.of(
+                "resultId",ResultsId,
                 "examID",examId,
                 "score", score,
                 "answers", userAnswers,
@@ -227,6 +237,7 @@ public class ExamService {
             List<QueryDocumentSnapshot> documents = future.get().getDocuments();
 
             for (DocumentSnapshot doc : documents) {
+                System.out.println("Document data: " + doc.getData());
                 ExamResult examResult = doc.toObject(ExamResult.class);
                 results.add(examResult);
             }
@@ -306,5 +317,30 @@ public class ExamService {
 
         return exams;
     }
+
+    public ExamResult getExamResult(String resultId) {
+        Firestore db = FirestoreClient.getFirestore();
+        try {
+            String documentId = resultId;
+            System.out.println("Fetching document with ID: " + documentId); // Log ID tài liệu
+
+            // Lấy document có ID = "username_examId"
+            DocumentSnapshot doc = db.collection("examResults")
+                    .document(documentId)
+                    .get()
+                    .get();
+
+            if (doc.exists()) {
+                System.out.println("Document data: " + doc.getData()); // Log dữ liệu tài liệu
+                return doc.toObject(ExamResult.class); // Chuyển dữ liệu Firestore thành Java Object
+            } else {
+                System.out.println("Document does not exist!"); // Log nếu tài liệu không tồn tại
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
 
 }

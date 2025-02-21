@@ -6,18 +6,22 @@
     import java.util.Map;
 
     public class ExamResult {
+        private String resultId;
         private String examID;
         private double score;
-        private Map<String, Object> userAnswers;
+        private Map<String, List<String>> answers;
         private long submittedAt;
         private List<String> correctAnswers;
+
+
         public ExamResult() {
         }
 
-        public ExamResult(String examID, double score, Map<String, Object> userAnswers, long submittedAt, List<String> correctAnswers) {
+        public ExamResult(String resultId,String examID, double score, Map<String, List<String>> answers, long submittedAt, List<String> correctAnswers) {
+            this.resultId = resultId;
             this.examID = examID;
             this.score = score;
-            this.userAnswers = userAnswers;
+            this.answers = answers;
             this.submittedAt = submittedAt;
             this.correctAnswers = correctAnswers;
         }
@@ -30,12 +34,12 @@
             this.score = score;
         }
 
-        public Map<String, Object> getUserAnswers() {
-            return userAnswers;
+        public Map<String, List<String>> getAnswers() {
+            return answers;
         }
 
-        public void setUserAnswers(Map<String, Object> userAnswers) {
-            this.userAnswers = userAnswers;
+        public void setAnswers(Map<String, List<String>> answers) {
+            this.answers = answers;
         }
 
         public long getSubmittedAt() {
@@ -44,6 +48,14 @@
 
         public void setSubmittedAt(long submittedAt) {
             this.submittedAt = submittedAt;
+        }
+
+        public String getResultId() {
+            return resultId;
+        }
+
+        public void setResultId(String resultId) {
+            this.resultId = resultId;
         }
 
         public String getExamID() {
@@ -61,4 +73,5 @@
         public void setCorrectAnswers(List<String> correctAnswers) {
             this.correctAnswers = correctAnswers;
         }
+
     }

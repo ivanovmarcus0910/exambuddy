@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.ui.Model;
 
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -225,5 +226,36 @@ public class ManageExamController {
         model.addAttribute("createdExams", createdExams);
         return "createdExams"; // Tên file HTML để hiển thị các bài thi đã tạo
     }
+
+
+
+    @GetMapping("/exams/result/{resultId}/{examId}")
+    public String viewExamResult(@PathVariable String resultId,@PathVariable String examId, Model model,HttpServletRequest request, HttpSession session) throws ExecutionException, InterruptedException {
+        if (session.getAttribute("loggedInUser") == null) {
+            return "redirect:/login"; // Nếu chưa đăng nhập, chuyển hướng về home
+        }
+        String username = cookieService.getCookie(request, "noname");
+
+        // Lấy kết quả bài thi của user
+        ExamResult examResult = examService.getExamResult(resultId);
+        if (examResult == null) {
+            return "redirect:/home";
+        }
+
+        // Lấy danh sách câu hỏi từ Firestore
+        Exam exam = examService.getExam(examId);
+        if (exam == null) {
+            return "redirect:/exams/result-list";
+        }
+
+        model.addAttribute("exam", exam);  // Truyền danh sách câu hỏi vào Thymeleaf
+        model.addAttribute("score", examResult.getScore());
+        model.addAttribute("userAnswers", examResult.getAnswers());
+        model.addAttribute("correctQuestions", examResult.getCorrectAnswers());
+
+        return "examResultDetail";
+    }
+
+
 }
 

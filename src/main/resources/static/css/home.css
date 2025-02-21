@@ -488,7 +488,24 @@ input {
     font-size: 13px;
     margin-bottom: 10px;
 }
+.pagination {
+    padding-bottom: 20px; /* Đẩy phân trang xuống dưới */
+    text-align: center; /* Căn giữa */
+}
 
+.pagination a {
+    padding: 8px 12px;
+    text-decoration: none;
+    background: #007bff;
+    color: white;
+    border-radius: 5px;
+    margin: 0 5px;
+    transition: background 0.3s;
+}
+
+.pagination a:hover {
+    background: #0056b3;
+}
 .success-message {
     color: limegreen;
     font-size: 13px;
