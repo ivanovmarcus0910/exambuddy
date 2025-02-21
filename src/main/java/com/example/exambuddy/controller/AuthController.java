@@ -1,5 +1,6 @@
 package com.example.exambuddy.controller;
 
+import com.example.exambuddy.model.User;
 import com.example.exambuddy.service.CookieService;
 import com.example.exambuddy.service.FirebaseAuthService;
 import com.example.exambuddy.service.PasswordService;
@@ -10,11 +11,13 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -115,6 +118,14 @@ public class AuthController {
         if (authService.authenticate(username, password)) {
             // Lưu thông tin đăng nhập vào session
             session.setAttribute("loggedInUser", username);
+            System.out.println("Người dùng đăng nhập: " + username);
+
+            // Nếu là admin thi chuyển trang
+            if(authService.isAdmin(username)) {
+                System.out.println("✅ Gọi isAdmin() thành công. Đang redirect về: /adminDashboard/dashboard");
+                System.out.println("🎭 Các quyền của user: " + SecurityContextHolder.getContext().getAuthentication().getAuthorities());
+                return "redirect:/adminDashboard/dashboard";
+            }
             if (rememberMe) {
                 cookieService.setCookie(response, "rememberedUsername", URLEncoder.encode(username, "UTF-8"));
                 cookieService.setCookie(response, "rememberedPassword", URLEncoder.encode(password, "UTF-8"));
@@ -126,6 +137,7 @@ public class AuthController {
                 cookieService.removeCookie(response,"rememberedPassword");
 
             }
+
             return "redirect:/home";
         }
         model.addAttribute("error", "Tên đăng nhập hoặc mật khẩu không đúng!");
@@ -210,15 +222,15 @@ public class AuthController {
     // Xu li signup
     @PostMapping("/signup")
     public String signup(@RequestParam String email,
-                         @RequestParam String phone,
                          @RequestParam String username,
                          @RequestParam String password,
                          @RequestParam String confirmPassword,
+                         @RequestParam String role,
                          Model model) {
 
         boolean hasError = false;
         // Kiểm tra nếu bất kỳ trường nào bị thiếu
-        if (email == null || phone == null || username == null || password == null || confirmPassword == null) {
+        if (email == null || username == null || password == null || confirmPassword == null) {
             model.addAttribute("error", "Vui lòng nhập đầy đủ thông tin!");
             hasError = true;
         }
@@ -230,10 +242,10 @@ public class AuthController {
         }
 
         // Kiểm tra số điện thoại hợp lệ (tối thiểu 9 số)
-        if (!phone.matches("^\\d{9,}$")) {
-            model.addAttribute("phoneError", "Số điện thoại không hợp lệ!");
-            hasError = true;
-        }
+//        if (!phone.matches("^\\d{9,}$")) {
+//            model.addAttribute("phoneError", "Số điện thoại không hợp lệ!");
+//            hasError = true;
+//        }
 
         // Kiểm tra mật khẩu xác nhận
         if (!password.equals(confirmPassword)) {
@@ -256,13 +268,19 @@ public class AuthController {
         // Nếu có lỗi, quay lại trang signup + giữ lại thông tin nhập vào
         if (hasError) {
             model.addAttribute("emailValue", email);
-            model.addAttribute("phoneValue", phone);
+            //model.addAttribute("phoneValue", phone);
             model.addAttribute("usernameValue", username);
             return "signup";
         }
 
+        User.Role userRole;
+        try {
+            userRole = User.Role.valueOf(role.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            userRole = User.Role.USER;
+        }
 
-        String result = authService.registerUser(email, phone, username, password);
+        String result = authService.registerUser(email, username, password,userRole);
         model.addAttribute("email", email);
         model.addAttribute("actionType", "register");  // Xác thực tài khoản
         model.addAttribute("message", result);

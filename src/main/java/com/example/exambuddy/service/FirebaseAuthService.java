@@ -6,6 +6,9 @@ import com.google.firebase.cloud.FirestoreClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -19,16 +22,25 @@ public class FirebaseAuthService {
     private static final String ACCOUNT_OTP_COLLECTION = "account_verify_otps"; // xac thuc account
     private static final String OTP_COLLECTION = "password_reset_otps"; // quen pass
 
+    // Danh sách email là admin
+    private static final List<String> ADMIN_Email    = Arrays.asList(
+            "trinhquoctrung10504@gmail.com"
+    );
+
     // Đăng ký người dùng mới và gửi email xác thực
-    public String registerUser(String email, String phone, String username, String password) {
+    public String registerUser(String email, String username, String password, User.Role selectRole) {
         Firestore firestore = FirestoreClient.getFirestore();
         CollectionReference users = firestore.collection(COLLECTION_NAME);
+
+
+        // Kiểm tra email trong danh sách Admin
+        User.Role role  = ADMIN_Email.contains(email) ? User.Role.ADMIN : selectRole;
 
         System.out.println("Mật khẩu trước khi mã hoá: "+password);
         // ✅ Mã hóa mật khẩu trước khi lưu vào Firestore
         String hashedPassword = passService.encodePassword(password);
         System.out.println("Mật khẩu sau khi mã hoá: "+hashedPassword);
-        User user = new User(username, email, phone, username, hashedPassword, false); // Chưa xác thực tài khoản
+        User user = new User(username, email, username, hashedPassword, false, role); // Chưa xác thực tài khoản
 
         try {
             // ✅ Tạo OTP xác thực tài khoản
@@ -41,9 +53,12 @@ public class FirebaseAuthService {
             // ✅ Gửi OTP qua email
             emailService.sendOtpEmailAccount(email, otp);
             System.out.println("📧 Đã gửi mã OTP xác thực tài khoản cho: " + email);
+            System.out.println("Role của người dùng đăng ký: " + role);
+            System.out.println("Dữ liệu User chuẩn bị lưu vào Firestore: " + user);
 
             // ✅ Lưu thông tin tài khoản vào Firestore (chưa xác thực)
             users.document(username).set(user);
+
             System.out.println("✅ Tài khoản đã được lưu vào Firestore (chưa xác thực): " + username);
             return "OTP đã được gửi đến email của bạn!";
 
@@ -53,51 +68,6 @@ public class FirebaseAuthService {
             return "Error: Không thể gửi OTP xác thực!";
         }
     }
-
-
-        /*
-        String verificationToken = UUID.randomUUID().toString();
-        User user = new User(null, email, phone, username, password, verificationToken);
-
-        try {
-            // ✅ Gửi email xác thực trước khi lưu tài khoản
-            System.out.println("📧 Gửi email xác thực đến: " + email);
-            emailService.sendVerificationEmail(email, verificationToken);
-
-            // ✅ Chỉ lưu tài khoản nếu email gửi thành công
-            users.document(username).set(user);
-            System.out.println("✅ Tài khoản đã được lưu vào Firestore: " + username);
-            return verificationToken;
-
-        } catch (Exception e) {
-            System.out.println("❌ Lỗi khi gửi email xác thực: " + e.getMessage());
-            e.printStackTrace();
-            return "Error: Không thể gửi email xác thực!";
-        }
-    }
-
-    //Xác thực email bằng token
-
-    public boolean verifyEmail(String token) {
-        Firestore firestore = FirestoreClient.getFirestore();
-        try {
-            Query query = firestore.collection(COLLECTION_NAME).whereEqualTo("verificationToken", token);
-            QuerySnapshot querySnapshot = query.get().get();
-
-            if (!querySnapshot.isEmpty()) {
-                DocumentSnapshot doc = querySnapshot.getDocuments().get(0);
-                DocumentReference userRef = doc.getReference();
-
-                // Cập nhật trạng thái xác thực
-                userRef.update("verified", true, "verificationToken", null);
-                return true;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-    */
 
     /**
      * Gửi OTP đặt lại mật khẩu và lưu vào Firestore
@@ -287,5 +257,27 @@ public class FirebaseAuthService {
             return false;
         }
     }
+
+    // ✅ Kiểm tra xem user có phải Admin không
+    public boolean isAdmin(String username) {
+        System.out.println("📌 Đang kiểm tra quyền admin của: " + username);  // ✅ Debug xem hàm có chạy không
+        Firestore firestore = FirestoreClient.getFirestore();
+        try {
+            DocumentSnapshot userSnapshot = firestore.collection(COLLECTION_NAME).document(username).get().get();
+            if (!userSnapshot.exists()) {
+                System.out.println("❌ Không tìm thấy user: " + username);
+                return false;
+            }
+
+            String role = userSnapshot.getString("role");
+            System.out.println("✅ Role của " + username + " là: " + role);
+            return role != null && role.equalsIgnoreCase("ADMIN");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
 
 }

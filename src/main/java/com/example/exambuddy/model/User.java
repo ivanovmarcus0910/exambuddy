@@ -8,17 +8,24 @@ public class User {
     private String password;
     private boolean verified;
     private String avatarUrl;
+    private String role;
 
-    public User() {}
+    public enum Role {
+        ADMIN, USER, TEACHER, UPGRADED_USER
+    }
+    public User() {
+        this.role = Role.USER.name();
+    }
 
-    public User(String id, String email, String phone, String username, String password, boolean verified) {
+    public User(String id, String email, String username, String password, boolean verified,Role role) {
         this.id = id;
         this.email = email;
-        this.phone = phone;
+        this.phone = "";
         this.username = username;
         this.password = password;
         this.verified = false; // Mặc định chưa xác thực
         this.avatarUrl = "https://res.cloudinary.com/dsuav027e/image/upload/v1739367972/halnqohla5mqr3seve3d.png";
+        this.role = role.name();
     }
 
     public boolean isVerified() {
@@ -74,4 +81,6 @@ public class User {
     public void setAvatarUrl(String avatarUrl) {
         this.avatarUrl = avatarUrl;
     }
+    public Role getRole() { return Role.valueOf(this.role); }
+    public void setRole(Role role) { this.role = role.name(); }
 }

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" th:href="@{/css/admin.css}">
+</head>
+<body class="bg-gray-900 text-white">
+<div class="container mx-auto mt-10">
+  <h1 class="text-4xl font-bold text-center text-indigo-400">🎩 Admin Dashboard 🎩</h1>
+
+  <!-- Danh sách người dùng -->
+  <div class="bg-gray-800 p-6 mt-6 rounded-lg shadow-lg">
+    <h2 class="text-2xl font-semibold mb-4 text-white">👥 Quản lý Người dùng</h2>
+    <table class="w-full mt-4 border-collapse bg-gray-900 rounded-lg shadow-lg">
+      <thead>
+      <tr class="bg-indigo-600 text-white">
+        <th class="py-3 px-6 text-left">📧 Email</th>
+        <th class="py-3 px-6 text-left">👤 Tên</th>
+        <th class="py-3 px-6 text-left">🛡 Vai trò</th>
+        <th class="py-3 px-6 text-center">⚙️ Hành động</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="user : ${users}" class="border-b border-gray-700 hover:bg-gray-700 transition">
+        <td class="py-3 px-6" th:text="${user.email}"></td>
+        <td class="py-3 px-6" th:text="${user.username}"></td>
+        <td class="py-3 px-6 font-bold text-indigo-400" th:text="${user.role}"></td>
+        <td class="py-3 px-6 text-center">
+          <!-- Form đổi vai trò -->
+          <form action="/adminDashboard/changeRole" method="post" class="inline-block">
+            <input type="hidden" name="username" th:value="${user.username}">
+            <select name="newRole" class="bg-gray-700 text-white px-2 py-1 rounded">
+              <option value="USER" th:selected="${user.role == 'USER'}">USER</option>
+              <option value="TEACHER" th:selected="${user.role == 'TEACHER'}">TEACHER</option>
+            </select>
+            <button type="submit" class="ml-2 bg-green-500 px-2 py-1 rounded hover:bg-green-600 transition">💾 Lưu</button>
+          </form>
+
+          <!-- Nút Xóa -->
+          <form action="/adminDashboard/deleteUser" method="post" class="inline-block">
+            <input type="hidden" name="username" th:value="${user.username}">
+            <button type="submit" class="ml-2 bg-red-500 px-2 py-1 rounded hover:bg-red-600 transition">🗑 Xóa</button>
+          </form>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Logout -->
+  <div class="text-center mt-8">
+    <a href="/logout" class="bg-red-500 px-4 py-2 rounded-lg text-white font-semibold hover:bg-red-600 transition">🚪 Đăng xuất</a>
+  </div>
+</div>
+</body>
+</html>
