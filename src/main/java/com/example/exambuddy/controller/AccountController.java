@@ -61,7 +61,7 @@ public class AccountController {
     public String uploadAvatar(@RequestParam("image") MultipartFile file,
                                @RequestParam String username,
                                Model model) throws IOException {
-        String url = this.cloudinaryService.upLoadFile(file);
+        String url = this.cloudinaryService.upLoadImg(file, "imgAvatar");
         System.out.println("URL="+url);
         UserService.changeAvatar(username, url);
             User user = UserService.getUserData(username);

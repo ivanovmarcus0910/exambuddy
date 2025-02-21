@@ -21,9 +21,9 @@ public class CloudinaryService {
     }
 
 
-    public String upLoadFile(MultipartFile file) {
+    public String upLoadImg(MultipartFile file, String foldername) {
         try{
-            Map data = this.cloudinary.uploader().upload(file.getBytes(), Map.of());
+            Map data = this.cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap("folder", foldername));
             String url = (String) data.get("url");
             return url;
         }catch (Exception e){
@@ -31,4 +31,5 @@ public class CloudinaryService {
             return null;
         }
     }
+
 }

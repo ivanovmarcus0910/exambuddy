@@ -42,7 +42,7 @@ public class PostController {
         List<String> imageUrls = new ArrayList<>();
         for (MultipartFile file : files) {
             if (!file.isEmpty()) {
-                String imageUrl = this.cloudinaryService.upLoadFile(file);
+                String imageUrl = this.cloudinaryService.upLoadImg(file, "imgForum");
                 imageUrls.add(imageUrl);
                 System.out.println("URL = " + imageUrl);
             }
@@ -85,7 +85,7 @@ public class PostController {
         List<String> imageUrls = new ArrayList<>();
         for (MultipartFile file : files) {
             if (!file.isEmpty()) {
-                String imageUrl = this.cloudinaryService.upLoadFile(file);
+                String imageUrl = this.cloudinaryService.upLoadImg(file, "imgForum");
                 imageUrls.add(imageUrl);
                 System.out.println("URL = " + imageUrl);
             }

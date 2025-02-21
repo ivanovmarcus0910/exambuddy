@@ -18,10 +18,9 @@ public class PaymentController {
   public PaymentController(PayOS payOS) {
     super();
     this.payOS = payOS;
-
   }
 
-  @PostMapping(path = "/payment/payos_transfer_handler")
+  @PostMapping("/payos_transfer_handler")
   public ObjectNode payosTransferHandler(@RequestBody ObjectNode body)
       throws JsonProcessingException, IllegalArgumentException {
 
