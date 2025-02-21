@@ -5,55 +5,129 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Dashboard</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" th:href="@{/css/admin.css}">
 </head>
-<body class="bg-gray-900 text-white">
-<div class="container mx-auto mt-10">
-  <h1 class="text-4xl font-bold text-center text-indigo-400">🎩 Admin Dashboard 🎩</h1>
+<body>
 
-  <!-- Danh sách người dùng -->
-  <div class="bg-gray-800 p-6 mt-6 rounded-lg shadow-lg">
-    <h2 class="text-2xl font-semibold mb-4 text-white">👥 Quản lý Người dùng</h2>
-    <table class="w-full mt-4 border-collapse bg-gray-900 rounded-lg shadow-lg">
-      <thead>
-      <tr class="bg-indigo-600 text-white">
-        <th class="py-3 px-6 text-left">📧 Email</th>
-        <th class="py-3 px-6 text-left">👤 Tên</th>
-        <th class="py-3 px-6 text-left">🛡 Vai trò</th>
-        <th class="py-3 px-6 text-center">⚙️ Hành động</th>
-      </tr>
-      </thead>
-      <tbody>
-      <tr th:each="user : ${users}" class="border-b border-gray-700 hover:bg-gray-700 transition">
-        <td class="py-3 px-6" th:text="${user.email}"></td>
-        <td class="py-3 px-6" th:text="${user.username}"></td>
-        <td class="py-3 px-6 font-bold text-indigo-400" th:text="${user.role}"></td>
-        <td class="py-3 px-6 text-center">
-          <!-- Form đổi vai trò -->
-          <form action="/adminDashboard/changeRole" method="post" class="inline-block">
-            <input type="hidden" name="username" th:value="${user.username}">
-            <select name="newRole" class="bg-gray-700 text-white px-2 py-1 rounded">
-              <option value="USER" th:selected="${user.role == 'USER'}">USER</option>
-              <option value="TEACHER" th:selected="${user.role == 'TEACHER'}">TEACHER</option>
-            </select>
-            <button type="submit" class="ml-2 bg-green-500 px-2 py-1 rounded hover:bg-green-600 transition">💾 Lưu</button>
-          </form>
-
-          <!-- Nút Xóa -->
-          <form action="/adminDashboard/deleteUser" method="post" class="inline-block">
-            <input type="hidden" name="username" th:value="${user.username}">
-            <button type="submit" class="ml-2 bg-red-500 px-2 py-1 rounded hover:bg-red-600 transition">🗑 Xóa</button>
-          </form>
-        </td>
-      </tr>
-      </tbody>
-    </table>
+<div class="flex h-screen">
+  <!-- Sidebar -->
+  <div class="sidebar w-1/5 p-5">
+    <h2 class="text-xl font-bold">🎩 Admin Panel</h2>
+    <ul class="mt-5 space-y-3">
+      <li><a href="#users">👥 Quản lý Người dùng</a></li>
+      <li><a href="#posts">📄 Quản lý Bài viết</a></li>
+      <li><a href="#exams">📝 Quản lý Đề thi</a></li>
+      <li><a href="#stats">📊 Thống kê</a></li>
+      <li><a href="/logout" class="logout-btn">🚪 Đăng xuất</a></li>
+    </ul>
   </div>
 
-  <!-- Logout -->
-  <div class="text-center mt-8">
-    <a href="/logout" class="bg-red-500 px-4 py-2 rounded-lg text-white font-semibold hover:bg-red-600 transition">🚪 Đăng xuất</a>
+  <!-- Main Content -->
+  <div class="main-content w-4/5 p-8">
+    <h1 class="text-3xl font-bold">Admin Dashboard</h1>
+
+    <!-- Bảng thống kê -->
+    <div id="stats" class="stats-container">
+      <div class="stats-box">
+        <h3>👤 Tổng tài khoản</h3>
+        <p class="stats-number" th:text="${totalUsers}">0</p>
+      </div>
+      <div class="stats-box">
+        <h3>📄 Tổng bài viết</h3>
+        <p class="stats-number" th:text="${totalPosts}">0</p>
+      </div>
+      <div class="stats-box">
+        <h3>📝 Tổng đề thi</h3>
+        <p class="stats-number" th:text="${totalExams}">0</p>
+      </div>
+    </div>
+
+    <!-- Biểu đồ thống kê -->
+    <div class="charts-container">
+      <canvas id="userChart"></canvas>
+      <canvas id="postExamChart"></canvas>
+    </div>
+
+    <!-- Bảng 12 tháng -->
+    <div class="mt-10">
+      <h2 class="text-2xl font-bold">📊 Thống kê Bài viết & Đề thi (12 tháng)</h2>
+      <canvas id="monthlyChart"></canvas>
+    </div>
+
+    <!-- Quản lý Người dùng -->
+    <div id="users" class="mt-10">
+      <h2 class="text-2xl font-bold">👥 Quản lý Người dùng</h2>
+      <table class="w-full mt-4 border-collapse bg-gray-100 rounded-lg shadow-lg">
+        <thead>
+        <tr class="bg-gray-300 text-black">
+          <th class="py-3 px-6 text-left">📧 Email</th>
+          <th class="py-3 px-6 text-left">👤 Tên</th>
+          <th class="py-3 px-6 text-left">🛡 Vai trò</th>
+          <th class="py-3 px-6 text-center">⚙️ Hành động</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="user : ${users}" class="border-b border-gray-400 hover:bg-gray-200 transition">
+          <td class="py-3 px-6" th:text="${user.email}"></td>
+          <td class="py-3 px-6" th:text="${user.username}"></td>
+          <td class="py-3 px-6 font-bold text-indigo-600" th:text="${user.role}"></td>
+          <td class="py-3 px-6 text-center">
+            <form action="/adminDashboard/changeRole" method="post" class="inline-block">
+              <input type="hidden" name="username" th:value="${user.username}">
+              <select name="newRole" class="bg-gray-200 text-black px-2 py-1 rounded">
+                <option value="USER" th:selected="${user.role == 'USER'}">USER</option>
+                <option value="TEACHER" th:selected="${user.role == 'TEACHER'}">TEACHER</option>
+                <option value="ADMIN" th:selected="${user.role == 'ADMIN'}">ADMIN</option>
+                <option value="UPGRADED_USER" th:selected="${user.role == 'UPGRADED_USER'}">UPGRADED_USER</option>
+              </select>
+              <button type="submit" class="ml-2 bg-green-500 px-2 py-1 rounded hover:bg-green-600 transition">💾 Lưu</button>
+            </form>
+            <form action="/adminDashboard/deleteUser" method="post" class="inline-block">
+              <input type="hidden" name="username" th:value="${user.username}">
+              <button type="submit" class="ml-2 bg-red-500 px-2 py-1 rounded hover:bg-red-600 transition">🗑 Xóa</button>
+            </form>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+
   </div>
 </div>
+
+<!-- JavaScript for Charts -->
+<script>
+  new Chart(document.getElementById('userChart').getContext('2d'), {
+    type: 'pie',
+    data: {
+      labels: ['User', 'Admin', 'Teacher', 'Upgraded User'],
+      datasets: [{
+        data: [45, 5, 15, 10],
+        backgroundColor: ['#4CAF50', '#FF6384', '#36A2EB', '#FFCE56']
+      }]
+    },
+    options: { responsive: true, maintainAspectRatio: false }
+  });
+
+  new Chart(document.getElementById('monthlyChart').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
+        'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'],
+      datasets: [{
+        label: 'Bài viết',
+        data: [10, 15, 8, 20, 25, 10, 30, 12, 14, 22, 18, 16],
+        backgroundColor: '#36A2EB'
+      }, {
+        label: 'Đề thi',
+        data: [7, 10, 12, 18, 20, 14, 25, 9, 11, 19, 17, 15],
+        backgroundColor: '#FFCE56'
+      }]
+    }
+  });
+
+</script>
+
 </body>
 </html>
