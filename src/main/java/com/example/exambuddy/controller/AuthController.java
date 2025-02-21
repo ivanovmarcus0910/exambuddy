@@ -55,10 +55,14 @@ public class AuthController {
         } else if (oauth2User != null) { // Facebook
             email = oauth2User.getAttribute("email");
             name = oauth2User.getAttribute("name");
-            if (oauth2User.getAttribute("picture") != null) {
-                picture = ((Map<String, Object>) oauth2User.getAttribute("picture")).get("data").toString();
-                picture = picture.substring(picture.indexOf("url=") + 4, picture.indexOf("}"));
+            Map<String, Object> pictureObj = oauth2User.getAttribute("picture");
+            if (pictureObj != null) {
+                Map<String, Object> data = (Map<String, Object>) pictureObj.get("data");
+                if (data != null) {
+                    picture = (String) data.get("url");
+                }
             }
+            System.out.println("Avatar URL: " + picture);
         }
 
         if (email != null) {
@@ -206,15 +210,15 @@ public class AuthController {
     // Xu li signup
     @PostMapping("/signup")
     public String signup(@RequestParam String email,
-                         @RequestParam String phone,
                          @RequestParam String username,
                          @RequestParam String password,
                          @RequestParam String confirmPassword,
                          Model model) {
+        System.out.println("Đã vào đu");
 
         boolean hasError = false;
         // Kiểm tra nếu bất kỳ trường nào bị thiếu
-        if (email == null || phone == null || username == null || password == null || confirmPassword == null) {
+        if (email == null  || username == null || password == null || confirmPassword == null) {
             model.addAttribute("error", "Vui lòng nhập đầy đủ thông tin!");
             hasError = true;
         }
@@ -225,11 +229,7 @@ public class AuthController {
             hasError = true;
         }
 
-        // Kiểm tra số điện thoại hợp lệ (tối thiểu 9 số)
-        if (!phone.matches("^\\d{9,}$")) {
-            model.addAttribute("phoneError", "Số điện thoại không hợp lệ!");
-            hasError = true;
-        }
+
 
         // Kiểm tra mật khẩu xác nhận
         if (!password.equals(confirmPassword)) {
@@ -252,13 +252,12 @@ public class AuthController {
         // Nếu có lỗi, quay lại trang signup + giữ lại thông tin nhập vào
         if (hasError) {
             model.addAttribute("emailValue", email);
-            model.addAttribute("phoneValue", phone);
             model.addAttribute("usernameValue", username);
             return "signup";
         }
 
 
-        String result = authService.registerUser(email, phone, username, password);
+        String result = authService.registerUser(email, username, password);
         model.addAttribute("email", email);
         model.addAttribute("actionType", "register");  // Xác thực tài khoản
         model.addAttribute("message", result);

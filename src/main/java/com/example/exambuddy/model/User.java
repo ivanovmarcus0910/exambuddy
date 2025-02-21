@@ -11,10 +11,10 @@ public class User {
 
     public User() {}
 
-    public User(String id, String email, String phone, String username, String password, boolean verified) {
+    public User(String id, String email, String username, String password, boolean verified) {
         this.id = id;
         this.email = email;
-        this.phone = phone;
+        this.phone = "";
         this.username = username;
         this.password = password;
         this.verified = false; // Mặc định chưa xác thực
