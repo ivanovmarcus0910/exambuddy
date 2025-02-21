@@ -1,5 +1,8 @@
 package com.example.exambuddy.model;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 public class Post {
@@ -7,6 +10,7 @@ public class Post {
     private String username;
     private String content;
     private String date;
+    private String avatarUrl;
     private List<String> imageUrls;
     private int likeCount;
     private List<Comment> comments;
@@ -59,6 +63,14 @@ public class Post {
         this.date = date;
     }
 
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
+    }
+
     public int getLikeCount() {
         return likeCount;
     }
@@ -97,5 +109,30 @@ public class Post {
 
     public void setLiked(boolean liked) {
         this.liked = liked;
+    }
+
+    public String getTimeAgo() {
+        if (date == null || date.isEmpty()) return "Không xác định";
+
+        // Chuyển từ String sang LocalDateTime
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        LocalDateTime postTime = LocalDateTime.parse(date, formatter);
+        LocalDateTime now = LocalDateTime.now();
+
+        // Tính khoảng cách giữa hai thời điểm
+        Duration duration = Duration.between(postTime, now);
+        long seconds = duration.getSeconds();
+        long minutes = seconds / 60;
+        long hours = minutes / 60;
+
+        if (seconds < 60) {
+            return "Vừa mới đăng";
+        } else if (minutes < 60) {
+            return minutes + " phút trước";
+        } else if (hours < 24) {
+            return hours + " giờ trước";
+        } else {
+            return postTime.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+        }
     }
 }

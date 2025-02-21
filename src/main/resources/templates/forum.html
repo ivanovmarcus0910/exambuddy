@@ -6,30 +6,43 @@
   <title>E-Learning - Học Online</title>
   <link rel="stylesheet" th:href="@{/css/general.css}">
   <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
   <style>
     body {
       font-family: Arial, sans-serif;
       color: black;
     }
     .container {
-      display: grid;
-      grid-template-columns: 1fr 3fr 1fr;
-      width: 90%;
+      width: 100%;
       max-width: 1200px;
-      gap: 20px;
       margin-top: 20px;
     }
-    .sidebar, .ranking, .main-content {
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
+
+    .custom-file-input {
+      width: auto; /* Làm input file nhỏ lại */
+      max-width: 200px; /* Giới hạn chiều rộng */
+      font-size: 14px; /* Giảm cỡ chữ */
+      padding: 5px; /* Thu gọn khoảng cách bên trong */
     }
+
     .posts .post {
       background: #e8e8e8;
       padding: 10px;
       border-radius: 5px;
       margin-bottom: 10px;
     }
+    .dropdown-item {
+      padding: 0.5rem 1rem;
+      color: black;
+      transition: all 0.2s ease;
+    }
+
+    .dropdown-item:hover {
+      background-color: #f8f9fa;
+      color: #0070f3;
+    }
+
     .post-images img {
       width: 100%;
       border-radius: 5px;
@@ -89,19 +102,13 @@
       padding: 10px 15px;
       cursor: pointer;
     }
-    .like-button {
-      cursor: pointer; /* Hiển thị con trỏ khi di chuột qua */
-      font-size: 20px; /* Kích thước biểu tượng tim */
-      color: black; /* Màu mặc định (nếu cần) */
+    .red-button:hover {
+      background-color: red; /* Màu đỏ hover */
+      color: white; /* Đảm bảo màu chữ không trùng nền */
     }
 
-    .like-button.liked {
-      color: red; /* Màu đỏ khi được like */
-    }
-
-    .like-count {
-      margin-left: 5px; /* Khoảng cách giữa biểu tượng tim và số lượt thích */
-      font-size: 16px; /* Kích thước số lượt thích */
+    .toggle-comments{
+      cursor: pointer;
     }
 
     .comment-image {
@@ -112,11 +119,8 @@
       margin: 5px 0; /* Thêm khoảng cách giữa các ảnh */
     }
 
-    .comment {
-      margin-bottom: 15px; /* Khoảng cách giữa các comment */
-      padding: 10px; /* Khoảng cách bên trong comment */
-      background-color: #f9f9f9; /* Màu nền nhẹ */
-      border-radius: 5px; /* Bo góc */
+    .hidden-comment {
+      display: none;
     }
 
     .comment-images {
@@ -124,6 +128,26 @@
       gap: 10px; /* Khoảng cách giữa các ảnh */
       flex-wrap: wrap; /* Xuống dòng nếu có nhiều ảnh */
     }
+
+    .show-more-comments {
+      text-align: center;
+      margin-top: 10px;
+      padding: 5px;
+      background-color: #f0f0f0;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+      color: #333;
+    }
+
+    .show-more-comments:hover {
+      background-color: #e0e0e0;
+    }
+
+    .rounded-circle {
+      object-fit: cover;
+    }
+
     .hidden {
       display: none;
     }
@@ -133,7 +157,7 @@
     }
 
     #lightbox.show {
-      display: flex; /* Hiển thị lightbox khi cần */
+      display: flex; /* Hiển thị lightbox khi có class 'show' */
     }
 
     #lightbox-close {
@@ -149,108 +173,173 @@
 </head>
 <body>
 <div th:insert="fragments/header :: header"></div>
-<div class="container">
-  <aside class="sidebar">
-    <h2>Other Test</h2>
-    <ul>
-      <li>Test 1</li>
-      <li>Test 2</li>
-      <li>Test 3</li>
-    </ul>
-  </aside>
-  <main class="main-content">
-    <div th:if="${username}">
-      <form action="/forum/create" method="post" enctype="multipart/form-data">
-        <input type="hidden" name="username" th:value="${username}">
-        <p>Username: <span th:text="${username}"></span></p>
-        <textarea name="content" placeholder="Hỏi gì đó ..." required></textarea><br>
-        <input type="file" name="images" multiple><br>
-        <button type="submit" class="red-button">Đăng bài</button>
-      </form>
-    </div>
-    <p th:if="${username == null}">Vui lòng đăng nhập để đăng bài.</p>
-    <div class="posts">
-      <div class="post" th:each="post : ${posts}">
-        <h3 th:text="${post.username}"></h3>
-        <p th:text="${post.content}"></p>
-        <div class="post-images">
-          <div th:if="${#lists.size(post.imageUrls) == 1}">
-            <img th:src="${post.imageUrls[0]}" alt="Post Image">
+<div class="container mt-4">
+  <div class="row">
+    <aside class="col-md-3">
+      <div class="card">
+        <div class="card-header">
+          <h2>Other Test</h2>
+        </div>
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item">Test 1</li>
+          <li class="list-group-item">Test 2</li>
+          <li class="list-group-item">Test 3</li>
+        </ul>
+      </div>
+    </aside>
+
+    <main class="col-md-6">
+      <div class="card" th:if="${username}">
+        <form action="/forum/create" method="post" enctype="multipart/form-data" class="mb-3">
+          <input type="hidden" name="username" th:value="${username}">
+          <p style="color:white">Username: <span th:text="${username}"></span></p>
+          <textarea name="content" class="form-control" placeholder="Hỏi gì đó ..." required></textarea><br>
+          <div class="d-flex justify-content-between align-items-center">
+            <input type="file" name="images" multiple class="custom-file-input"><br>
+            <button type="submit" class="red-button btn">Đăng bài</button>
           </div>
-          <div th:if="${#lists.size(post.imageUrls) > 1}" class="image-container">
-            <img th:each="imageUrl, iterStat : ${post.imageUrls}"
-                 th:if="${iterStat.index < 2}" th:src="${imageUrl}"
-                 onclick="openImage(this)" alt="Post Image">
-            <div th:if="${#lists.size(post.imageUrls) > 2}" class="more-images"
-                 th:text="'+' + (${#lists.size(post.imageUrls)} - 2) + ' ảnh nữa'"
-                 onclick="showAllImages(this)"></div>
-            <div class="hidden-images" style="display: none;">
+        </form>
+      </div>
+      <p style="color:white" th:if="${username == null}">Vui lòng đăng nhập để đăng bài.</p>
+
+      <div class="posts">
+        <div class="post" th:each="post : ${posts}">
+          <div class="d-flex justify-content-between mb-3">
+            <div class="d-flex">
+              <img th:src="${post.avatarUrl}" class="rounded-circle me-2" width="40" height="40" alt="User">
+              <div class="d-flex flex-column align-items-start">
+                <h4 th:text="${post.username}" class="mb-1"></h4>
+                <small class="text-muted" th:text="${post.timeAgo}"></small>
+              </div>
+            </div>
+            <div class="dropdown">
+              <button class="btn btn-link text-dark" type="button" id="postMenu" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-three-dots"></i>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="postMenu">
+                <li><a class="dropdown-item" href="#"><i class="bi bi-pencil me-2"></i>Chỉnh sửa bài viết</a></li>
+                <li><a class="dropdown-item" href="#"><i class="bi bi-trash me-2"></i>Xoá bài viết</a></li>
+                <li><a class="dropdown-item" href="#"><i class="bi bi-flag me-2"></i>Báo cáo bài viết</a></li>
+              </ul>
+            </div>
+          </div>
+          <p style="text-align: left !important;" th:text="${post.content}"></p>
+          <div class="post-images">
+            <div th:if="${#lists.size(post.imageUrls) == 1}">
+              <img th:src="${post.imageUrls[0]}" alt="Post Image">
+            </div>
+            <div th:if="${#lists.size(post.imageUrls) > 1}" class="image-container">
               <img th:each="imageUrl, iterStat : ${post.imageUrls}"
-                   th:if="${iterStat.index >= 2}"
-                   th:src="${imageUrl}" onclick="openImage(this)"
+                   th:if="${iterStat.index < 2}"
+                   th:src="${imageUrl}"
+                   onclick="openImage(this)"
                    alt="Post Image">
-            </div>
-            <div class="collapse-images" style="display: none;" onclick="collapseImages(this)">
-              Thu gọn
-            </div>
-          </div>
-        </div>
-        <div class="post-actions">
-          <span class="like-button" th:attr="data-post-id=${post.postId}"
-                th:classappend="${post.liked} ? 'liked' : ''"
-                onclick="toggleLike(this)">
-            <span th:text="${post.liked ? '❤️' : '🤍'}"></span>
-          </span>
-          <span class="like-count" th:text="${post.likeCount}">0</span>
-          <span class="toggle-comments">💬</span>
-          <span>🔄</span>
-          <span>⚠️</span>
-        </div>
-        <div class="post-comments hidden">
-          <div class="comments-list">
-            <div th:each="comment : ${post.comments}" class="comment">
-              <p><strong th:text="${comment.username}"></strong>: <span th:text="${comment.content}"></span></p>
-              <!-- Hiển thị ảnh trong comment -->
-              <div th:if="${comment.imageUrls != null and !comment.imageUrls.isEmpty()}">
-                <div class="comment-images">
-                  <img th:each="imageUrl : ${comment.imageUrls}"
-                       th:src="${imageUrl}"
-                       class="comment-image"
-                       onclick="openImage(this)"
-                       alt="Comment Image">
-                </div>
+              <div th:if="${#lists.size(post.imageUrls) > 2}"
+                   class="more-images"
+                   th:text="'+' + (${#lists.size(post.imageUrls)} - 2) + ' ảnh nữa'"
+                   onclick="showAllImages(this)">
+              </div>
+              <div class="hidden-images" style="display: none;">
+                <img th:each="imageUrl, iterStat : ${post.imageUrls}"
+                     th:if="${iterStat.index >= 2}"
+                     th:src="${imageUrl}"
+                     onclick="openImage(this)"
+                     alt="Post Image">
+              </div>
+              <div class="collapse-images" style="display: none;" onclick="collapseImages(this)">
+                Thu gọn
               </div>
             </div>
           </div>
-          <div class="create-comment">
-            <form action="/forum/comment" method="post" enctype="multipart/form-data">
-              <input type="hidden" name="postId" th:value="${post.postId}">
-              <input type="hidden" name="username" th:value="${username}">
-              <textarea name="content" placeholder="Viết bình luận..." rows="1"></textarea><br>
-              <input type="file" name="commentImages" multiple><br>
-              <button type="submit" class="red-button">Bình luận</button>
-            </form>
+          <div class="post-actions d-flex gap-2 align-items-center">
+            <button class="btn btn-outline-secondary heart-btn" th:attr="data-post-id=${post.postId}"
+                    th:classappend="${post.liked} ? 'text-danger' : ''" onclick="toggleLike(this)">
+              <i class="bi" th:classappend="${post.liked} ? 'bi-heart-fill' : 'bi-heart'"></i>
+              <span class="heart-count" th:text="${post.likeCount}">0</span>
+            </button>
+            <button class="btn btn-outline-secondary toggle-comments">
+              <i class="bi bi-chat"></i>
+              <span class="comment-count" th:text="${#lists.size(post.comments)}">0</span>
+            </button>
+            <button class="btn btn-outline-secondary share-button ms-auto">
+              <i class="bi bi-share"></i>
+            </button>
+          </div>
+          <div class="comments-section mt-3" style="display: none;">
+            <div class="comment-list">
+              <div th:each="comment, iterStat : ${post.comments}"
+                   class="comment-item border-bottom py-2"
+                   th:classappend="${iterStat.index >= 2} ? 'hidden-comment' : ''">
+                <div class="d-flex">
+                  <!-- Ảnh đại diện -->
+                  <img th:src="${comment.avatarUrl}" class="rounded-circle me-2" width="20" height="20" alt="User">
+
+                  <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between">
+                      <h6 class="mb-0" th:text="${comment.username}"></h6>
+                      <div class="comment-actions" style="display: none;">
+                        <button class="btn btn-sm btn-link text-primary"><i class="bi bi-pencil"></i></button>
+                        <button class="btn btn-sm btn-link text-danger"><i class="bi bi-trash"></i></button>
+                        <button class="btn btn-sm btn-link text-secondary"><i class="bi bi-flag"></i></button>
+                      </div>
+                    </div>
+                    <p style="text-align: left !important;" class="mb-0" th:text="${comment.content}"></p>
+                    <small style="text-align: left !important;" th:text="${comment.timeAgo}" class="text-muted"></small>
+
+                    <!-- Hiển thị ảnh trong bình luận -->
+                    <div th:if="${comment.imageUrls != null and !comment.imageUrls.isEmpty()}" class="comment-images mt-2">
+                      <img th:each="imageUrl : ${comment.imageUrls}"
+                           th:src="${imageUrl}"
+                           class="comment-image rounded"
+                           onclick="openImage(this)"
+                           width="60" height="60"
+                           style="cursor: pointer;">
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Nút Hiển thị thêm bình luận -->
+            <div th:if="${#lists.size(post.comments) > 2}" class="show-more-comments text-primary mt-2" onclick="showMoreComments(this)" style="cursor: pointer;">
+              Hiển thị thêm bình luận
+            </div>
+
+            <!-- Form bình luận -->
+            <div class="add-comment mt-3">
+              <form id="comment-form" action="/forum/comment" method="post" enctype="multipart/form-data">
+                <div class="d-flex">
+                  <!-- Ảnh đại diện người dùng -->
+                  <img th:src="${avatarUrl}" class="rounded-circle me-2" width="32" height="32" alt="User">
+
+                  <div class="flex-grow-1">
+                    <textarea name="content" class="form-control" placeholder="Viết bình luận..." rows="1"></textarea>
+                    <input type="file" name="commentImages" class="form-control mt-2" multiple>
+                    <button type="submit" class="btn btn-primary mt-2">Bình luận</button>
+                  </div>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  </main>
-  <aside class="ranking">
-    <h2>Ranking</h2>
-    <ul>
-      <li>Username 1 - Score</li>
-      <li>Username 2 - Score</li>
-    </ul>
-  </aside>
+    </main>
+    <aside class="col-md-3">
+      <div class="card">
+        <div class="card-header">
+          <h2>Ranking</h2>
+        </div>
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item">Username 1 - Score</li>
+          <li class="list-group-item">Username 2 - Score</li>
+        </ul>
+      </div>
+    </aside>
+  </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-  document.querySelectorAll('.toggle-comments').forEach(button => {
-    button.addEventListener('click', function () {
-      const commentsSection = this.parentElement.nextElementSibling;
-      commentsSection.classList.toggle('hidden');
-    });
-  });
   function showAllImages(element) {
     const hiddenImages = element.nextElementSibling;
     const collapseButton = hiddenImages.nextElementSibling;
@@ -274,19 +363,31 @@
     moreImagesButton.style.display = "flex";
   }
 
-  function toggleLike(button) {
-    const likeCountElement = button.nextElementSibling;
-    const postId = button.getAttribute("data-post-id");
-    const username = document.querySelector('input[name="username"]').value;
-    let liked = button.classList.contains("liked");
+  function toggleLike(btn) {
+    const usernameInput = document.querySelector('input[name="username"]');
+    const username = usernameInput ? usernameInput.value : null;
+
+    if (!username) {
+      alert("Bạn cần đăng nhập để thích bài viết!");
+      return;
+    }
+
+    const heartIcon = btn.querySelector('.bi');
+    const heartCount = btn.querySelector('.heart-count');
+    const postId = btn.getAttribute("data-post-id");
+    let isLiked = heartIcon.classList.contains('bi-heart-fill');
 
     // Cập nhật giao diện trước khi gửi request
-    if (liked) {
-      button.classList.remove("liked");
-      button.textContent = "🤍";
+    if (isLiked) {
+      heartIcon.classList.remove('bi-heart-fill');
+      heartIcon.classList.add('bi-heart');
+      heartCount.textContent = parseInt(heartCount.textContent) - 1;
+      btn.classList.remove('text-danger');
     } else {
-      button.classList.add("liked");
-      button.textContent = "❤️";
+      heartIcon.classList.remove('bi-heart');
+      heartIcon.classList.add('bi-heart-fill');
+      heartCount.textContent = parseInt(heartCount.textContent) + 1;
+      btn.classList.add('text-danger');
     }
 
     // Gửi request cập nhật trạng thái like
@@ -295,19 +396,127 @@
       headers: {
         "Content-Type": "application/x-www-form-urlencoded"
       },
-      body: `postId=${postId}&username=${username}&liked=${!liked}`
+      body: `postId=${postId}&username=${username}&liked=${!isLiked}`
     })
             .then(response => response.json())
             .then(data => {
-              // Cập nhật số lượt thích mà không cần reload trang
               if (data.likeCount !== undefined) {
-                likeCountElement.textContent = data.likeCount;
+                heartCount.textContent = data.likeCount;
               }
             })
             .catch(error => {
               console.error('❌ Lỗi khi cập nhật số lượt thích:', error);
             });
   }
+
+  document.addEventListener('DOMContentLoaded', function() {
+
+    document.querySelectorAll('.toggle-comments').forEach(button => {
+      button.addEventListener('click', function () {
+        const commentsSection = this.closest('.post-actions').nextElementSibling;
+
+        if (commentsSection.style.display === 'none' || commentsSection.style.display === '') {
+          commentsSection.style.display = 'block';
+        } else {
+          commentsSection.style.display = 'none';
+        }
+      });
+    });
+
+    // Hiển thị menu hành động khi hover vào bình luận
+    document.querySelectorAll('.comment-item').forEach(item => {
+      item.addEventListener('mouseenter', function() {
+        this.querySelector('.comment-actions').style.display = 'block';
+      });
+      item.addEventListener('mouseleave', function() {
+        this.querySelector('.comment-actions').style.display = 'none';
+      });
+    });
+
+    // Kiểm tra đăng nhập trước khi bình luận
+    document.querySelectorAll('#comment-form').forEach(form => {
+      form.addEventListener('submit', function(event) {
+        const username = document.querySelector('input[name="username"]').value;
+        if (!username) {
+          alert("Bạn cần đăng nhập để bình luận!");
+          event.preventDefault(); // Ngăn form gửi đi
+        }
+      });
+    });
+  });
+
+  function showMoreComments(button) {
+    const commentsSection = button.parentElement;
+    const hiddenComments = commentsSection.querySelectorAll('.hidden-comment');
+    let commentsToShow = 2;
+
+    for (let i = 0; i < commentsToShow && i < hiddenComments.length; i++) {
+      hiddenComments[i].classList.remove('hidden-comment');
+    }
+
+    // Ẩn nút "Hiển thị thêm bình luận" nếu không còn bình luận nào để hiển thị
+    if (commentsSection.querySelectorAll('.hidden-comment').length === 0) {
+      button.style.display = 'none';
+    }
+  }
+
+  function togglePostSettingsMenu(element) {
+    const menu = element.nextElementSibling;
+    menu.classList.toggle('hidden');
+  }
+
+  function editPost(button) {
+    const postUsername = button.getAttribute('data-post-username');
+    const currentUsername = '[[@{${username}}]]'; // Lấy tên người dùng hiện tại
+
+    if (postUsername !== currentUsername) {
+      alert("Bạn chỉ có thể chỉnh sửa bài viết của mình");
+      return;
+    }
+
+    const postId = button.getAttribute('data-post-id');
+    window.location.href = `/forum/edit/${postId}`;
+  }
+
+  // Xoá bài viết
+  function deletePost(button) {
+    const postUsername = button.getAttribute('data-post-username');
+    const currentUsername = '[[@{${username}}]]';
+
+    if (postUsername !== currentUsername) {
+      alert("Bạn chỉ có thể xoá bài viết của mình");
+      return;
+    }
+
+    const postId = button.getAttribute('data-post-id');
+    if (confirm("Bạn có chắc muốn xoá bài viết này không?")) {
+      window.location.href = `/forum/delete/${postId}`;
+    }
+  }
+
+  // Báo cáo bài viết
+  function reportPost(button) {
+    const postId = button.getAttribute('data-post-id');
+    alert(`Đã báo cáo bài viết với ID: ${postId}`);
+  }
+
+  document.querySelectorAll('.share-button').forEach(button => {
+    button.addEventListener('click', function () {
+      const postUrl = window.location.href; // Lấy URL hiện tại
+      if (navigator.share) {
+        // Nếu trình duyệt hỗ trợ Web Share API
+        navigator.share({
+          title: document.title,
+          url: postUrl
+        }).catch(error => console.error('Lỗi khi chia sẻ:', error));
+      } else {
+        // Nếu không hỗ trợ Web Share API, hiển thị hộp thoại copy link
+        navigator.clipboard.writeText(postUrl).then(() => {
+          alert('🔗 Link bài viết đã được sao chép!');
+        }).catch(error => console.error('Lỗi khi sao chép link:', error));
+      }
+    });
+  });
 
   function openImage(img) {
     // Lấy thẻ lightbox và ảnh lớn

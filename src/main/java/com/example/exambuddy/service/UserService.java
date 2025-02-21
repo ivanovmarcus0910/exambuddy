@@ -82,6 +82,18 @@ public class UserService {
         }
     }
 
+    public static String getAvatarUrlByUsername(String username) {
+        Firestore firestore = FirestoreClient.getFirestore();
+        try {
+            // Lấy dữ liệu của user từ Firestore
+            DocumentSnapshot userSnapshot = firestore.collection(COLLECTION_NAME).document(username).get().get();
 
-
+            if (userSnapshot.exists()) {
+                return userSnapshot.getString("avatarUrl"); // Lấy avatarUrl
+            }
+        } catch (Exception e) {
+            System.out.println("Lỗi khi lấy avatar của: " + username);
+        }
+        return "http://res.cloudinary.com/dsuav027e/image/upload/v1739939318/dkm6iw7ujnsja8z9d3ek.png"; // Trả về avatar mặc định nếu không tìm thấy
+    }
 }

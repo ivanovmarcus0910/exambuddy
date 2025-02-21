@@ -80,6 +80,10 @@ public class PostService {
             for (DocumentSnapshot document : documents) {
                 Post post = document.toObject(Post.class);
                 post.setPostId(document.getId());
+
+                String avatarUrl = UserService.getAvatarUrlByUsername(post.getUsername());
+                post.setAvatarUrl(avatarUrl);
+
                 postList.add(post);
             }
         } catch (InterruptedException | ExecutionException e) {
