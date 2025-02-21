@@ -13,7 +13,7 @@
         <br>
         <span><b>Môn học:</b> <span th:text="${exam.subject}"></span></span>
         <br>
-        <span><b>Ngày đăng:</b> <span th:text="${#dates.format(exam.date,'dd/MM/yyyy')}"></span></span>
+        <span><b>Ngày đăng:</b> <span th:text="${exam.date}"></span></span>
         <br>
         <div th:if="${exam.examID}">
             <form th:action="@{/exams/{id}/detail(id=${exam.examID})}" method="get">

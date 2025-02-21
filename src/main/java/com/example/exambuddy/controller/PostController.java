@@ -5,6 +5,7 @@ import com.example.exambuddy.model.Post;
 import com.example.exambuddy.service.CloudinaryService;
 import com.example.exambuddy.service.CookieService;
 import com.example.exambuddy.service.PostService;
+import com.example.exambuddy.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,7 +43,7 @@ public class PostController {
         List<String> imageUrls = new ArrayList<>();
         for (MultipartFile file : files) {
             if (!file.isEmpty()) {
-                String imageUrl = this.cloudinaryService.upLoadFile(file);
+                String imageUrl = this.cloudinaryService.upLoadImg(file, "imgForum");
                 imageUrls.add(imageUrl);
                 System.out.println("URL = " + imageUrl);
             }
@@ -65,14 +66,24 @@ public class PostController {
         for (Post post : posts) {
             // Lấy danh sách bình luận của bài viết
             List<Comment> comments = PostService.getCommentsByPostId(post.getPostId());
+            if (comments != null) {
+                for (Comment comment : comments) {
+                    // Gán avatarUrl cho từng comment
+                    String avatarUrl = UserService.getAvatarUrlByUsername(comment.getUsername());
+                    comment.setAvatarUrl(avatarUrl);
+                }
+            }
             post.setComments(comments != null ? comments : new ArrayList<>());
 
             // Kiểm tra xem username hiện tại đã like bài viết hay chưa
             post.setLiked(post.getLikedUsernames() != null && post.getLikedUsernames().contains(username));
         }
 
+        String avatarUrl = UserService.getAvatarUrlByUsername(username);
+
         model.addAttribute("posts", posts);
         model.addAttribute("username", username);
+        model.addAttribute("avatarUrl", avatarUrl);
         return "forum";
     }
 
@@ -85,7 +96,7 @@ public class PostController {
         List<String> imageUrls = new ArrayList<>();
         for (MultipartFile file : files) {
             if (!file.isEmpty()) {
-                String imageUrl = this.cloudinaryService.upLoadFile(file);
+                String imageUrl = this.cloudinaryService.upLoadImg(file, "imgForum");
                 imageUrls.add(imageUrl);
                 System.out.println("URL = " + imageUrl);
             }
