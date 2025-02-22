@@ -343,4 +343,30 @@ public class ExamService {
     }
 
 
+    // Phương thức lấy all đề thi
+    public List<Exam> getAllExams() {
+        Firestore firestore = FirestoreClient.getFirestore();
+        List<Exam> examList = new ArrayList<>();
+        try {
+            ApiFuture<QuerySnapshot> future = firestore.collection("exams").get();
+            List<QueryDocumentSnapshot> documents = future.get().getDocuments();
+            for(QueryDocumentSnapshot doc : documents) {
+                examList.add(doc.toObject(Exam.class));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return examList;
+    }
+
+    // Xoá đề thi
+    public void deleteExam(String examId) {
+        Firestore firestore = FirestoreClient.getFirestore();
+        try {
+            firestore.collection("exams").document(examId).delete();
+            System.out.println("Deleted exam: " + examId);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }

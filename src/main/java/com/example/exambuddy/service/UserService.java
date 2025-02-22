@@ -84,20 +84,23 @@ public class UserService {
         }
     }
 
-    public User getUserByEmail(String email) {
+    public static String getAvatarUrlByUsername(String username) {
         Firestore firestore = FirestoreClient.getFirestore();
         try {
-            DocumentSnapshot document = firestore.collection(COLLECTION_NAME).document(email).get().get();
-            if (document.exists()) {
-                return document.toObject(User.class);
+            // Lấy dữ liệu của user từ Firestore
+            DocumentSnapshot userSnapshot = firestore.collection(COLLECTION_NAME).document(username).get().get();
+
+
+            if (userSnapshot.exists()) {
+                return userSnapshot.getString("avatarUrl"); // Lấy avatarUrl
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println("Lỗi khi lấy avatar của: " + username);
         }
-        return null;
+        return "http://res.cloudinary.com/dsuav027e/image/upload/v1739939318/dkm6iw7ujnsja8z9d3ek.png"; // Trả về avatar mặc định nếu không tìm thấy
     }
 
-    //Hàm đổi role của user
+
     public List<User> getAllUsers() throws ExecutionException, InterruptedException {
         Firestore firestore = FirestoreClient.getFirestore();
         List<User> userList = new ArrayList<>();
@@ -121,6 +124,17 @@ public class UserService {
     public void deleteUser(String username) {
         Firestore firestore = FirestoreClient.getFirestore();
         firestore.collection(COLLECTION_NAME).document(username).delete();
+    }
+
+    public User getUserByUsername(String username) {
+        Firestore firestore = FirestoreClient.getFirestore();
+        try {
+            DocumentSnapshot userSnapshot = firestore.collection("users").document(username).get().get();
+            return userSnapshot.exists() ? userSnapshot.toObject(User.class) : null;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
 }

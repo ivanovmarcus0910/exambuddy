@@ -122,8 +122,7 @@ public class AuthController {
 
             // Nếu là admin thi chuyển trang
             if(authService.isAdmin(username)) {
-                System.out.println("✅ Gọi isAdmin() thành công. Đang redirect về: /adminDashboard/dashboard");
-                System.out.println("🎭 Các quyền của user: " + SecurityContextHolder.getContext().getAuthentication().getAuthorities());
+                System.out.println("✅ Gọi isAdmin() thành công.");
                 return "redirect:/adminDashboard/dashboard";
             }
             if (rememberMe) {
