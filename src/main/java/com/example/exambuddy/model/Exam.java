@@ -5,7 +5,10 @@ import java.util.List;
 public class Exam {
     private String examID;
     private String examName;
+    private String grade;
     private String subject;
+    private String examType;
+    private String city;
     private List<String> tags;
     private String username;
     private String date;
@@ -16,10 +19,14 @@ public class Exam {
     public Exam() {
     }
 
-    public Exam(String examID, String examName, String subject, List<String> tags, String username, String date, int questionCount, List<Question> questions) {
+    public Exam(String examID, String examName, String grade, String subject, String examType, String city,
+                List<String> tags, String username, String date, int questionCount, List<Question> questions) {
         this.examID = examID;
         this.examName = examName;
+        this.grade = grade;
         this.subject = subject;
+        this.examType = examType;
+        this.city = city;
         this.tags = tags;
         this.username = username;
         this.date = date;
@@ -27,7 +34,6 @@ public class Exam {
         this.questions = questions;
     }
 
-    // Getters và Setters
     public String getExamID() {
         return examID;
     }
@@ -44,12 +50,36 @@ public class Exam {
         this.examName = examName;
     }
 
+    public String getGrade() {
+        return grade;
+    }
+
+    public void setGrade(String grade) {
+        this.grade = grade;
+    }
+
     public String getSubject() {
         return subject;
     }
 
     public void setSubject(String subject) {
         this.subject = subject;
+    }
+
+    public String getExamType() {
+        return examType;
+    }
+
+    public void setExamType(String examType) {
+        this.examType = examType;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
     }
 
     public List<String> getTags() {
@@ -73,7 +103,8 @@ public class Exam {
     }
 
     public void setDate(String date) {
-        this.date = date; }
+        this.date = date;
+    }
 
     public int getQuestionCount() {
         return questionCount;

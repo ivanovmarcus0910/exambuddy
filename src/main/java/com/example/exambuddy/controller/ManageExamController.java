@@ -22,11 +22,15 @@ import org.springframework.ui.Model;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
+import java.util.concurrent.ExecutionException;
 
 @Slf4j
 @Controller
 public class ManageExamController {
     private Firestore db = FirestoreClient.getFirestore();
+    public ManageExamController(ExamService examService) {
+        this.examService = examService;
+    }
     @Autowired
     private CookieService cookieService;
     @Autowired
@@ -254,6 +258,34 @@ public class ManageExamController {
         model.addAttribute("correctQuestions", examResult.getCorrectAnswers());
 
         return "examResultDetail";
+    }
+    @GetMapping("/search")
+    public String viewExamSearch(@RequestParam(required = false) String examName, Model model)
+            throws ExecutionException, InterruptedException {
+        List<Exam> examList;
+        if (examName != null && !examName.isEmpty()) {
+            examList = examService.searchExamByName(examName);
+        }else{
+            examList = examService.getExamList(0,10);
+        }
+        model.addAttribute("examList", examList);
+        return "resultSearchExam";
+    }
+    @GetMapping("/search-by-filter")
+    public String searchExams(@RequestParam(required = false) String grade,
+                              @RequestParam(required = false) String subject,
+                              @RequestParam(required = false) String examType,
+                              @RequestParam(required = false) String city,
+                              Model model) {
+        // Xử lý giá trị mặc định cho các tham số
+        grade = (grade != null) ? grade : "";
+        subject = (subject != null) ? subject : "";
+        examType = (examType != null) ? examType : "";
+        city = (city != null) ? city : "";
+
+        List<Exam> examList = examService.searchExamsByFilter(grade, subject, examType, city);
+        model.addAttribute("examList", examList);
+        return "resultSearchExam";
     }
 
 

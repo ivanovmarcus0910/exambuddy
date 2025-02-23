@@ -161,13 +161,17 @@
       }
 
       let examData = {
-        examName: document.getElementById("examName").value, // Lấy tên bài thi từ input
-        subject: document.getElementById("subject").value,   // Lấy môn học từ input
-        tags: document.getElementById("tags").value.split(","), // Tách tag thành mảng
-        username: username, // Người tạo
-        date: new Date().getDate(), // Ngày tạo
-        questions: questions // Danh sách câu hỏi
+        examName: document.getElementById("examName").value,
+        grade: document.getElementById("grade").value, // Đúng id "grade"
+        subject: document.getElementById("subject").value,
+        tags: document.getElementById("tags").value.split(","),
+        examType: document.getElementById("examType").value, // Đúng id "examType"
+        city: document.getElementById("city").value, // Đúng id "city"
+        username: username,
+        date: new Date().toISOString(),
+        questions: questions
       };
+
 
       fetch("/exams/addExam", {
         method: "POST",
@@ -183,6 +187,33 @@
               .catch(error => console.error("Lỗi:", error));
     }
 
+
+
+
+
+    document.getElementById("grade").addEventListener("change", function() {
+      let grade = this.value;
+      let examTypeSelect = document.getElementById("examType");
+
+
+      // Xóa tất cả các tùy chọn hiện có
+      examTypeSelect.innerHTML = '<option value="">Chọn dạng đề</option>';
+
+
+      if (grade === "10" || grade === "11") {
+        // Nếu chọn lớp 10 hoặc 11, chỉ hiển thị 2 tùy chọn
+        examTypeSelect.innerHTML +=
+                '<option value="Đề kiểm tra">Đề kiểm tra</option>' +
+                '<option value="Đề luyện tập">Đề luyện tập</option>';
+      } else if (grade === "12") {
+        // Nếu chọn lớp 12, hiển thị cả 3 tùy chọn
+        examTypeSelect.innerHTML +=
+                '<option value="Đề kiểm tra">Đề kiểm tra</option>' +
+                '<option value="Đề luyện tập">Đề luyện tập</option>' +
+                '<option value="Đề THPT">Đề THPT QUỐC GIA</option>';
+      }
+    });
+
   </script>
 </head>
 <body>
@@ -190,12 +221,52 @@
 <h2>Thông tin đề thi</h2>
 <label>Tên bài thi:</label>
 <input type="text" id="examName"><br>
+<select name="grade" id="grade" class="search-item">
+  <option value="">Chọn khối lớp</option>
+  <option value="10">Lớp 10</option>
+  <option value="11">Lớp 11</option>
+  <option value="12">Lớp 12</option>
+</select>
+<br>
 
 <label>Môn học:</label>
-<input type="text" id="subject"><br>
+<select id="subject" class="search-item">
+  <option value="">Chọn môn học</option>
+  <option value="Toán">Toán</option>
+  <option value="Vật Lý">Vật lý</option>
+</select>
+
 
 <label>Tags (cách nhau bằng dấu phẩy):</label>
+
 <input type="text" id="tags"><br><br>
+<select name="examType" id="examType" class="search-item">
+  <option value="">Chọn dạng đề</option>
+  <option value="Đề kiểm tra ">Đề kiểm tra</option>
+  <option value="Đề luyện tập ">Đề luyện tập</option>
+  <option value="Đề THPT">Đề THPT QUỐC GIA</option>
+</select>
+
+
+<select id="city" class="search-item">
+  <option value="">Chọn thành phố</option>
+</select>
+<script>
+  const cities = ["Hà Nội", "Hồ Chí Minh", "Đà Nẵng", "Hải Phòng", "Cần Thơ", "An Giang", "Bà Rịa - Vũng Tàu",
+    "Bắc Giang", "Bắc Kạn", "Bạc Liêu", "Bắc Ninh", "Bến Tre", "Bình Định", "Bình Dương", "Bình Phước", "Bình Thuận", "Cà Mau",
+    "Cao Bằng", "Đắk Lắk", "Đắk Nông", "Điện Biên", "Đồng Nai", "Đồng Tháp", "Gia Lai", "Hà Giang", "Hà Nam", "Hà Tĩnh", "Hải Dương",
+    "Hậu Giang", "Hòa Bình", "Hưng Yên", "Khánh Hòa", "Kiên Giang", "Kon Tum", "Lai Châu", "Lâm Đồng", "Lạng Sơn", "Lào Cai", "Long An",
+    "Nam Định", "Nghệ An", "Ninh Bình", "Ninh Thuận", "Phú Thọ", "Phú Yên", "Quảng Bình", "Quảng Nam", "Quảng Ngãi", "Quảng Ninh", "Quảng Trị",
+    "Sóc Trăng", "Sơn La", "Tây Ninh", "Thái Bình", "Thái Nguyên", "Thanh Hóa", "Thừa Thiên Huế", "Tiền Giang", "Trà Vinh", "Tuyên Quang", "Vĩnh Long",
+    "Vĩnh Phúc", "Yên Bái"];
+  const citySelect = document.getElementById('city');
+  cities.forEach(city => {
+    const option = document.createElement('option');
+    option.value = city; // Giữ nguyên giá trị gốc
+    option.textContent = city;
+    citySelect.appendChild(option);
+  });
+</script>
 
 <h2>Thêm câu hỏi mới</h2>
 <label>Câu hỏi:</label>
