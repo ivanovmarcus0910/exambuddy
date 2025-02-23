@@ -15,21 +15,21 @@ body {
 }
 @media (max-width: 1200px) {
     body {
-        padding: 0 200px;
+        padding: 0 20px;
     }
 }
 
 /* Khi màn hình nhỏ hơn 800px, giảm padding nhiều hơn */
 @media (max-width: 800px) {
     body {
-        padding: 0 50px;
+        padding: 0 20px;
     }
 }
 
 /* Khi màn hình nhỏ hơn 500px, bỏ padding để form không bị mất */
 @media (max-width: 500px) {
     body {
-        padding: 0 20px;
+        padding: 0 10px;
     }
 }
 

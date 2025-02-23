@@ -1,16 +1,18 @@
 package com.example.exambuddy.service;
 
 import com.example.exambuddy.model.User;
-import com.google.cloud.firestore.CollectionReference;
-import com.google.cloud.firestore.DocumentReference;
-import com.google.cloud.firestore.DocumentSnapshot;
-import com.google.cloud.firestore.Firestore;
+import com.google.api.core.ApiFuture;
+import com.google.cloud.firestore.*;
 import com.google.firebase.cloud.FirestoreClient;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 @Service
 public class UserService {
@@ -82,6 +84,57 @@ public class UserService {
         }
     }
 
+    public static String getAvatarUrlByUsername(String username) {
+        Firestore firestore = FirestoreClient.getFirestore();
+        try {
+            // Lấy dữ liệu của user từ Firestore
+            DocumentSnapshot userSnapshot = firestore.collection(COLLECTION_NAME).document(username).get().get();
 
+
+            if (userSnapshot.exists()) {
+                return userSnapshot.getString("avatarUrl"); // Lấy avatarUrl
+            }
+        } catch (Exception e) {
+            System.out.println("Lỗi khi lấy avatar của: " + username);
+        }
+        return "http://res.cloudinary.com/dsuav027e/image/upload/v1739939318/dkm6iw7ujnsja8z9d3ek.png"; // Trả về avatar mặc định nếu không tìm thấy
+    }
+
+
+    public List<User> getAllUsers() throws ExecutionException, InterruptedException {
+        Firestore firestore = FirestoreClient.getFirestore();
+        List<User> userList = new ArrayList<>();
+        ApiFuture<QuerySnapshot> future = firestore.collection(COLLECTION_NAME).get();
+
+        for (DocumentSnapshot document : future.get().getDocuments()) {
+            User user = document.toObject(User.class);
+            if (user != null) {
+                user.setUsername(document.getId()); // Lấy ID từ Firestore
+                userList.add(user);
+            }
+        }
+        return userList;
+    }
+
+    public void updateUserRole(String username, User.Role role) {
+        Firestore firestore = FirestoreClient.getFirestore();
+        firestore.collection(COLLECTION_NAME).document(username).update("role", role.name());
+    }
+
+    public void deleteUser(String username) {
+        Firestore firestore = FirestoreClient.getFirestore();
+        firestore.collection(COLLECTION_NAME).document(username).delete();
+    }
+
+    public User getUserByUsername(String username) {
+        Firestore firestore = FirestoreClient.getFirestore();
+        try {
+            DocumentSnapshot userSnapshot = firestore.collection("users").document(username).get().get();
+            return userSnapshot.exists() ? userSnapshot.toObject(User.class) : null;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 
 }
