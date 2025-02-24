@@ -461,7 +461,9 @@ public class ExamService {
             ApiFuture<QuerySnapshot> future = firestore.collection("exams").get();
             List<QueryDocumentSnapshot> documents = future.get().getDocuments();
             for(QueryDocumentSnapshot doc : documents) {
-                examList.add(doc.toObject(Exam.class));
+                Exam exam = doc.toObject(Exam.class);
+                exam.setExamID(doc.getId()); // Thêm dòng này để thiết lập ID cho đề thi
+                examList.add(exam);
             }
         } catch (Exception e) {
             e.printStackTrace();
