@@ -33,10 +33,21 @@ public class HomeController {
             return "error";
         }
     }
-    @RequestMapping("*")
-    public String handleAllRequests(HttpServletRequest request) {
-        System.out.println("Request không khớp: " + request.getRequestURI());
-        return "redirect:/home"; // Trả về view "home" cho tất cả các URL không khớp
+    @RequestMapping("/**")
+    public String homePage1(
+                           Model model) {
+        try {
+            List<Exam> exams = examService.getExamList(0, 6);
+            model.addAttribute("exams", exams);
+            model.addAttribute("currentPage", 0);
+            model.addAttribute("size", 6);
+            model.addAttribute("nextPage", 1);
+            model.addAttribute("prevPage", 0);
+            return "home";
+        } catch (Exception e) {
+            model.addAttribute("error", "Lỗi khi tải danh sách đề thi: " + e.getMessage());
+            return "error";
+        }
     }
 
     @RequestMapping("/signup")
