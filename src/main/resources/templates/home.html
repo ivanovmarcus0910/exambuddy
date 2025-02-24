@@ -11,7 +11,7 @@
 <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<div th:insert="fragments/header :: header"></div>
+<div th:insert="~{fragments/header :: header}"></div>
 
 
 <main>
@@ -177,7 +177,7 @@
     });
 
 </script>
-<div th:replace="fragments/footer :: footer"></div>
+<div th:insert="~{fragments/footer :: footer}"></div>
 
 
 </html>

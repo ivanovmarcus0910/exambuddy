@@ -8,7 +8,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" th:href="@{/css/admin.css}">
 </head>
-<div th:insert="fragments/header :: header"></div>
+<div th:insert="~{fragments/header :: header}"></div>
 
 
 <div class="flex h-screen">
@@ -255,6 +255,7 @@
     }
   });
 </script>
+<div th:insert="~{fragments/footer :: footer}"></div>
 
 </body>
 </html>
