@@ -1,8 +1,10 @@
 package com.example.exambuddy.config;
 
 import com.google.auth.oauth2.GoogleCredentials;
+import com.google.cloud.firestore.Firestore;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
+import com.google.firebase.cloud.FirestoreClient;
 import org.springframework.context.annotation.Configuration;
 
 import javax.annotation.PostConstruct;
@@ -16,7 +18,7 @@ public class FirebaseConfig {
     public void initializeFirebase() {
         try {
             FileInputStream serviceAccount =
-                    new FileInputStream("src/main/resources/swp-3bf01-firebase-adminsdk-fbsvc-ff7c51091c.json");
+                    new FileInputStream("src/main/resources/swp-3bf01-firebase-adminsdk-fbsvc-b3a8d5ae4b.json");
 
             FirebaseOptions options = FirebaseOptions.builder()
                     .setCredentials(GoogleCredentials.fromStream(serviceAccount))
@@ -30,5 +32,8 @@ public class FirebaseConfig {
         } catch (IOException e) {
             System.err.println("Error initializing Firebase: " + e.getMessage());
         }
+    }
+    public Firestore getFirestore() {
+        return FirestoreClient.getFirestore();
     }
 }
