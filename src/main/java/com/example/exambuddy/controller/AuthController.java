@@ -77,6 +77,7 @@ public class AuthController {
             nonameCookie.setMaxAge(24 * 60 * 60);
             nonameCookie.setPath("/");
             response.addCookie(nonameCookie);
+            session.setAttribute("urlimg",UserService.getAvatarUrlByUsername(email));
 
             System.out.println("Đăng nhập thành công với email: " + email);
             return "redirect:/home";
@@ -114,6 +115,7 @@ public class AuthController {
         if (authService.authenticate(username, password)) {
             // Lưu thông tin đăng nhập vào session
             session.setAttribute("loggedInUser", username);
+            session.setAttribute("urlimg",UserService.getAvatarUrlByUsername(username));
             System.out.println("Người dùng đăng nhập: " + username);
 
             // Nếu là admin thi chuyển trang
