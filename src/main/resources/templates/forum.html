@@ -309,6 +309,8 @@
             <div class="add-comment mt-3">
               <form id="comment-form" action="/forum/comment" method="post" enctype="multipart/form-data">
                 <div class="d-flex">
+                  <input type="hidden" name="postId" th:value="${post.postId}">
+                  <input type="hidden" name="username" th:value="${username}">
                   <!-- Ảnh đại diện người dùng -->
                   <img th:src="${avatarUrl}" class="rounded-circle me-2" width="32" height="32" alt="User">
 
