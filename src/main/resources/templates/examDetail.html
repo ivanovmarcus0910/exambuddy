@@ -3,21 +3,42 @@
 <head>
   <meta charset="UTF-8">
   <title>Chi tiết đề thi</title>
+  <!-- Đường dẫn đến file CSS -->
+  <link rel="stylesheet" th:href="@{/css/examDetail.css}">
 </head>
 <body>
-<h2>Chi tiết đề thi</h2>
-<p><strong>Tên đề:</strong> <span th:text="${exam.examName}"></span></p>
-<p><strong>Môn học:</strong> <span th:text="${exam.subject}"></span></p>
+<div class="main-container">
+  <!-- Hero Header -->
+  <div class="hero-header">
+    <h1>Chi tiết đề thi</h1>
+    <p>Thông tin đề thi & danh sách câu hỏi</p>
+  </div>
 
-<h3>Danh sách câu hỏi:</h3>
-<ul>
-  <li th:each="question : ${questions}">
-    <p><strong>Câu hỏi:</strong> <span th:text="${question.questionText}"></span></p>
-  </li>
-</ul>
+  <!-- Card Thông tin đề thi -->
+  <div class="card">
+    <div class="card-title">Thông tin đề thi</div>
+    <div class="card-content">
+      <p><strong>Tên đề:</strong> <span th:text="${exam.examName}">Tên đề thi</span></p>
+      <p><strong>Môn học:</strong> <span th:text="${exam.subject}">Môn học</span></p>
+    </div>
+  </div>
 
-<form th:action="@{/exams/{id}/do(id=${exam.examID})}" method="get">
-  <button type="submit">Bắt đầu làm bài</button>
-</form>
+  <!-- Card Danh sách câu hỏi -->
+  <div class="card">
+    <div class="card-title">Danh sách câu hỏi</div>
+    <div class="card-content">
+      <ul class="question-list">
+        <li class="question-item" th:each="question : ${questions}">
+          <p><strong>Câu hỏi:</strong> <span th:text="${question.questionText}">Nội dung câu hỏi</span></p>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Form nút bắt đầu làm bài -->
+  <form class="start-form" th:action="@{/exams/{id}/do(id=${exam.examID})}" method="get">
+    <button type="submit" class="start-button">Bắt đầu làm bài</button>
+  </form>
+</div>
 </body>
 </html>
