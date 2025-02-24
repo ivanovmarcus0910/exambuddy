@@ -15,19 +15,19 @@
 
 
 <main>
-    <section class="hero">
-        <div class="hero-text">
+    <section class="hero row ">
+        <div class="hero-text col-12 col-md-8">
             <h1>PHÁT TRIỂN & NÂNG CAO <br> KỸ NĂNG CỦA BẠN</h1>
             <p>Khám phá các chiến lược nâng cao để tối ưu hóa quá trình học tập, nâng cao kỹ năng và đạt được thành công nhanh chóng trong sự nghiệp.</p>
             <button class="explore-btn">Khám phá</button>
         </div>
-        <div class="hero-image">
-            <img src="hero-image.png" alt="Học viên VR">
+        <div class="hero-image col-12 col-md-4 ">
+            <img src="/img/studentVR.png" alt="Học viên VR">
         </div>
     </section>
     <!-- Thanh tìm kiếm -->`
-<p class="search-text" style="display: flex; justify-content: center">Tìm kiếm đề thi mong muốn của bạn</p>
-    <section class="search-filter">
+<p class="search-text col-md-12" style="display: flex; justify-content: center; font-size: 40px;">Tìm kiếm đề thi mong muốn của bạn</p>
+    <section class="search-filter col-md-12">
         <div class="search-container">
          <form action="/search-by-filter" method="get">
             <select name="grade"class="search-item">
@@ -77,8 +77,8 @@
 
 
 
-    <div class="popular-exams">
-        <div  class="exam-grid">
+    <div class="popular-exams row">
+        <div  class="exam-grid col-12 col-md-8">
             <div class="exam-card" th:each="exam : ${exams}">
                 <strong th:text="${exam.examName}"></strong>
 
@@ -107,7 +107,7 @@
 </div>
 
         </div>
-<div class="rank-panel">
+<div class="rank-panel col-12 col-md-4 mt-4 mt-md-0">
     <h4>BXH học sinh có điểm số cao nhất</h4>
     <ul>
         <li><div class="avatar">A</div> Username1 - Điểm</li>
@@ -128,7 +128,7 @@
 
 </div>
 
-<div class="pagination">
+<div class="pagination col-md-12 justify-content-center">
     <a th:if="${currentPage > 0}" th:href="@{/home(page=${prevPage},size=${size})}">«   </a>
     <span> <span th:text="${currentPage + 1}"></span></span>
     <a th:href="@{/home(page=${nextPage},size=${size})}">   »</a>
