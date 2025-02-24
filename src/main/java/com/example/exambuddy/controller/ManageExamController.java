@@ -13,6 +13,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.MultiValueMap;
@@ -197,14 +198,43 @@ public class ManageExamController {
     }
 
 
-    @GetMapping("/exams/{id}/like")
-    public String likeExam(@PathVariable String id,HttpServletRequest request, HttpSession session) {
+    @PostMapping("/exams/{id}/like")
+    @ResponseBody
+    public ResponseEntity<?> likeExam(@PathVariable String id, HttpServletRequest request, HttpSession session) {
         if (session.getAttribute("loggedInUser") == null) {
-            return "redirect:/login"; // Nếu chưa đăng nhập, chuyển hướng về home
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Bạn cần đăng nhập để like."));
         }
+
         String username = cookieService.getCookie(request, "noname");
         examService.likeExam(username, id);
-        return "redirect:/home"; // Sau khi like, quay lại danh sách bài thi
+
+        return ResponseEntity.ok(Map.of("message", "Bạn đã like bài thi!"));
+    }
+
+    @DeleteMapping("/exams/{id}/like")
+    @ResponseBody
+    public ResponseEntity<?> unlikeExam(@PathVariable String id, HttpServletRequest request, HttpSession session) {
+        if (session.getAttribute("loggedInUser") == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Bạn cần đăng nhập để unlike."));
+        }
+
+        String username = cookieService.getCookie(request, "noname");
+        examService.unlikeExam(username, id);
+
+        return ResponseEntity.ok(Map.of("message", "Bạn đã bỏ like bài thi!"));
+    }
+
+    @GetMapping("/exams/{id}/isLiked")
+    @ResponseBody
+    public ResponseEntity<?> isLiked(@PathVariable String id, HttpServletRequest request, HttpSession session) {
+        if (session.getAttribute("loggedInUser") == null) {
+            return ResponseEntity.ok(Map.of("liked", false)); // Nếu chưa đăng nhập, coi như chưa like
+        }
+
+        String username = cookieService.getCookie(request, "noname");
+        boolean isLiked = examService.isExamLiked(username, id);
+
+        return ResponseEntity.ok(Map.of("liked", isLiked));
     }
 
     @GetMapping("/exams/liked")

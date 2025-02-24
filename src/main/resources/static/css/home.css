@@ -294,7 +294,7 @@ nav ul li a:hover {
 }
 
 
-.exam-card button {
+.detailButton {
     background-color: #007bff;
     color: white;
     border: none;
@@ -308,18 +308,9 @@ nav ul li a:hover {
     gap: 5px;
 }
 
-
-.exam-card button:hover {
+.detailButton:hover {
     background-color: #0056b3;
 }
-
-
-/* Biểu tượng mũi tên */
-.exam-card button::after {
-    content: " ➜";
-    font-weight: bold;
-}
-
 
 .rank-panel {
     flex: 1;
@@ -510,4 +501,23 @@ input {
     color: limegreen;
     font-size: 13px;
     margin-bottom: 10px;
+}
+
+
+.likeButton {
+    border:black;
+    background: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #555; /* Màu mặc định */
+    transition: color 0.3s ease-in-out;
+}
+
+.likeButton.liked {
+    color: red; /* Khi like, trái tim đổi màu */
+}
+.button-container {
+    display: flex;
+    align-items: center;
+    gap: 30px; /* Khoảng cách giữa hai nút */
 }
