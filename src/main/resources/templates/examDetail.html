@@ -3,8 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <title>Chi tiết đề thi</title>
+<!--  <link rel="stylesheet" th:href="@{/css/createdExam.css}">-->
+  <link rel="stylesheet" th:href="@{/css/general.css}">
+  <link rel="stylesheet" th:href="@{/css/home.css}">
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
+<div th:insert="fragments/header :: header"></div>
+
 <h2>Chi tiết đề thi</h2>
 <p><strong>Tên đề:</strong> <span th:text="${exam.examName}"></span></p>
 <p><strong>Môn học:</strong> <span th:text="${exam.subject}"></span></p>
@@ -16,8 +21,8 @@
   </li>
 </ul>
 
-<form th:action="@{/exams/{id}/do(id=${exam.examID})}" method="get">
-  <button type="submit">Bắt đầu làm bài</button>
+<form class="button-container" th:action="@{/exams/{id}/do(id=${exam.examID})}" method="get">
+  <button class="detailButton"  type="submit">Bắt đầu làm bài</button>
 </form>
 </body>
 </html>

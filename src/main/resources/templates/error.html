@@ -6,22 +6,7 @@
   <title>Lỗi - E-Learning</title>
   <link rel="stylesheet" th:href="@{/css/error.css}">
 </head>
-<body>
-
-<header>
-  <div class="logo">
-    <img src="/img/logo.png" alt="Logo">
-  </div>
-
-  <nav>
-    <ul>
-      <li><a href="/home">Trang chủ</a></li>
-      <li><a href="#">Diễn đàn</a></li>
-      <li><a href="#">Lý thuyết</a></li>
-      <li><a href="#">Liên hệ</a></li>
-    </ul>
-  </nav>
-</header>
+<div th:insert="fragments/header :: header"></div>
 
 <main>
   <section class="error-container">

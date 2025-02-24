@@ -20,6 +20,7 @@ public class HomeController {
     public String homePage(@RequestParam(defaultValue = "0") int page,
                            @RequestParam(defaultValue = "6") int size,
                            Model model) {
+        System.out.println("Gọi đến home");
         try {
             List<Exam> exams = examService.getExamList(page, size);
             model.addAttribute("exams", exams);
@@ -33,7 +34,7 @@ public class HomeController {
             return "error";
         }
     }
-    @RequestMapping("/**")
+    @GetMapping("/*")
     public String homePage1(
                            Model model) {
         try {

@@ -3,27 +3,108 @@
 <head>
   <meta charset="UTF-8">
   <title>Danh sách đề thi</title>
+<!--  <link rel="stylesheet" th:href="@{/css/general.css}">-->
+  <link rel="stylesheet" th:href="@{/css/general.css}">
+  <link rel="stylesheet" th:href="@{/css/home.css}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"></div>
+
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
+<div th:insert="fragments/header :: header"></div>
 <h2>Danh sách đề thi</h2>
-<ul>
-  <li th:each="exam : ${exams}">
-    <span th:text="${exam.examName}"></span> - <span th:text="${exam.subject}"></span>
+<!--<div class="popular-exams">-->
+<!--  <div  class="exam-grid">-->
+<!--  <li class="exam-card" th:each="exam : ${exams}">-->
+<!--    <span th:text="${exam.examName}"></span> - <span th:text="${exam.subject}"></span>-->
 
-    <!-- Kiểm tra examID có tồn tại không -->
-    <div th:if="${exam.examID}">
-      <form th:action="@{/exams/{id}/detail(id=${exam.examID})}" method="get" style="display: inline;">
-        <button type="submit">Xem chi tiết</button>
-      </form>
+<!--    &lt;!&ndash; Kiểm tra examID có tồn tại không &ndash;&gt;-->
+<!--    <div class="button-container" th:if="${exam.examID}">-->
+<!--      <form th:action="@{/exams/{id}/detail(id=${exam.examID})}" method="get">-->
+<!--        <button class="detailButton" type="submit">Xem chi tiết</button>-->
+<!--      </form>-->
+<!--      <form th:action="@{/exams/{id}/do(id=${exam.examID})}" method="get">-->
+<!--        <button class="detailButton" type="submit">Làm bài</button>-->
+<!--      </form>-->
+<!--    </div>-->
+<!--  -->
+<!--    <div th:unless="${exam.examID}">-->
+<!--      <span style="color: red;">Lỗi: examID không tồn tại!</span>-->
+<!--    </div>-->
+<!--  </li>-->
+<!--</ul>-->
+    <div class="popular-exams">
+      <div  class="exam-grid">
+        <div class="exam-card" th:each="exam : ${exams}">
+          <strong th:text="${exam.examName}"></strong>
 
-      <form th:action="@{/exams/{id}/do(id=${exam.examID})}" method="get" style="display: inline;">
-        <button type="submit">Làm bài</button>
-      </form>
+          <span><b>Môn học:</b> <span th:text="${exam.subject}"></span></span>
+          <br>
+          <span><b>Ngày đăng:</b> <span th:text="${exam.date}"></span></span>
+          <br>
+          <span><b>Câu hỏi:</b> <span th:text="${exam.questionCount}"></span></span>
+          <div class="button-container">
+            <div th:if="${exam.examID}" style="display: flex">
+              <form th:action="@{/exams/{id}/detail(id=${exam.examID})}" method="get">
+                <button class="detailButton" type="submit">Xem chi tiết</button>
+              </form>
+              <form th:action="@{/exams/{id}/do(id=${exam.examID})}" method="get" style="padding-left:20px">
+                        <button class="detailButton" type="submit">Làm bài</button>
+                      </form>
+
+            <button class="likeButton" th:attr="data-exam-id=${exam.examID}, data-liked=${isLiked}"  style="padding-left:20px">
+              <i class="fa-regular fa-heart"></i>
+            </button>
+            </div>
+          </div>
+          <!-- Thêm Font Awesome -->
+        </div>
+
+      </div>
     </div>
-    <div th:unless="${exam.examID}">
-      <span style="color: red;">Lỗi: examID không tồn tại!</span>
-    </div>
-  </li>
-</ul>
+<script>
+  document.querySelectorAll(".likeButton").forEach(button => {
+    let examId = button.getAttribute("data-exam-id");
+    let icon = button.querySelector("i");
+
+    // Kiểm tra trạng thái like khi trang tải
+    fetch(`/exams/${examId}/isLiked`)
+            .then(response => response.json())
+            .then(data => {
+              if (data.liked) {
+                button.classList.add("liked");
+                icon.classList.replace("fa-regular", "fa-solid");
+              }
+            })
+            .catch(error => console.error("Lỗi kiểm tra like:", error));
+
+    // Toggle Like/Unlike
+    button.addEventListener("click", function() {
+      let isLiked = button.classList.contains("liked");
+
+      fetch(`/exams/${examId}/like`, {
+        method: isLiked ? "DELETE" : "POST"
+      })
+              .then(response => response.json())
+              .then(data => {
+                if (data.message === "Bạn cần đăng nhập để like.") {
+                  if (confirm("Bạn cần đăng nhập để like. Chuyển đến trang đăng nhập?")) {
+                    window.location.href = "/login";
+                  }
+                  return;
+                }
+
+                // Chỉ thay đổi giao diện, không hiện thông báo
+                button.classList.toggle("liked");
+                icon.classList.toggle("fa-solid");
+                icon.classList.toggle("fa-regular");
+              })
+              .catch(error => console.error("Lỗi:", error));
+    });
+  });
+
+</script>
+<div th:replace="fragments/footer :: footer"></div>
+
 </body>
+
 </html>
