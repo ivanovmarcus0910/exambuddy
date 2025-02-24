@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>View Theory</title>
+  <style>
+    .hidden { display: none; }
+    ul { list-style-type: none; padding: 0; }
+    li { cursor: pointer; margin: 5px 0; padding: 5px; border: 1px solid #ccc; }
+    li:hover { background-color: #f0f0f0; }
+    textarea { width: 100%; height: 150px; }
+  </style>
+</head>
+<body>
+<h1>Lý Thuyết</h1>
+
+<!-- Danh sách lớp -->
+<div id="classes">
+  <h2>Lớp</h2>
+  <ul id="class-list"></ul>
+</div>
+
+<!-- Danh sách môn học -->
+<div id="subjects" class="hidden">
+  <h2>Môn</h2>
+  <ul id="subject-list"></ul>
+</div>
+
+<!-- Danh sách chương -->
+<div id="chapters" class="hidden">
+  <h2>Chương</h2>
+  <ul id="chapter-list"></ul>
+</div>
+
+<!-- Danh sách bài học -->
+<div id="lessons" class="hidden">
+  <h2>Bài</h2>
+  <ul id="lesson-list"></ul>
+</div>
+
+<!-- Nội dung bài học -->
+<div id="lesson-content" class="hidden">
+  <h2>Nội dung</h2>
+  <textarea id="content" readonly></textarea>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const classList = document.getElementById('class-list');
+    const subjectList = document.getElementById('subject-list');
+    const chapterList = document.getElementById('chapter-list');
+    const lessonList = document.getElementById('lesson-list');
+    const contentTextarea = document.getElementById('content');
+
+    let currentClassId = null;
+    let currentSubjectId = null;
+    let currentChapterId = null;
+
+    // Hàm ẩn tất cả các phần tử con
+    function hideAllChildren() {
+      document.getElementById('subjects').classList.add('hidden');
+      document.getElementById('chapters').classList.add('hidden');
+      document.getElementById('lessons').classList.add('hidden');
+      document.getElementById('lesson-content').classList.add('hidden');
+    }
+
+    // Fetch và hiển thị danh sách lớp
+    function loadClasses() {
+      fetch('/api/classes')
+              .then(response => response.json())
+              .then(classes => {
+                classList.innerHTML = '';
+                classes.forEach(cls => {
+                  const li = document.createElement('li');
+                  li.innerHTML = `<span onclick="toggleSubjects('${cls.id}')">${cls.name}</span>`;
+                  classList.appendChild(li);
+                });
+              });
+    }
+
+    // Hiển thị hoặc ẩn môn học khi nhấp vào lớp
+    window.toggleSubjects = function(classId) {
+      if (currentClassId === classId) {
+        // Nếu đang hiển thị môn học của lớp này, ẩn đi
+        hideAllChildren();
+        currentClassId = null;
+      } else {
+        // Nếu không, hiển thị môn học của lớp mới
+        hideAllChildren();
+        currentClassId = classId;
+        loadSubjects(classId);
+      }
+    };
+
+    // Fetch và hiển thị danh sách môn học
+    window.loadSubjects = function(classId) {
+      fetch(`/api/classes/${classId}/subjects`)
+              .then(response => response.json())
+              .then(subjects => {
+                subjectList.innerHTML = '';
+                subjects.forEach(subject => {
+                  const li = document.createElement('li');
+                  li.innerHTML = `<span onclick="toggleChapters('${subject.id}')">${subject.name}</span>`;
+                  subjectList.appendChild(li);
+                });
+                document.getElementById('subjects').classList.remove('hidden');
+              });
+    };
+
+    // Hiển thị hoặc ẩn chương khi nhấp vào môn học
+    window.toggleChapters = function(subjectId) {
+      if (currentSubjectId === subjectId) {
+        // Nếu đang hiển thị chương của môn học này, ẩn đi
+        hideAllChildren();
+        currentSubjectId = null;
+      } else {
+        // Nếu không, hiển thị chương của môn học mới
+        hideAllChildren();
+        currentSubjectId = subjectId;
+        loadChapters(subjectId);
+      }
+    };
+
+    // Fetch và hiển thị danh sách chương
+    window.loadChapters = function(subjectId) {
+      fetch(`/api/subjects/${subjectId}/chapters`)
+              .then(response => response.json())
+              .then(chapters => {
+                chapterList.innerHTML = '';
+                chapters.forEach(chapter => {
+                  const li = document.createElement('li');
+                  li.innerHTML = `<span onclick="toggleLessons('${chapter.id}')">${chapter.name}</span>`;
+                  chapterList.appendChild(li);
+                });
+                document.getElementById('chapters').classList.remove('hidden');
+              });
+    };
+
+    // Hiển thị hoặc ẩn bài học khi nhấp vào chương
+    window.toggleLessons = function(chapterId) {
+      if (currentChapterId === chapterId) {
+        // Nếu đang hiển thị bài học của chương này, ẩn đi
+        hideAllChildren();
+        currentChapterId = null;
+      } else {
+        // Nếu không, hiển thị bài học của chương mới
+        hideAllChildren();
+        currentChapterId = chapterId;
+        loadLessons(chapterId);
+      }
+    };
+
+    // Fetch và hiển thị danh sách bài học
+    window.loadLessons = function(chapterId) {
+      fetch(`/api/chapters/${chapterId}/lessons`)
+              .then(response => response.json())
+              .then(lessons => {
+                lessonList.innerHTML = '';
+                lessons.forEach(lesson => {
+                  const li = document.createElement('li');
+                  li.innerHTML = `<span onclick="loadLessonContent('${lesson.content}')">${lesson.name}</span>`;
+                  lessonList.appendChild(li);
+                });
+                document.getElementById('lessons').classList.remove('hidden');
+              });
+    };
+
+    // Hiển thị nội dung bài học
+    window.loadLessonContent = function(content) {
+      contentTextarea.value = content;
+      document.getElementById('lesson-content').classList.remove('hidden');
+    };
+
+    // Tải danh sách lớp khi trang được load
+    loadClasses();
+  });
+</script>
+</body>
+</html>

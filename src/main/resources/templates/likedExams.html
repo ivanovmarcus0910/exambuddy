@@ -3,16 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <title>Bài kiểm tra đã thích</title>
+
+    <link rel="stylesheet" th:href="@{/css/general.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"></div>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        h1{
+            text-align: center;
+        }
+        .exam-card {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .exam-card strong {
+            font-size: 1.2em;
+        }
+
+        .exam-card span {
+            font-size: 1em;
+        }
+
+        .exam-card form {
+            margin-top: 10px;
+        }
+
+        .exam-card button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background 0.3s ease-in-out;
+        }
+
+        .exam-card button:hover {
+            background-color: #0056b3;
+        }
+        .back-link {
+            display: flex;
+            align-items: center;
+            color: #007bff;
+            font-size: 1.1em;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease-in-out;
+            margin: 20px auto;
+        }
+
+        .back-link i {
+            margin-right: 8px;
+            font-size: 1.2em;
+        }
+
+        .back-link:hover {
+            color: #0056b3;
+            text-decoration: underline;
+        }
+    </style>
+
 </head>
 <body>
-<h2>Bài kiểm tra đã thích</h2>
+<div th:insert="fragments/header :: header"></div>
+<h1 class="text-3xl font-bold text-White-900 pt-6">Bài kiểm tra đã thích</h1>
 
 <div class="exam-grid">
     <div class="exam-card" th:each="exam : ${likedExams}">
         <strong th:text="${exam.examName}"></strong>
-        <br>
         <span><b>Môn học:</b> <span th:text="${exam.subject}"></span></span>
-        <br>
         <div th:if="${exam.examID}">
             <form th:action="@{/exams/{id}/detail(id=${exam.examID})}" method="get">
                 <button type="submit">Xem chi tiết</button>
@@ -21,6 +86,10 @@
     </div>
 </div>
 
-<a href="/exams">Quay lại danh sách bài kiểm tra</a>
+<a href="/exams" class="back-link">
+    <i class="fas fa-arrow-left"></i> Quay lại danh sách bài kiểm tra
+</a>
+<div th:insert="fragments/footer :: footer"></div>
+
 </body>
 </html>

@@ -5,10 +5,12 @@
 
     </style>
 
-    <div th:insert="fragments/head :: head"></div>
+<div th:insert="fragments/head :: head"></div>
 <title>E-Learning - Học Online</title>
 <link rel="stylesheet" th:href="@{/css/general.css}">
 <link rel="stylesheet" th:href="@{/css/home.css}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"></div>
+
 <script src="https://cdn.tailwindcss.com"></script>
 
 
@@ -88,50 +90,96 @@
                 <span><b>Ngày đăng:</b> <span th:text="${exam.date}"></span></span>
                 <br>
                 <span><b>Câu hỏi:</b> <span th:text="${exam.questionCount}"></span></span>
-
+                <div class="button-container">
                 <div th:if="${exam.examID}">
                     <form th:action="@{/exams/{id}/detail(id=${exam.examID})}" method="get">
-                        <button type="submit">Xem chi tiết</button>
+                        <button class="detailButton" type="submit">Xem chi tiết</button>
                     </form>
                 </div>
 
                 <!-- Nút Like -->
-                <form th:action="@{/exams/{id}/like(id=${exam.examID})}" method="get">
-                    <button type="submit">Like</button>
-                </form>
-            </div>
-      </div>
+<!--                <form th:action="@{/exams/{id}/like(id=${exam.examID})}" method="get">-->
+<!--                    <button type="submit">Like</button>-->
+<!--                </form>-->
 
+                <button class="likeButton" th:attr="data-exam-id=${exam.examID}, data-liked=${isLiked}">
+                    <i class="fa-regular fa-heart"></i>
+                </button>
+                </div>
+                <!-- Thêm Font Awesome -->
+</div>
 
-        <div class="rank-panel">
-            <h4>BXH học sinh có điểm số cao nhất</h4>
-            <ul>
-                <li><div class="avatar">A</div> Username1 - Điểm</li>
-                <li><div class="avatar">B</div> Username2 - Điểm</li>
-                <li><div class="avatar">C</div> Username3 - Điểm</li>
-                <li><div class="avatar">D</div> Username4 - Điểm</li>
-                <li><div class="avatar">E</div> Username5 - Điểm</li>
-            </ul>
-            <h4>BXH đóng góp</h4>
-            <ul>
-                <li><div class="avatar">A</div> Username1 - Điểm đóng góp</li>
-                <li><div class="avatar">B</div> Username2 - Điểm đóng góp</li>
-                <li><div class="avatar">C</div> Username3 - Điểm đóng góp</li>
-                <li><div class="avatar">D</div> Username4 - Điểm đóng góp</li>
-                <li><div class="avatar">E</div> Username5 - Điểm đóng góp</li>
-            </ul>
         </div>
+<div class="rank-panel">
+    <h4>BXH học sinh có điểm số cao nhất</h4>
+    <ul>
+        <li><div class="avatar">A</div> Username1 - Điểm</li>
+        <li><div class="avatar">B</div> Username2 - Điểm</li>
+        <li><div class="avatar">C</div> Username3 - Điểm</li>
+        <li><div class="avatar">D</div> Username4 - Điểm</li>
+        <li><div class="avatar">E</div> Username5 - Điểm</li>
+    </ul>
+    <h4>BXH đóng góp</h4>
+    <ul>
+        <li><div class="avatar">A</div> Username1 - Điểm đóng góp</li>
+        <li><div class="avatar">B</div> Username2 - Điểm đóng góp</li>
+        <li><div class="avatar">C</div> Username3 - Điểm đóng góp</li>
+        <li><div class="avatar">D</div> Username4 - Điểm đóng góp</li>
+        <li><div class="avatar">E</div> Username5 - Điểm đóng góp</li>
+    </ul>
+</div>
 
-    </div>
+</div>
 
-    <div class="pagination">
-        <a th:if="${currentPage > 0}" th:href="@{/home(page=${prevPage},size=${size})}">«   </a>
-        <span> <span th:text="${currentPage!=null?currentPage+1:1}"></span></span>
-        <a th:href="@{/home(page=${nextPage},size=${size})}">   »</a>
-    </div>
+<div class="pagination">
+    <a th:if="${currentPage > 0}" th:href="@{/home(page=${prevPage},size=${size})}">«   </a>
+    <span> <span th:text="${currentPage + 1}"></span></span>
+    <a th:href="@{/home(page=${nextPage},size=${size})}">   »</a>
+</div>
 
 </main>
+<script>
+    document.querySelectorAll(".likeButton").forEach(button => {
+        let examId = button.getAttribute("data-exam-id");
+        let icon = button.querySelector("i");
 
+        // Kiểm tra trạng thái like khi trang tải
+        fetch(`/exams/${examId}/isLiked`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.liked) {
+                    button.classList.add("liked");
+                    icon.classList.replace("fa-regular", "fa-solid");
+                }
+            })
+            .catch(error => console.error("Lỗi kiểm tra like:", error));
+
+        // Toggle Like/Unlike
+        button.addEventListener("click", function() {
+            let isLiked = button.classList.contains("liked");
+
+            fetch(`/exams/${examId}/like`, {
+                method: isLiked ? "DELETE" : "POST"
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message === "Bạn cần đăng nhập để like.") {
+                        if (confirm("Bạn cần đăng nhập để like. Chuyển đến trang đăng nhập?")) {
+                            window.location.href = "/login";
+                        }
+                        return;
+                    }
+
+                    // Chỉ thay đổi giao diện, không hiện thông báo
+                    button.classList.toggle("liked");
+                    icon.classList.toggle("fa-solid");
+                    icon.classList.toggle("fa-regular");
+                })
+                .catch(error => console.error("Lỗi:", error));
+        });
+    });
+
+</script>
 <div th:replace="fragments/footer :: footer"></div>
 
 

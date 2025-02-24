@@ -55,5 +55,13 @@ public class HomeController {
         return "signup";
     }
 
+    @GetMapping("/theory")
+    public String index() {
+        return "index"; // Trả về tên file HTML (không cần đuôi .html)
+    }
 
+    @GetMapping("/viewTheory")
+    public String viewTheory() {
+        return "viewTheory"; // Trả về tên file HTML (không cần đuôi .html)
+    }
 }

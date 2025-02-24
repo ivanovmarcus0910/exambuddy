@@ -263,6 +263,19 @@ public class ExamService {
         ), SetOptions.merge());
     }
 
+    public void unlikeExam(String userId, String examId) {
+        DocumentReference docRef = db.collection("likedExams").document(userId + "_" + examId);
+        docRef.delete(); // Xóa like khỏi Firestore
+    }
+    public boolean isExamLiked(String userId, String examId) {
+        DocumentReference docRef = db.collection("likedExams").document(userId + "_" + examId);
+        try {
+            return docRef.get().get().exists();
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     public List<Exam> getLikedExamsByUser(String userId) {
         List<Exam> likedExams = new ArrayList<>();
 
