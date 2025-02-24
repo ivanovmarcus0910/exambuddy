@@ -16,11 +16,10 @@ import java.util.List;
 public class HomeController {
     @Autowired
     private ExamService examService;
-    @GetMapping("/home")
+    @GetMapping({"/*", "/home"})
     public String homePage(@RequestParam(defaultValue = "0") int page,
                            @RequestParam(defaultValue = "6") int size,
                            Model model) {
-        System.out.println("Gọi đến home");
         try {
             List<Exam> exams = examService.getExamList(page, size);
             model.addAttribute("exams", exams);
@@ -28,22 +27,6 @@ public class HomeController {
             model.addAttribute("size", size);
             model.addAttribute("nextPage", page + 1);
             model.addAttribute("prevPage", page > 0 ? page - 1 : 0);
-            return "home";
-        } catch (Exception e) {
-            model.addAttribute("error", "Lỗi khi tải danh sách đề thi: " + e.getMessage());
-            return "error";
-        }
-    }
-    @GetMapping("/*")
-    public String homePage1(
-                           Model model) {
-        try {
-            List<Exam> exams = examService.getExamList(0, 6);
-            model.addAttribute("exams", exams);
-            model.addAttribute("currentPage", 0);
-            model.addAttribute("size", 6);
-            model.addAttribute("nextPage", 1);
-            model.addAttribute("prevPage", 0);
             return "home";
         } catch (Exception e) {
             model.addAttribute("error", "Lỗi khi tải danh sách đề thi: " + e.getMessage());

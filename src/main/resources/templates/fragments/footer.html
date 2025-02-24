@@ -1,33 +1,39 @@
 <div th:fragment="footer">
-  <footer>
-    <div class="footer-container">
-      <div class="footer-section">
-        <h3>Về chúng tôi</h3>
-        <p>Website cung cấp tài liệu, bài giảng và kỳ thi trực tuyến để giúp bạn nâng cao kỹ năng và phát triển sự nghiệp.</p>
-      </div>
+  <footer class="bg-primary text-white py-4">
+    <div class="container">
+      <div class="row">
+        <!-- Cột 1: Về chúng tôi -->
+        <div class="col-md-4">
+          <h3 class="h5">Về chúng tôi</h3>
+          <p>Website cung cấp tài liệu, bài giảng và kỳ thi trực tuyến để giúp bạn nâng cao kỹ năng và phát triển sự nghiệp.</p>
+        </div>
 
-      <div class="footer-section">
-        <h3>Liên kết nhanh</h3>
-        <ul>
-          <li><a href="/home">Trang chủ</a></li>
-          <li><a href="/forum">Diễn đàn</a></li>
-          <li><a href="/courses">Khoá học</a></li>
-          <li><a href="/contact">Liên hệ</a></li>
-        </ul>
-      </div>
+        <!-- Cột 2: Liên kết nhanh -->
+        <div class="col-md-4">
+          <h3 class="h5">Liên kết nhanh</h3>
+          <ul class="list-unstyled">
+            <li><a href="/home" class="text-white text-decoration-none">Trang chủ</a></li>
+            <li><a href="/forum" class="text-white text-decoration-none">Diễn đàn</a></li>
+            <li><a href="/courses" class="text-white text-decoration-none">Khoá học</a></li>
+            <li><a href="/contact" class="text-white text-decoration-none">Liên hệ</a></li>
+          </ul>
+        </div>
 
-      <div class="footer-section">
-        <h3>Theo dõi chúng tôi</h3>
-        <div class="social-icons">
-          <a href="#"><img src="/img/facebook-icon.png" alt="Facebook"></a>
-          <a href="#"><img src="/img/twitter-icon.png" alt="Twitter"></a>
-          <a href="#"><img src="/img/youtube-icon.png" alt="YouTube"></a>
+        <!-- Cột 3: Theo dõi chúng tôi -->
+        <div class="col-md-4">
+          <h3 class="h5">Theo dõi chúng tôi</h3>
+          <div class="d-flex gap-3">
+            <a href="#"><img src="https://res.cloudinary.com/dsuav027e/image/upload/v1740394499/fblogo_bjzpil.png" alt="Facebook" class="img-fluid" width="30"></a>
+            <a href="#"><img src="/img/twitter-icon.png" alt="Twitter" class="img-fluid" width="30"></a>
+            <a href="#"><img src="/img/youtube-icon.png" alt="YouTube" class="img-fluid" width="30"></a>
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="footer-bottom">
-      <p>&copy; 2025 Marine Reef. All Rights Reserved.</p>
+    <!-- Dòng bản quyền -->
+    <div class="text-center bg-dark text-white py-2 mt-3">
+      <p class="mb-0">&copy; 2025 5AETeam. All Rights Reserved.</p>
     </div>
   </footer>
 </div>

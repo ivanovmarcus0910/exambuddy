@@ -1,175 +1,101 @@
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Đăng nhập | E-Learning</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" th:href="@{/css/login.css}">
+    <link rel="icon" type="image/x-icon" href="https://res.cloudinary.com/dsuav027e/image/upload/v1740393796/favicon_llcueu.ico">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 </head>
-<body>
+<body class="bg-white">
+<!-- Header -->
+<div th:insert="~{fragments/header :: header}"></div>
 
-<div class="login-container">
-    <!-- Bên trái - Form đăng nhập -->
-    <div class="left-section">
-        <div class="login-box">
-            <div class="flex justify-center">
-                <img style="height: 180px; width: 180px;" th:src="@{/img/logo.png}">
-            </div>
-            <div class="text-center">
-                <h2 class="title-text">CHÀO MỪNG TRỞ LẠI</h2>
-                <p class="subtitle-text">Hãy nhập thông tin để bắt đầu ngay nhé!</p>
-            </div>
-
-            <form action="/login" method="post" class="mt-6" onsubmit="return validateForm()">
-                <!-- Hiển thị thông báo lỗi từ server -->
-                <div id="error-message" th:if="${error}" class="bg-red-500 text-white p-3 rounded-md text-center mt-4">
-                    <span th:text="${error}"></span>
-                </div>
-
-                <!-- Ô nhập Tên đăng nhập -->
-                <div class="input-container">
-                    <label class="block text-white text-sm mb-1">Tên tài khoản</label>
-                    <input type="text" name="username" placeholder="Tên tài khoản" class="input-field">
-                    <p id="username-error" class="text-red-500 text-sm mt-1 hidden">Ô không được để trống</p>
-                </div>
-
-                <!-- Ô nhập Mật khẩu -->
-                <div class="input-container">
-                    <label class="input-label">Nhập mật khẩu</label>
-                    <input type="password" id="password" name="password" placeholder="Nhập mật khẩu" class="input-field">
-                    <img src="https://cdn-icons-png.flaticon.com/512/2767/2767146.png" class="eye-icon"
-                         onclick="togglePassword('password', this)">
-                    <p id="password-error" class="text-red-500 text-sm mt-1 hidden">Ô không được để trống</p>
-                </div>
-
-
-                <!-- Ghi nhớ đăng nhập và Quên mật khẩu -->
-                <div class="remember-forgot-container">
-                    <label class="flex items-center cursor-pointer">
-                        <input type="checkbox" id="rememberMe" name="rememberMe" class="custom-checkbox mr-2">
-                        Ghi nhớ đăng nhập
-                    </label>
-                    <a href="/forgotPass" class="hover:text-orange-400">Quên mật khẩu?</a>
-                </div>
-
-                <!-- Nút đăng nhập -->
-                <button type="submit" class="login-button mt-2">
-                    Đăng nhập →
-                </button>
-            </form>
-
-            <!-- Phần "Hoặc tiếp tục với" -->
-            <div class="social-login-container">
-                <span class="text-white text-sm font-semibold bg-[#15152D] px-3">Hoặc tiếp tục với</span>
-            </div>
-
-            <!-- Các nút đăng nhập mạng xã hội -->
-            <div class="social-buttons">
-                <a href="/oauth2/authorization/facebook" class="bg-white rounded-full p-2 flex items-center justify-center w-12 h-12 hover:bg-gray-200 transition">
-                    <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook">
-                </a>
-                <a href="/oauth2/authorization/google" class="bg-white rounded-full p-2 flex items-center justify-center w-12 h-12 hover:bg-gray-200 transition">
-                    <img src="https://cdn-icons-png.flaticon.com/512/281/281764.png" alt="Google" class="h-6 w-6 mr-2">
-                </a>
-            </div>
-
-            <p class="text-gray-400 text-sm mt-6 text-center">
-                Chưa có tài khoản? <a href="/signup" class="text-white hover:underline">Đăng ký</a>
-            </p>
-
+<!-- Container đăng nhập -->
+<div class="container d-flex justify-content-center align-items-center min-vh-100">
+    <div class="row shadow-lg p-5 bg-light rounded-4 w-100" style="max-width: 450px;">
+        <div class="text-center">
+            <img th:src="@{/img/logo.png}" class="img-fluid mb-3" style="width: 150px; height: 150px;">
+            <h2 class="fw-bold">CHÀO MỪNG TRỞ LẠI</h2>
+            <p class="text-muted">Hãy nhập thông tin để bắt đầu ngay nhé!</p>
         </div>
-    </div>
 
-    <!-- Bên phải - Hình nền và quảng cáo -->
-    <div class="right-section">
-        <h2 class="text-3xl font-bold text-white">HỌC CỰC CHẤT</h2>
-        <h3 class="text-2xl font-bold text-blue-400">GIÁ CỰC HỜI</h3>
-        <p class="text-white mt-4 text-center max-w-md">
-            Combo tiết kiệm với chi phí siêu ưu đãi, tiết kiệm đến 70% so với mua khóa học lẻ.
+        <!-- Form đăng nhập -->
+        <form action="/login" method="post" class="mt-3">
+            <!-- Thông báo lỗi -->
+            <div id="error-message" th:if="${error}" class="alert alert-danger text-center">
+                <span th:text="${error}"></span>
+            </div>
+
+            <!-- Ô nhập Tên đăng nhập -->
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Tên tài khoản</label>
+                <input type="text" name="username" class="form-control" placeholder="Nhập tên tài khoản" required>
+            </div>
+
+            <!-- Ô nhập Mật khẩu -->
+            <div class="mb-3 position-relative">
+                <label class="form-label fw-semibold">Mật khẩu</label>
+                <div class="input-group">
+                    <input type="password" id="password" name="password" class="form-control" placeholder="Nhập mật khẩu" required>
+                    <button class="btn btn-outline-secondary" type="button" onclick="togglePassword()">
+                        <i class="bi bi-eye"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Ghi nhớ đăng nhập & Quên mật khẩu -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="form-check">
+                    <input type="checkbox" id="rememberMe" name="rememberMe" class="form-check-input">
+                    <label for="rememberMe" class="form-check-label">Ghi nhớ đăng nhập</label>
+                </div>
+                <a href="/forgotPass" class="text-decoration-none text-primary">Quên mật khẩu?</a>
+            </div>
+
+            <!-- Nút đăng nhập -->
+            <button type="submit" class="btn btn-primary w-100">Đăng nhập →</button>
+        </form>
+
+        <!-- Phần "Hoặc tiếp tục với" -->
+        <div class="text-center mt-4">
+            <span class="text-muted">Hoặc tiếp tục với</span>
+        </div>
+
+        <!-- Nút đăng nhập MXH -->
+        <div class="d-flex justify-content-center mt-3">
+            <a href="/oauth2/authorization/facebook" class="btn btn-outline-primary mx-2">
+                <i class="bi bi-facebook"></i> Facebook
+            </a>
+            <a href="/oauth2/authorization/google" class="btn btn-outline-danger mx-2">
+                <i class="bi bi-google"></i> Google
+            </a>
+        </div>
+
+        <!-- Đăng ký -->
+        <p class="text-center text-muted mt-4">
+            Chưa có tài khoản? <a href="/signup" class="text-primary">Đăng ký</a>
         </p>
-
-        <div class="flex space-x-4 mt-6">
-            <img src="https://via.placeholder.com/120x160?text=Book+VR" class="rounded-lg">
-            <img src="https://via.placeholder.com/120x160?text=VR+Student" class="rounded-lg">
-        </div>
     </div>
 </div>
+
+<!-- Footer -->
+<div th:insert="~{fragments/footer :: footer}"></div>
+
+<!-- Bootstrap Bundle with Popper -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Toggle Password -->
 <script>
-    function togglePassword(fieldId, icon) {
-        const field = document.getElementById(fieldId);
-        if (field.type === "password") {
-            field.type = "text";
-            icon.src = "https://cdn-icons-png.flaticon.com/512/709/709612.png";
+    function togglePassword() {
+        const passwordField = document.getElementById("password");
+        if (passwordField.type === "password") {
+            passwordField.type = "text";
         } else {
-            field.type = "password";
-            icon.src = "https://cdn-icons-png.flaticon.com/512/2767/2767146.png";
+            passwordField.type = "password";
         }
     }
-    function validateForm() {
-        let username = document.getElementById("username").value.trim();
-        let password = document.getElementById("password").value.trim();
-        let usernameError = document.getElementById("username-error");
-        let passwordError = document.getElementById("password-error");
-        let errorMessage = document.getElementById("error-message");
-
-        let isValid = true;
-
-        // Kiểm tra ô username
-        if (username === "") {
-            usernameError.classList.remove("hidden");
-            isValid = false;
-        } else {
-            usernameError.classList.add("hidden");
-        }
-
-        // Kiểm tra ô password
-        if (password === "") {
-            passwordError.classList.remove("hidden");
-            isValid = false;
-        } else {
-            passwordError.classList.add("hidden");
-        }
-
-        // Nếu chưa nhập đủ thông tin, không gửi form
-        if (!isValid) {
-            if (errorMessage) {
-                errorMessage.style.display = "none"; // Ẩn lỗi xác thực server khi lỗi ở client
-            }
-            return false;
-        }
-
-        return true; // Nếu hợp lệ, cho phép form gửi đi
-    }
-    // ✅ JavaScript xử lý session & cookie để ghi nhớ đăng nhập
-    window.onload = function () {
-        const cookies = document.cookie.split("; ");
-        let username = "";
-        let password = "";
-
-        cookies.forEach(cookie => {
-            let [key, value] = cookie.split("=");
-            key = key.trim();
-            if (key === "rememberedUsername") username = decodeURIComponent(value || "");
-            if (key === "rememberedPassword") password = decodeURIComponent(value || "");
-        });
-
-        if (username && password) {
-            document.querySelector('input[name="username"]').value = username;
-            document.querySelector('input[name="password"]').value = password;
-            document.getElementById("rememberMe").checked = true;
-        }
-    };
-
-    // Xoá cookie nếu "Ghi nhớ đăng nhập" bị bỏ chọn
-    document.getElementById("rememberMe").addEventListener("change", function () {
-        if (!this.checked) {
-            document.cookie = "rememberedUsername=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-            document.cookie = "rememberedPassword=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-        }
-    });
 </script>
-
+<div th:insert="~{fragments/footer :: footer}"></div>
 </body>
 </html>

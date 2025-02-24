@@ -3,17 +3,23 @@
     let editingIndex = -1;
 
     function addOptionField() {
-    let optionsContainer = document.getElementById("optionsContainer");
-    let optionIndex = optionsContainer.children.length;
-    let newOptionDiv = document.createElement("div");
+        let optionsContainer = document.getElementById("optionsContainer");
+        let optionIndex = optionsContainer.children.length;
+        let newOptionDiv = document.createElement("div");
+        newOptionDiv.classList.add("input-group", "mb-2");
 
-    newOptionDiv.innerHTML = `
-        <input type="text" name="option" placeholder="Đáp án ${optionIndex + 1}">
-        <input type="checkbox" name="correctOption" value="${optionIndex}">
-        <button type="button" onclick="removeOption(this)">🗑️</button>
-      `;
+        newOptionDiv.innerHTML = `
+        <input type="text" class="form-control" name="option" placeholder="Đáp án ${optionIndex + 1}">
+        <div class="input-group-append">
+            <div class="input-group-text">
+                <input type="checkbox" name="correctOption" value="${optionIndex}" class="form-check-input mt-0">
+            </div>
+            <button type="button" class="btn btn-danger" onclick="removeOption(this)">🗑️</button>
+        </div>
+    `;
 
-    optionsContainer.appendChild(newOptionDiv);
+
+        optionsContainer.appendChild(newOptionDiv);
 }
 
     function removeOption(button) {
@@ -25,7 +31,7 @@
     let options = [];
     let correctAnswers = [];
 
-    document.querySelectorAll("#optionsContainer div").forEach((div, index) => {
+    document.querySelectorAll("#optionsContainer > .input-group").forEach((div, index) => {
     let optionText = div.querySelector("input[name='option']").value;
     let isChecked = div.querySelector("input[name='correctOption']").checked;
 
@@ -60,18 +66,27 @@
     let questionList = document.getElementById("questionList");
     questionList.innerHTML = "";
 
-    questions.forEach((question, index) => {
-    let correctAnswers = question.correctAnswers.map(i => question.options[i]).join(", ");
-    let li = document.createElement("li");
-    li.innerHTML = `
-          <b>${index + 1}. ${question.questionText}</b>
-          <br>(${question.options.join(", ")})
-          <br>✅ Đáp án đúng: <b>${correctAnswers}</b>
-          <button onclick="editQuestion(${index})">✏️ Sửa</button>
-          <button onclick="deleteQuestion(${index})">❌ Xóa</button>
-        `;
-    questionList.appendChild(li);
-});
+        questions.forEach((question, index) => {
+            let correctAnswers = question.correctAnswers.map(i => question.options[i]).join(", ");
+            let li = document.createElement("li");
+            li.className = "list-group-item"; // Sử dụng Bootstrap class
+
+            li.innerHTML = `
+        <div class="p-2 border rounded shadow-sm">
+            <b class="text-primary">${index + 1}. ${question.questionText}</b>
+            <br>
+            <span class="text-secondary">(${question.options.join(", ")})</span>
+            <br>
+            <span class="text-success font-weight-bold">✅ Đáp án đúng: ${correctAnswers}</span>
+            <div class="mt-2">
+                <button class="btn btn-warning btn-sm" onclick="editQuestion(${index})">✏️ Sửa</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteQuestion(${index})">❌ Xóa</button>
+            </div>
+        </div>
+    `;
+
+            questionList.appendChild(li);
+        });
 }
 
     function editQuestion(index) {
@@ -204,3 +219,18 @@
     '<option value="Đề THPT">Đề THPT QUỐC GIA</option>';
 }
 });
+
+    const cities = ["Hà Nội", "Hồ Chí Minh", "Đà Nẵng", "Hải Phòng", "Cần Thơ", "An Giang", "Bà Rịa - Vũng Tàu",
+        "Bắc Giang", "Bắc Kạn", "Bạc Liêu", "Bắc Ninh", "Bến Tre", "Bình Định", "Bình Dương", "Bình Phước", "Bình Thuận", "Cà Mau",
+        "Cao Bằng", "Đắk Lắk", "Đắk Nông", "Điện Biên", "Đồng Nai", "Đồng Tháp", "Gia Lai", "Hà Giang", "Hà Nam", "Hà Tĩnh", "Hải Dương",
+        "Hậu Giang", "Hòa Bình", "Hưng Yên", "Khánh Hòa", "Kiên Giang", "Kon Tum", "Lai Châu", "Lâm Đồng", "Lạng Sơn", "Lào Cai", "Long An",
+        "Nam Định", "Nghệ An", "Ninh Bình", "Ninh Thuận", "Phú Thọ", "Phú Yên", "Quảng Bình", "Quảng Nam", "Quảng Ngãi", "Quảng Ninh", "Quảng Trị",
+        "Sóc Trăng", "Sơn La", "Tây Ninh", "Thái Bình", "Thái Nguyên", "Thanh Hóa", "Thừa Thiên Huế", "Tiền Giang", "Trà Vinh", "Tuyên Quang", "Vĩnh Long",
+        "Vĩnh Phúc", "Yên Bái"];
+    const citySelect = document.getElementById('city');
+    cities.forEach(city => {
+        const option = document.createElement('option');
+        option.value = city; // Giữ nguyên giá trị gốc
+        option.textContent = city;
+        citySelect.appendChild(option);
+    });

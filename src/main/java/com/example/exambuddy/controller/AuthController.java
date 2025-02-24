@@ -92,10 +92,6 @@ public class AuthController {
     }
 
     // Điều hướng trang Home
-    @GetMapping("")
-    public String homePage() {
-        return "home";
-    }
 
     // ✅ Xử lý đăng nhập trong Spring Boot với session & cookie
     @PostMapping("/login")

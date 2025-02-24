@@ -1,42 +1,83 @@
+<header class="bg-primary text-white py-3">
+  <div class="container d-flex justify-content-between align-items-center">
+    <!-- Logo -->
+    <div>
+      <img src="https://res.cloudinary.com/dsuav027e/image/upload/v1740393796/favicon_iexkhg.png" alt="Logo" class="img-fluid" style="height: 50px;">
+    </div>
 
-  <body>
-<header>
-  <div class="logo">
-    <img src="/img/logo.png" alt="Logo">
-  </div>
+    <!-- Thanh điều hướng -->
+    <nav class="navbar navbar-expand-lg bg-primary">
+      <ul class="nav">
+        <li class="nav-item">
+          <a class="nav-link text-white fw-bold" href="/home"
+             style="transition: 0.3s;"
+             onmouseover="this.style.color='#ffc107'"
+             onmouseout="this.style.color='white'">
+            Trang chủ
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-white fw-bold" href="/forum"
+             style="transition: 0.3s;"
+             onmouseover="this.style.color='#ffc107'"
+             onmouseout="this.style.color='white'">
+            Diễn đàn
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-white fw-bold" href="/viewTheory"
+             style="transition: 0.3s;"
+             onmouseover="this.style.color='#ffc107'"
+             onmouseout="this.style.color='white'">
+            Lý thuyết
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-white fw-bold" href="#"
+             style="transition: 0.3s;"
+             onmouseover="this.style.color='#ffc107'"
+             onmouseout="this.style.color='white'">
+            Liên hệ
+          </a>
+        </li>
+      </ul>
+    </nav>
 
-  <nav>
-    <ul>
-      <li><a href="/home">Trang chủ</a></li>
-      <li><a href="/forum">Diễn đàn</a></li>
-      <li><a href="/viewTheory">Lý thuyết</a></li>
-      <li><a href="#">Liên hệ</a></li>
-    </ul>
-  </nav>
-  <form action="/search" method="get" class="search-bar">
-    <input type="text" name="examName" placeholder="Nhập tên đề thi" required>
-    <button type="submit">Tìm kiếm</button>
-  </form>
 
-  <div class="user-section">
-    <!-- Kiểm tra nếu đã đăng nhập -->
-    <th:block th:if="${session.loggedInUser}">
-      <div class="user-avatar"></div>
-      <div class="user-menu">
-        <a href="/profile">Thông tin cá nhân</a>
-        <a href="#">Thông báo</a>
-        <a href="/exams/liked">Bài kiểm tra yêu thích</a>
-        <a href="/exams/result-list">Lịch sử làm bài</a>
-        <a href="/logout">Đăng xuất</a>
-      </div>
+    <!-- Thanh tìm kiếm -->
+    <form action="/search" method="get" class="d-flex align-items-center">
+      <input type="text" name="examName" class="form-control me-2 w-70" placeholder="Nhập tên đề thi" required style="height: 40px;">
+      <button type="submit" class="btn px-3 text-nowrap"
+              style="background-color: #0056b3; border-color: #0056b3; color: white; height: 40px; min-width: 120px; transition: 0.3s;"
+              onmouseover="this.style.backgroundColor='#ffc107'; this.style.borderColor='#ffc107'; this.style.color='black';"
+              onmouseout="this.style.backgroundColor='#0056b3'; this.style.borderColor='#0056b3'; this.style.color='white';">
+        Tìm kiếm
+      </button>
+    </form>
 
+    <!-- User Section -->
+    <div class="d-flex align-items-center">
+      <!-- Nếu đã đăng nhập -->
+      <th:block th:if="${session.loggedInUser}">
+        <div class="dropdown">
+          <button class="btn btn-light dropdown-toggle d-flex align-items-center" type="button" data-bs-toggle="dropdown" style="height: 40px;">
+            <i class="bi bi-person-circle me-1"></i> Tài khoản
+          </button>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="/profile">Thông tin cá nhân</a></li>
+            <li><a class="dropdown-item" href="#">Thông báo</a></li>
+            <li><a class="dropdown-item" href="/exams/liked">Bài kiểm tra yêu thích</a></li>
+            <li><a class="dropdown-item" href="/exams/result-list">Lịch sử làm bài</a></li>
+            <li><a class="dropdown-item text-danger" href="/logout">Đăng xuất</a></li>
+          </ul>
+        </div>
+      </th:block>
 
-    </th:block>
-
-    <!-- Nếu chưa đăng nhập, hiển thị nút đăng nhập và đăng ký -->
-    <th:block th:unless="${session.loggedInUser}">
-      <a href="/login"><button class="button-gradient">Đăng nhập</button></a>
-      <a href="/signup"><button class="button-gradient">Đăng ký</button></a>
-    </th:block>
+      <!-- Nếu chưa đăng nhập -->
+      <th:block th:unless="${session.loggedInUser}">
+        <a href="/login" class="btn btn-outline-light me-2 d-flex align-items-center justify-content-center" style="height: 40px; min-width: 100px;">Đăng nhập</a>
+        <a href="/signup" class="btn btn-warning d-flex align-items-center justify-content-center" style="height: 40px; min-width: 100px;">Đăng ký</a>
+      </th:block>
+    </div>
   </div>
 </header>
