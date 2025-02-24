@@ -131,21 +131,4 @@ public class PostController {
         return response;
     }
 
-    @GetMapping("/{postId}")
-    public String viewPost(@PathVariable("postId") String postId, Model model) {
-        // Lấy bài đăng theo postId từ PostService
-        Post post = PostService.getPostById(postId);
-        if (post == null) {
-            // Nếu không tìm thấy bài đăng, chuyển đến trang lỗi
-            return "errorPage";
-        }
-
-        // Lấy danh sách bình luận của bài đăng (nếu có)
-        List<Comment> comments = PostService.getCommentsByPostId(postId);
-        model.addAttribute("post", post);
-        model.addAttribute("comments", comments);
-
-        // Trả về view hiển thị chi tiết bài đăng (ví dụ: postDetail.html)
-        return "forum";
-    }
 }
