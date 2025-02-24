@@ -80,6 +80,10 @@ public class PostService {
             for (DocumentSnapshot document : documents) {
                 Post post = document.toObject(Post.class);
                 post.setPostId(document.getId());
+
+                String avatarUrl = UserService.getAvatarUrlByUsername(post.getUsername());
+                post.setAvatarUrl(avatarUrl);
+
                 postList.add(post);
             }
         } catch (InterruptedException | ExecutionException e) {
@@ -145,5 +149,16 @@ public class PostService {
             e.printStackTrace();
         }
         return comments;
+    }
+
+    // Xoá đề thi
+    public static void deletePost(String postId) {
+        Firestore firestore = FirestoreClient.getFirestore();
+        try {
+            firestore.collection("posts").document(postId).delete();
+            System.out.println("Deleted post: " + postId);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

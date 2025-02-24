@@ -10,12 +10,13 @@ import com.google.firebase.cloud.FirestoreClient;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 
+import java.text.Normalizer;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.Date;
 import java.util.TimeZone;
-
+import java.util.concurrent.ExecutionException;
 @Service
 public class ExamService {
     private final Firestore db = FirestoreClient.getFirestore();
@@ -117,17 +118,22 @@ public class ExamService {
         }
 
     }
+
     public boolean addExam(Map<String, Object> examData) {
         try {
             String examId = UUID.randomUUID().toString();
             // Thêm dữ liệu đề thi vào collection "exams"
             db.collection("exams").document(examId).set(Map.of(
                     "examName", examData.get("examName"),
+                    "grade", examData.get("grade"),
                     "subject", examData.get("subject"),
+                    "examType", examData.get("examType"),
+                    "city", examData.get("city"),
                     "tags", examData.get("tags"),
                     "username", examData.get("username"),
                     "date", examData.get("date")
             )).get();
+
 
             // Thêm danh sách câu hỏi vào subcollection "questions"
             List<Map<String, Object>> questions = (List<Map<String, Object>>) examData.get("questions");
@@ -144,6 +150,7 @@ public class ExamService {
             return false;
         }
     }
+
     public boolean addExamSession(String examID, String username, long duration) {
         try {
             DocumentReference docRef = db.collection("examSessions").document(username + "_" + examID);
@@ -342,5 +349,121 @@ public class ExamService {
         return null;
     }
 
+    private String normalizeString(String input) {
+        if (input == null) {
+            return "";
+        }
+        // Chuyển về chữ thường và xử lý ký tự đặc biệt
+        return Normalizer.normalize(input, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "") // Loại bỏ dấu
+                .toLowerCase();           // Chuyển về chữ thường
+    }
 
+    public List<Exam> searchExamByName(String examName) throws ExecutionException, InterruptedException {
+        List<Exam> exams = new ArrayList<>();
+        String normalizedSearchTerm = normalizeString(examName); // Chuẩn hóa chuỗi tìm kiếm
+
+        ApiFuture<QuerySnapshot> querySnapshot = db.collection("exams").get(); // Lấy tất cả đề thi từ Firestore
+        List<QueryDocumentSnapshot> documents = querySnapshot.get().getDocuments();
+
+        for (QueryDocumentSnapshot doc : documents) {
+            Exam exam = doc.toObject(Exam.class);
+            String normalizedExamName = normalizeString(exam.getExamName()); // Chuẩn hóa tên đề thi
+
+            // Kiểm tra xem chuỗi tìm kiếm có nằm trong tên đề thi hay không
+            if (normalizedExamName.contains(normalizedSearchTerm)) {
+                exam.setExamID(doc.getId());
+
+                try {
+                    int questionCount = countQuestions(exam.getExamID());
+                    exam.setQuestionCount(questionCount);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    exam.setQuestionCount(0); // Gán giá trị mặc định nếu có lỗi
+                }
+
+                if (exam.getDate() != null) {
+                    String formattedDate = formatDate(exam.getDate());
+                    exam.setDate(formattedDate);
+                }
+
+                exams.add(exam); // Thêm đề thi vào danh sách kết quả
+            }
+        }
+
+        return exams; // Trả về danh sách đề thi phù hợp
+    }
+
+    public List<Exam> searchExamsByFilter(String grade, String subject, String examType, String city) {
+        List<Exam> resultList = new ArrayList<>();
+        Firestore db = FirestoreClient.getFirestore();
+
+        try {
+            CollectionReference examsRef = db.collection("exams");
+            Query query = examsRef;
+            System.out.println("[Firestore Query] examType: " + examType); // Thêm dòng này
+            if (!examType.isEmpty()) {
+                query = query.whereEqualTo("examType", examType);
+            }
+            // Thêm điều kiện lọc cho từng tham số (nếu có giá trị)
+            if (!grade.isEmpty()) {
+                query = query.whereEqualTo("grade", grade); // Lọc theo lớp
+            }
+            if (!subject.isEmpty()) {
+                query = query.whereEqualTo("subject", subject); // Lọc theo môn học
+            }
+            if (!examType.isEmpty()) {
+                query = query.whereEqualTo("examType", examType); // Lọc theo loại đề
+            }
+            if (!city.isEmpty()) {
+                query = query.whereEqualTo("city", city); // Lọc theo thành phố
+            }
+
+            // Thực hiện truy vấn
+            ApiFuture<QuerySnapshot> future = query.get();
+            List<QueryDocumentSnapshot> documents = future.get().getDocuments();
+
+            // Xử lý kết quả
+            for (QueryDocumentSnapshot doc : documents) {
+                Exam exam = doc.toObject(Exam.class);
+                exam.setExamID(doc.getId());
+                int questionCount = countQuestions(exam.getExamID());
+                exam.setQuestionCount(questionCount);
+                if (exam.getDate() != null) {
+                    String formattedDate = formatDate(exam.getDate());
+                    exam.setDate(formattedDate);
+                }
+                resultList.add(exam);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return resultList;
+    }
+    // Phương thức lấy all đề thi
+    public List<Exam> getAllExams() {
+        Firestore firestore = FirestoreClient.getFirestore();
+        List<Exam> examList = new ArrayList<>();
+        try {
+            ApiFuture<QuerySnapshot> future = firestore.collection("exams").get();
+            List<QueryDocumentSnapshot> documents = future.get().getDocuments();
+            for(QueryDocumentSnapshot doc : documents) {
+                examList.add(doc.toObject(Exam.class));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return examList;
+    }
+
+    // Xoá đề thi
+    public void deleteExam(String examId) {
+        Firestore firestore = FirestoreClient.getFirestore();
+        try {
+            firestore.collection("exams").document(examId).delete();
+            System.out.println("Deleted exam: " + examId);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }

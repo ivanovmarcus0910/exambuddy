@@ -30,36 +30,52 @@
 <p class="search-text" style="display: flex; justify-content: center">Tìm kiếm đề thi mong muốn của bạn</p>
     <section class="search-filter">
         <div class="search-container">
-
-            <select class="search-item">
-                <option selected>Chọn khối lớp</option>
-                <option value="1">Lớp 10</option>
-                <option value="2">Lớp 11</option>
-                <option value="3">Lớp 12</option>
+         <form action="/search-by-filter" method="get">
+            <select name="grade"class="search-item">
+                <option value="">Chọn khối lớp</option>
+                <option value="10">Lớp 10</option>
+                <option value="11">Lớp 11</option>
+                <option value="12">Lớp 12</option>
             </select>
 
-            <select class="search-item">
-                <option selected>Chọn môn học</option>
-                <option value="math">Toán</option>
-                <option value="physics">Vật lý</option>
-                <option value="chemistry">Hóa học</option>
+            <select name="subject" class="search-item">
+                <option value="">Chọn môn học</option>
+                <option value="Toán">Toán</option>
+                <option value="Vật Lý">Vật lý</option>
             </select>
 
-            <select class="search-item">
-                <option selected>Chọn dạng đề</option>
-                <option value="exam">Đề kiểm tra</option>
-                <option value="practice">Đề luyện tập</option>
+            <select name="examType" class="search-item">
+                <option value="">Chọn loại đề</option>
+                <option value="Đề kiểm tra">Đề kiểm tra</option>
+                <option value="Đề luyện tập">Đề luyện tập</option>
+                <option value="Đề THPT QUỐC GIA">Đề THPT QUỐC GIA</option>
             </select>
 
-            <select class="search-item">
-                <option selected>Chọn thành phố</option>
-                <option value="hanoi">Hà Nội</option>
-                <option value="hcm">Hồ Chí Minh</option>
+            <select name="city" class="search-item" id="citySelect">
+                <option value="">Chọn thành phố</option>
             </select>
 
             <button class="search-btn">Tìm kiếm</button>
+         </form>
         </div>
     </section>
+    <script>
+        const cities = ["Hà Nội", "Hồ Chí Minh", "Đà Nẵng", "Hải Phòng", "Cần Thơ", "An Giang", "Bà Rịa - Vũng Tàu",
+            "Bắc Giang", "Bắc Kạn", "Bạc Liêu", "Bắc Ninh", "Bến Tre", "Bình Định", "Bình Dương", "Bình Phước", "Bình Thuận", "Cà Mau",
+            "Cao Bằng", "Đắk Lắk", "Đắk Nông", "Điện Biên", "Đồng Nai", "Đồng Tháp", "Gia Lai", "Hà Giang", "Hà Nam", "Hà Tĩnh", "Hải Dương",
+            "Hậu Giang", "Hòa Bình", "Hưng Yên", "Khánh Hòa", "Kiên Giang", "Kon Tum", "Lai Châu", "Lâm Đồng", "Lạng Sơn", "Lào Cai", "Long An",
+            "Nam Định", "Nghệ An", "Ninh Bình", "Ninh Thuận", "Phú Thọ", "Phú Yên", "Quảng Bình", "Quảng Nam", "Quảng Ngãi", "Quảng Ninh", "Quảng Trị",
+            "Sóc Trăng", "Sơn La", "Tây Ninh", "Thái Bình", "Thái Nguyên", "Thanh Hóa", "Thừa Thiên Huế", "Tiền Giang", "Trà Vinh", "Tuyên Quang", "Vĩnh Long",
+            "Vĩnh Phúc", "Yên Bái"];
+        const citySelect = document.getElementById('citySelect');
+        cities.forEach(city => {
+            const option = document.createElement('option');
+            option.value = city; // Giữ nguyên giá trị gốc
+            option.textContent = city;
+            citySelect.appendChild(option);
+        });
+    </script>
+
 
 
     <div class="popular-exams">
@@ -118,5 +134,5 @@
 
 <div th:replace="fragments/footer :: footer"></div>
 
-</body>
+
 </html>

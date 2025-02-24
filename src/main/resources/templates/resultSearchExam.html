@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Exam Results</title>
+    <div th:insert="fragments/head :: head"></div>
+
+    <link rel="stylesheet" th:href="@{/css/home.css}">
+    <style>
+
+    </style>
+
+</head>
+<main>
+<div th:insert="fragments/header :: header"></div>
+
+    <p class="search-text" style="display: flex; justify-content: center">Kết quả tìm kiếm của bạn</p>
+    <section class="search-filter">
+        <div class="search-container">
+
+            <form action="/search-by-filter" method="get">
+                <select name="grade" class="search-item">
+                    <option value="">Chọn khối lớp</option>
+                    <option value="10">Lớp 10</option>
+                    <option value="11">Lớp 11</option>
+                    <option value="12">Lớp 12</option>
+                </select>
+
+                <select name="subject" class="search-item">
+                    <option value="">Chọn môn học</option>
+                    <option value="Toán">Toán</option>
+                    <option value="Vật Lý">Vật lý</option>
+                </select>
+
+                <select name="examType" class="search-item">
+                    <option value="">Chọn loại đề</option>
+                    <option value="Đề kiểm tra">Đề kiểm tra</option>
+                    <option value="Đề luyện tập">Đề luyện tập</option>
+                    <option value="Đề THPT QUỐC GIA">Đề THPT QUỐC GIA</option>
+                </select>
+
+                <select name="city" class="search-item" id="city">
+                    <option value="">Chọn thành phố</option>
+                </select>
+
+                <button class="search-btn">Tìm kiếm</button>
+            </form>        </div>
+    </section>
+    <script>
+        const cities = ["Hà Nội", "Hồ Chí Minh", "Đà Nẵng", "Hải Phòng", "Cần Thơ", "An Giang", "Bà Rịa - Vũng Tàu", "Bắc Giang", "Bắc Kạn", "Bạc Liêu", "Bắc Ninh", "Bến Tre", "Bình Định", "Bình Dương", "Bình Phước", "Bình Thuận", "Cà Mau", "Cao Bằng", "Đắk Lắk", "Đắk Nông", "Điện Biên", "Đồng Nai", "Đồng Tháp", "Gia Lai", "Hà Giang", "Hà Nam", "Hà Tĩnh", "Hải Dương", "Hậu Giang", "Hòa Bình", "Hưng Yên", "Khánh Hòa", "Kiên Giang", "Kon Tum", "Lai Châu", "Lâm Đồng", "Lạng Sơn", "Lào Cai", "Long An", "Nam Định", "Nghệ An", "Ninh Bình", "Ninh Thuận", "Phú Thọ", "Phú Yên", "Quảng Bình", "Quảng Nam", "Quảng Ngãi", "Quảng Ninh", "Quảng Trị", "Sóc Trăng", "Sơn La", "Tây Ninh", "Thái Bình", "Thái Nguyên", "Thanh Hóa", "Thừa Thiên Huế", "Tiền Giang", "Trà Vinh", "Tuyên Quang", "Vĩnh Long", "Vĩnh Phúc", "Yên Bái"];
+
+        const citySelect = document.getElementById('city');
+        // Sửa lại phần JS xử lý city options
+        cities.forEach(city => {
+            const option = document.createElement('option');
+            option.value = city; // Giữ nguyên giá trị gốc
+            option.textContent = city;
+            citySelect.appendChild(option);
+        });
+    </script>
+
+    <tbody>
+    <div th:if="${examList.isEmpty()}" class="no-results">
+        <p>Không có đề thi nào khớp với từ khóa "<span th:text="${examName}"></span>"</p>
+    </div>
+    <!-- Dữ liệu sẽ được đẩy từ ManageExamController vào đây -->
+    <div class="exam-grid">
+        <!-- Hiển thị các exam-card dựa trên dữ liệu từ examList -->
+        <div class="exam-card" th:each="exam : ${examList}">
+            <h3 th:text="${exam.examName}">Tên đề thi</h3>
+            <p>Môn: <span th:text="${exam.subject}"></span></p>
+            <span><b>Ngày đăng:</b> <span th:text="${#dates.format(exam.date,'dd/MM/yyyy')}"></span></span>
+            <p>Lớp: <span th:text="${exam.grade}"></span></p>
+            <p>Tỉnh - Thành phố: <span th:text="${exam.city}"></span></p>
+            <p>Dạng đề: <span th:text="${exam.examType}"></span></p>
+            <p>Số câu hỏi: <span th:text="${exam.questionCount}"></span></p>
+            <div th:if="${exam.examID}">
+                <form th:action="@{/exams/{id}/detail(id=${exam.examID})}" method="get">
+                    <button type="submit">Xem chi tiết</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    </tbody>
+</table>
+<br>
+</main>
+<a href="searchExam.html">Back to Search</a>
+
+</html>

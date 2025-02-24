@@ -13,9 +13,11 @@
       <li><a href="#">Liên hệ</a></li>
     </ul>
   </nav>
-  <div class="search-bar">
-    <input type="text" placeholder="Tìm kiếm khóa học, bài viết...">
-  </div>
+  <form action="/search" method="get" class="search-bar">
+    <input type="text" name="examName" placeholder="Nhập tên đề thi" required>
+    <button type="submit">Tìm kiếm</button>
+  </form>
+
   <div class="user-section">
     <!-- Kiểm tra nếu đã đăng nhập -->
     <th:block th:if="${session.loggedInUser}">
