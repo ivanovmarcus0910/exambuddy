@@ -80,7 +80,6 @@ public class ExamService {
 
             // Chuyển chuỗi Firebase thành đối tượng Date (mặc định là UTC)
             Date date = originalFormat.parse(dateString);
-            System.out.println("Parsed Date (UTC): " + date); // Debug
 
             // Chuyển sang múi giờ hệ thống mà không làm sai lệch giá trị
             SimpleDateFormat targetFormat = new SimpleDateFormat("dd/MM/yyyy");
@@ -143,7 +142,6 @@ public class ExamService {
                 batch.set(db.collection("exams").document(examId).collection("questions").document(questionId), question);
             }
             batch.commit().get();
-            System.out.println("Size"+questions.size());
             return true;
         }
         catch (Exception e) {
@@ -155,7 +153,6 @@ public class ExamService {
         try {
             DocumentReference docRef = db.collection("examSessions").document(username + "_" + examID);
             if (docRef.get().get().exists()) {
-                System.out.println("Session đã tồn tại, không thêm mới.");
                 return false;
             }
             Map<String, Object> data = new HashMap<>();
@@ -194,7 +191,6 @@ public class ExamService {
         }
     }
     public long getRemainingTime(String userId, String examId) {
-        System.out.println("Ở service : userId = " + userId + ", examId = " + examId);
         DocumentReference docRef = db.collection("examSessions").document(userId + "_" + examId);
         try {
             DocumentSnapshot snapshot = docRef.get().get();
@@ -202,10 +198,8 @@ public class ExamService {
                 long startTime = snapshot.getLong("startTime");
                 long duration = snapshot.getLong("duration");
                 long currentTime = System.currentTimeMillis();
-                System.out.println("start:"+startTime+" duration:"+duration+" currentTime:"+currentTime+" timeremaining "+((startTime + duration) - currentTime));
                 return Math.max(0, (startTime + duration) - currentTime);
             }
-            System.out.println("Có vào đây");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -244,7 +238,6 @@ public class ExamService {
             List<QueryDocumentSnapshot> documents = future.get().getDocuments();
 
             for (DocumentSnapshot doc : documents) {
-                System.out.println("Document data: " + doc.getData());
                 ExamResult examResult = doc.toObject(ExamResult.class);
                 results.add(examResult);
             }
@@ -342,7 +335,6 @@ public class ExamService {
         Firestore db = FirestoreClient.getFirestore();
         try {
             String documentId = resultId;
-            System.out.println("Fetching document with ID: " + documentId); // Log ID tài liệu
 
             // Lấy document có ID = "username_examId"
             DocumentSnapshot doc = db.collection("examResults")
@@ -351,10 +343,8 @@ public class ExamService {
                     .get();
 
             if (doc.exists()) {
-                System.out.println("Document data: " + doc.getData()); // Log dữ liệu tài liệu
                 return doc.toObject(ExamResult.class); // Chuyển dữ liệu Firestore thành Java Object
             } else {
-                System.out.println("Document does not exist!"); // Log nếu tài liệu không tồn tại
             }
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
@@ -414,7 +404,6 @@ public class ExamService {
         try {
             CollectionReference examsRef = db.collection("exams");
             Query query = examsRef;
-            System.out.println("[Firestore Query] examType: " + examType); // Thêm dòng này
             if (!examType.isEmpty()) {
                 query = query.whereEqualTo("examType", examType);
             }
@@ -476,7 +465,6 @@ public class ExamService {
         Firestore firestore = FirestoreClient.getFirestore();
         try {
             firestore.collection("exams").document(examId).delete();
-            System.out.println("Deleted exam: " + examId);
         } catch (Exception e) {
             e.printStackTrace();
         }

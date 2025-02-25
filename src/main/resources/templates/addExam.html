@@ -4,285 +4,85 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Thêm câu hỏi</title>
-  <link rel="stylesheet" th:href="@{/css/general.css}">
-  <link rel="stylesheet" th:href="@{/css/home.css}">
+  <link rel="icon" type="image/x-icon" href="https://res.cloudinary.com/dsuav027e/image/upload/v1740393796/favicon_llcueu.ico">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    let questions = []; // Mảng lưu câu hỏi tạm thời
-    let editingIndex = -1;
-
-    function addOptionField() {
-      let optionsContainer = document.getElementById("optionsContainer");
-      let optionIndex = optionsContainer.children.length;
-      let newOptionDiv = document.createElement("div");
-
-      newOptionDiv.innerHTML = `
-        <input type="text" name="option" placeholder="Đáp án ${optionIndex + 1}">
-        <input type="checkbox" name="correctOption" value="${optionIndex}">
-        <button type="button" onclick="removeOption(this)">🗑️</button>
-      `;
-
-      optionsContainer.appendChild(newOptionDiv);
-    }
-
-    function removeOption(button) {
-      button.parentNode.remove();
-    }
-
-    function addQuestion() {
-      let questionText = document.getElementById("questionText").value;
-      let options = [];
-      let correctAnswers = [];
-
-      document.querySelectorAll("#optionsContainer div").forEach((div, index) => {
-        let optionText = div.querySelector("input[name='option']").value;
-        let isChecked = div.querySelector("input[name='correctOption']").checked;
-
-        if (optionText.trim() !== "") {
-          options.push(optionText);
-          if (isChecked) {
-            correctAnswers.push(index);
-          }
-        }
-      });
-
-      if (questionText.trim() === "" || options.length < 2 || correctAnswers.length === 0) {
-        alert("Vui lòng nhập câu hỏi, ít nhất 2 đáp án và chọn đáp án đúng!");
-        return;
-      }
-
-      let question = { questionText, options, correctAnswers };
-      questions.push(question);
-      displayQuestions();
-      resetForm();
-    }
-
-    function resetForm() {
-      document.getElementById("questionText").value = "";
-      document.getElementById("optionsContainer").innerHTML = "";
-      document.getElementById("addBtn").style.display = "inline";
-      document.getElementById("saveEditBtn").style.display = "none";
-      editingIndex = -1;
-    }
-
-    function displayQuestions() {
-      let questionList = document.getElementById("questionList");
-      questionList.innerHTML = "";
-
-      questions.forEach((question, index) => {
-        let correctAnswers = question.correctAnswers.map(i => question.options[i]).join(", ");
-        let li = document.createElement("li");
-        li.innerHTML = `
-          <b>${index + 1}. ${question.questionText}</b>
-          <br>(${question.options.join(", ")})
-          <br>✅ Đáp án đúng: <b>${correctAnswers}</b>
-          <button onclick="editQuestion(${index})">✏️ Sửa</button>
-          <button onclick="deleteQuestion(${index})">❌ Xóa</button>
-        `;
-        questionList.appendChild(li);
-      });
-    }
-
-    function editQuestion(index) {
-      let question = questions[index];
-      editingIndex = index;
-
-      document.getElementById("questionText").value = question.questionText;
-      let optionsContainer = document.getElementById("optionsContainer");
-      optionsContainer.innerHTML = "";
-
-      question.options.forEach((option, i) => {
-        let newOptionDiv = document.createElement("div");
-        newOptionDiv.innerHTML = `
-          <input type="text" name="option" value="${option}">
-          <input type="checkbox" name="correctOption" value="${i}" ${question.correctAnswers.includes(i) ? "checked" : ""}>
-          <button type="button" onclick="removeOption(this)">🗑️</button>
-        `;
-        optionsContainer.appendChild(newOptionDiv);
-      });
-
-      document.getElementById("addBtn").style.display = "none";
-      document.getElementById("saveEditBtn").style.display = "inline";
-    }
-
-    function saveEdit() {
-      if (editingIndex === -1) return;
-
-      let correctAnswers = [];
-      let options = [];
-
-      document.querySelectorAll("#optionsContainer div").forEach((div, i) => {
-        let optionText = div.querySelector("input[name='option']").value;
-        let isChecked = div.querySelector("input[name='correctOption']").checked;
-
-        if (optionText.trim() !== "") {
-          options.push(optionText);
-          if (isChecked) {
-            correctAnswers.push(i);
-          }
-        }
-      });
-
-      questions[editingIndex] = {
-        questionText: document.getElementById("questionText").value,
-        options,
-        correctAnswers
-      };
-
-      displayQuestions();
-      resetForm();
-    }
-
-    function deleteQuestion(index) {
-      questions.splice(index, 1);
-      displayQuestions();
-    }
-    function getCookie(name) {
-      let cookies = document.cookie.split(';');
-      for (let i = 0; i < cookies.length; i++) {
-        let cookie = cookies[i].trim();
-        if (cookie.startsWith(name + '=')) {
-          return cookie.substring(name.length + 1);
-        }
-      }
-      return null;
-    }
-
-    function submitQuestions() {
-      let username = getCookie("noname"); // Lấy username từ cookie
-      if (!username) {
-        alert("Bạn chưa đăng nhập!");
-        return;
-      }
-
-      if (questions.length === 0) {
-        alert("Chưa có câu hỏi nào để gửi!");
-        return;
-      }
-
-      let examData = {
-        examName: document.getElementById("examName").value,
-        grade: document.getElementById("grade").value, // Đúng id "grade"
-        subject: document.getElementById("subject").value,
-        tags: document.getElementById("tags").value.split(","),
-        examType: document.getElementById("examType").value, // Đúng id "examType"
-        city: document.getElementById("city").value, // Đúng id "city"
-        username: username,
-        date: new Date().toISOString(),
-        questions: questions
-      };
-
-
-      fetch("/exams/addExam", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(examData)
-      })
-              .then(response => response.text())
-              .then(data => {
-                alert("Đã lưu đề thi thành công!");
-                questions = [];
-                displayQuestions();
-              })
-              .catch(error => console.error("Lỗi:", error));
-    }
-
-
-
-
-
-    document.getElementById("grade").addEventListener("change", function() {
-      let grade = this.value;
-      let examTypeSelect = document.getElementById("examType");
-
-
-      // Xóa tất cả các tùy chọn hiện có
-      examTypeSelect.innerHTML = '<option value="">Chọn dạng đề</option>';
-
-
-      if (grade === "10" || grade === "11") {
-        // Nếu chọn lớp 10 hoặc 11, chỉ hiển thị 2 tùy chọn
-        examTypeSelect.innerHTML +=
-                '<option value="Đề kiểm tra">Đề kiểm tra</option>' +
-                '<option value="Đề luyện tập">Đề luyện tập</option>';
-      } else if (grade === "12") {
-        // Nếu chọn lớp 12, hiển thị cả 3 tùy chọn
-        examTypeSelect.innerHTML +=
-                '<option value="Đề kiểm tra">Đề kiểm tra</option>' +
-                '<option value="Đề luyện tập">Đề luyện tập</option>' +
-                '<option value="Đề THPT">Đề THPT QUỐC GIA</option>';
-      }
-    });
-
-  </script>
 </head>
-<body>
+<body class="bg-white">
 <div th:insert="fragments/header :: header"></div>
-<h2>Thông tin đề thi</h2>
-<label>Tên bài thi:</label>
-<input type="text" id="examName"><br>
-<select name="grade" id="grade" class="search-item">
-  <option value="">Chọn khối lớp</option>
-  <option value="10">Lớp 10</option>
-  <option value="11">Lớp 11</option>
-  <option value="12">Lớp 12</option>
-</select>
-<br>
+<div class="container mt-4">
+  <h2 class="text-primary">Thông tin đề thi</h2>
 
-<label>Môn học:</label>
-<select id="subject" class="search-item">
-  <option value="">Chọn môn học</option>
-  <option value="Toán">Toán</option>
-  <option value="Vật Lý">Vật lý</option>
-</select>
+  <div class="form-group">
+    <label for="examName">Tên bài thi:</label>
+    <input type="text" id="examName" class="form-control">
+  </div>
 
+  <div class="form-group">
+    <label for="grade">Chọn khối lớp:</label>
+    <select name="grade" id="grade" class="form-control">
+      <option value="">Chọn khối lớp</option>
+      <option value="10">Lớp 10</option>
+      <option value="11">Lớp 11</option>
+      <option value="12">Lớp 12</option>
+    </select>
+  </div>
 
-<label>Tags (cách nhau bằng dấu phẩy):</label>
+  <div class="form-group">
+    <label for="subject">Môn học:</label>
+    <select id="subject" class="form-control">
+      <option value="">Chọn môn học</option>
+      <option value="Toán">Toán</option>
+      <option value="Vật Lý">Vật lý</option>
+    </select>
+  </div>
 
-<input type="text" id="tags"><br><br>
-<select name="examType" id="examType" class="search-item">
-  <option value="">Chọn dạng đề</option>
-  <option value="Đề kiểm tra ">Đề kiểm tra</option>
-  <option value="Đề luyện tập ">Đề luyện tập</option>
-  <option value="Đề THPT">Đề THPT QUỐC GIA</option>
-</select>
+  <div class="form-group">
+    <label for="tags">Tags (cách nhau bằng dấu phẩy):</label>
+    <input type="text" id="tags" class="form-control">
+  </div>
 
+  <div class="form-group">
+    <label for="examType">Chọn dạng đề:</label>
+    <select name="examType" id="examType" class="form-control">
+      <option value="">Chọn dạng đề</option>
+      <option value="Đề kiểm tra ">Đề kiểm tra</option>
+      <option value="Đề luyện tập ">Đề luyện tập</option>
+      <option value="Đề THPT">Đề THPT QUỐC GIA</option>
+    </select>
+  </div>
 
-<select id="city" class="search-item">
-  <option value="">Chọn thành phố</option>
-</select>
-<script>
-  const cities = ["Hà Nội", "Hồ Chí Minh", "Đà Nẵng", "Hải Phòng", "Cần Thơ", "An Giang", "Bà Rịa - Vũng Tàu",
-    "Bắc Giang", "Bắc Kạn", "Bạc Liêu", "Bắc Ninh", "Bến Tre", "Bình Định", "Bình Dương", "Bình Phước", "Bình Thuận", "Cà Mau",
-    "Cao Bằng", "Đắk Lắk", "Đắk Nông", "Điện Biên", "Đồng Nai", "Đồng Tháp", "Gia Lai", "Hà Giang", "Hà Nam", "Hà Tĩnh", "Hải Dương",
-    "Hậu Giang", "Hòa Bình", "Hưng Yên", "Khánh Hòa", "Kiên Giang", "Kon Tum", "Lai Châu", "Lâm Đồng", "Lạng Sơn", "Lào Cai", "Long An",
-    "Nam Định", "Nghệ An", "Ninh Bình", "Ninh Thuận", "Phú Thọ", "Phú Yên", "Quảng Bình", "Quảng Nam", "Quảng Ngãi", "Quảng Ninh", "Quảng Trị",
-    "Sóc Trăng", "Sơn La", "Tây Ninh", "Thái Bình", "Thái Nguyên", "Thanh Hóa", "Thừa Thiên Huế", "Tiền Giang", "Trà Vinh", "Tuyên Quang", "Vĩnh Long",
-    "Vĩnh Phúc", "Yên Bái"];
-  const citySelect = document.getElementById('city');
-  cities.forEach(city => {
-    const option = document.createElement('option');
-    option.value = city; // Giữ nguyên giá trị gốc
-    option.textContent = city;
-    citySelect.appendChild(option);
-  });
-</script>
+  <div class="form-group">
+    <label for="city">Chọn thành phố:</label>
+    <select id="city" class="form-control">
+      <option value="">Chọn thành phố</option>
+    </select>
+  </div>
 
-<h2>Thêm câu hỏi mới</h2>
-<label>Câu hỏi:</label>
-<input type="text" id="questionText"><br>
+  <h2 class="text-primary mt-4">Thêm câu hỏi mới</h2>
 
-<h4>Danh sách đáp án:</h4>
-<div id="optionsContainer"></div>
-<button type="button" onclick="addOptionField()">➕ Thêm đáp án</button>
-<br><br>
-<button type="button" id="addBtn" onclick="addQuestion()">Thêm câu hỏi</button>
-<button type="button" id="saveEditBtn" style="display:none;" onclick="saveEdit()">Lưu chỉnh sửa</button>
-<button type="button" onclick="submitQuestions()">Lưu tất cả</button>
+  <div class="form-group">
+    <label for="questionText">Câu hỏi:</label>
+    <input type="text" id="questionText" class="form-control">
+  </div>
 
-<h3>Danh sách câu hỏi tạm thời:</h3>
-<ul id="questionList"></ul>
+  <h4 class="text-info">Danh sách đáp án:</h4>
+  <div id="optionsContainer"></div>
+
+  <button type="button" class="btn btn-success mt-2" onclick="addOptionField()">➕ Thêm đáp án</button>
+
+  <div class="mt-4">
+    <button type="button" id="addBtn" class="btn btn-primary" onclick="addQuestion()">Thêm câu hỏi</button>
+    <button type="button" id="saveEditBtn" class="btn btn-warning d-none" onclick="saveEdit()">Lưu chỉnh sửa</button>
+    <button type="button" class="btn btn-danger" onclick="submitQuestions()">Lưu tất cả</button>
+  </div>
+
+  <h3 class="text-primary mt-4">Danh sách câu hỏi tạm thời:</h3>
+  <ul id="questionList" class="list-group"></ul>
+</div>
 <div th:replace="fragments/footer :: footer"></div>
+<script src="/js/addExam.js"></script>
 
 </body>
 </html>

@@ -78,6 +78,7 @@ nav ul li a:hover {
 
 .search-bar {
     display: flex;
+    width: 250px;
     align-items: center;
     background: rgba(255, 255, 255, 0.1);
     border-radius: 20px;
@@ -196,7 +197,7 @@ nav ul li a:hover {
     box-shadow: 0 0 15px rgba(138, 43, 226, 0.5);
 }
 .search-filter {
-    margin-top: 40px;
+    margin-top: 10px;
     display: flex;
     justify-content: center;
     padding: 20px 0;
@@ -206,6 +207,8 @@ nav ul li a:hover {
 /* Container chứa các phần tử tìm kiếm */
 .search-container {
     display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
     gap: 15px;
     background: linear-gradient(135deg, #0D0D1A, #1A1A40);
     padding: 15px;
@@ -222,7 +225,22 @@ nav ul li a:hover {
     width: 200px;
     color: black;
 }
+@media (max-width: 768px) {
+    .search-container {
+        flex-direction: column;
+        align-items: center;
+    }
 
+    .search-item, .search-btn {
+        width: 100%;
+        max-width: 400px; /* Giữ kích thước hợp lý trên màn hình nhỏ */
+    }
+    .exam-grid {
+
+        grid-template-columns: repeat(2, 1fr)!important;
+
+    }
+}
 /* Thêm màu nền cho các item khi hover */
 .search-item:hover {
     border-color: #007bff;
