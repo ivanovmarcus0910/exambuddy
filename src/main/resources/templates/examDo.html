@@ -2,120 +2,175 @@
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Chi tiết đề thi</title>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <title>Làm bài thi</title>
     <link rel="icon" type="image/x-icon" href="https://res.cloudinary.com/dsuav027e/image/upload/v1740393796/favicon_llcueu.ico">
-
-    <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <script>
-        let userId = "[[${username}]]";
-        let examId = "[[${exam.examID}]]";
-        let timeLeft = "[[${timeduration}]]"; // Thời gian từ server tính bằng giây
-
-        syncTime();
-        saveProgress();
-
-        function updateTimer() {
-            if (timeLeft <= 0) {
-                clearInterval(timerInterval);
-                submitExam();
-            }
-            document.getElementById("timer").innerText = formatTime(timeLeft);
-            timeLeft--;
-        }
-
-        function formatTime(seconds) {
-            let minutes = Math.floor(seconds / 60);
-            let secs = seconds % 60;
-            return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
-        }
-
-        function saveProgress() {
-            let answers = {};
-            document.querySelectorAll("input[type=checkbox]:checked").forEach(input => {
-                let name = input.name;
-                let value = input.value;
-                if (!answers[name]) answers[name] = [];
-                answers[name].push(value);
-            });
-
-            fetch(`/exams/progress`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ userId, examId, answers })
-            }).then(response => response.json())
-                .then(data => console.log("Tiến trình lưu:", data));
-        }
-
-        function syncTime() {
-            fetch(`/exams/time-left?userId=${userId}&examId=${examId}`)
-                .then(response => response.json())
-                .then(data => {
-                    timeLeft = data.timeLeft;
-                    if (data.submitted) {
-                        alert("Hết thời gian! Bài làm đã được nộp.");
-                        window.location.href = "/exam-result";
-                    }
-                });
-        }
-
-        function submitExam() {
-            document.getElementById("exam-form").submit();
-        }
-
-        function loadProgress() {
-            fetch(`/exams/progress?userId=${userId}&examId=${examId}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.answers) {
-                        for (let question in data.answers) {
-                            data.answers[question].forEach(value => {
-                                let checkbox = document.querySelector(`input[name='${question}'][value='${value}']`);
-                                if (checkbox) checkbox.checked = true;
-                            });
-                        }
-                    }
-                });
-            syncTime();
-        }
-
-        let timerInterval = setInterval(updateTimer, 1000);
-        setInterval(syncTime, 30000);
-        setInterval(saveProgress, 30000);
-        loadProgress();
-    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 </head>
-<body class="bg-light">
+<body class="bg-light" style="margin:0; padding:0; font-family: Arial, sans-serif;">
+<!-- Header -->
 <div th:insert="fragments/header :: header"></div>
 
-<div class="container mt-4">
+<!-- Container -->
+<div class="container py-4">
+    <div class="row">
+        <!-- Danh sách câu hỏi (bên trái) -->
+        <div class="col-md-3">
+            <div class="card p-3">
+                <h5 class="text-center">Thời gian còn lại:</h5>
+                <p class="text-center text-danger fw-bold" id="timer"></p>
+                <div style="height:5px; background-color:#e9ecef; margin-bottom:10px;">
+                    <div id="progress-bar" style="height:100%; background-color:#007bff; width:100%;"></div>
+                </div>
+                <div class="d-flex flex-wrap gap-2 justify-content-center">
+                    <button th:each="question, i : ${exam.questions}"
+                            class="btn btn-outline-primary"
+                            style="width:40px; height:40px; font-size:14px;"
+                            th:text="${i.index + 1}"
+                            th:id="'btn-question-' + ${i.index}"
+                            th:onclick="|showQuestion(${i.index})|">
+                    </button>
+                </div>
+            </div>
+        </div>
 
-    <div class="card p-4 shadow-sm">
-        <h2 class="text-center text-primary">Chi tiết đề thi</h2>
-        <p><strong>Tên đề:</strong> <span th:text="${exam.examName}"></span></p>
-        <p><strong>Môn học:</strong> <span th:text="${exam.subject}"></span></p>
-        <p><strong>Thời gian còn lại:</strong> <span id="timer" class="badge bg-danger"></span></p>
-
-        <form id="exam-form" th:action="@{/exams/{id}/submit(id=${exam.examID})}" method="post">
-            <ul class="list-group">
-                <li class="list-group-item" th:each="question, i : ${exam.questions}">
-                    <p class="fw-bold" th:text="${question.questionText}"></p>
-                    <ul class="list-unstyled">
-                        <li th:each="option, j : ${question.options}">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" th:name="'q' + ${i.index}" th:value="${j.index}">
-                                <label class="form-check-label" th:text="${option}"></label>
-                            </div>
-                        </li>
-                    </ul>
-                </li>
-            </ul>
-            <button class="btn btn-success w-100 mt-3" type="submit">Nộp bài</button>
-        </form>
+        <!-- Nội dung câu hỏi (bên phải) -->
+        <div class="col-md-9">
+            <div class="card shadow-sm p-4 position-relative">
+                <h4 class="text-primary fw-bold" th:text="${exam.examName}"></h4>
+                <p><b>Môn học:</b> <span th:text="${exam.subject}"></span></p>
+                <form id="exam-form" th:action="@{/exams/{id}/submit(id=${exam.examID})}" method="post">
+                    <div th:each="question, i : ${exam.questions}" th:id="'question-' + ${i.index}" class="question-content" style="display:none;">
+                        <h5 class="fw-bold">
+                            Câu [[${i.index + 1}]]: <span th:text="${question.questionText}"></span>
+                        </h5>
+                        <!-- Nút đánh dấu: ban đầu là outline (viền vàng) -->
+                        <button type="button" class="btn btn-outline-warning btn-sm"
+                                style="position:absolute; top:10px; right:10px;"
+                                id="mark-btn-[[${i.index}]]"
+                                onclick="toggleMark([[${i.index}]])">
+                            ⭐ Đánh dấu
+                        </button>
+                        <ul class="list-unstyled mt-2">
+                            <li th:each="option, j : ${question.options}" class="form-check">
+                                <input class="form-check-input" type="checkbox" th:name="'q' + ${i.index}" th:value="${j.index}" id="option-[[${i.index}]]-[[${j.index}]]" onchange="updateQuestionStatus([[${i.index}]])">
+                                <label class="form-check-label" th:for="'option-' + ${i.index} + '-' + ${j.index}" th:text="${option}"></label>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="text-center mt-4">
+                        <button class="btn btn-success px-4 py-2" type="submit">Nộp bài</button>
+                    </div>
+                </form>
+                <!-- Nút chuyển câu hỏi -->
+                <div class="d-flex justify-content-between mt-3">
+                    <button class="btn btn-primary" onclick="prevQuestion()"><<</button>
+                    <button class="btn btn-primary" onclick="nextQuestion()">>></button>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
-<div th:insert="fragments/footer :: footer"></div>
 
+<!-- Footer -->
+<div th:replace="fragments/footer :: footer"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    let userId = "[[${username}]]";
+    let examId = "[[${exam.examID}]]";
+    let timeLeft = parseInt("[[${timeduration}]]", 10);
+    let totalDuration = timeLeft;
+    let currentQuestionIndex = 0;
+
+    function updateTimer() {
+        if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            submitExam();
+        }
+        document.getElementById("timer").innerText = formatTime(timeLeft);
+        document.getElementById("progress-bar").style.width = (timeLeft / totalDuration * 100) + "%";
+        timeLeft--;
+    }
+
+    function formatTime(seconds) {
+        let minutes = Math.floor(seconds / 60);
+        let secs = seconds % 60;
+        return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
+    }
+
+    function submitExam() {
+        document.getElementById("exam-form").submit();
+    }
+
+    function showQuestion(index) {
+        document.querySelectorAll('.question-content').forEach(q => q.style.display = 'none');
+        document.getElementById(`question-${index}`).style.display = 'block';
+        currentQuestionIndex = index;
+        updateButtonStatus(index);
+    }
+
+    function updateButtonStatus(index) {
+        document.querySelectorAll('[id^="btn-question-"]').forEach(btn => {
+            btn.classList.remove('active-question', 'btn-warning', 'btn-success');
+        });
+        let listBtn = document.getElementById(`btn-question-${index}`);
+        if (listBtn.classList.contains('btn-warning')) {
+            listBtn.classList.add('btn-warning');
+        } else if (listBtn.classList.contains('btn-success')) {
+            listBtn.classList.add('btn-success');
+        } else {
+            listBtn.classList.add('active-question');
+        }
+    }
+
+    function toggleMark(index) {
+        let listBtn = document.getElementById(`btn-question-${index}`);
+        let markBtn = document.getElementById(`mark-btn-${index}`);
+        let isMarked = markBtn.classList.contains('btn-warning'); // Kiểm tra trạng thái đã đầy đủ màu vàng hay chưa
+
+        if (isMarked) {
+            // Hủy đánh dấu: chuyển markBtn về outline và listBtn về outline-blue
+            markBtn.classList.remove('btn-warning');
+            markBtn.classList.add('btn-outline-warning');
+            listBtn.classList.remove('btn-warning');
+            listBtn.classList.add('btn-outline-primary');
+        } else {
+            // Đánh dấu: chuyển markBtn và listBtn thành full màu vàng
+            markBtn.classList.remove('btn-outline-warning');
+            markBtn.classList.add('btn-warning');
+            listBtn.classList.remove('btn-outline-primary');
+            listBtn.classList.add('btn-warning');
+        }
+    }
+
+    function updateQuestionStatus(index) {
+        let listBtn = document.getElementById(`btn-question-${index}`);
+        let questionDiv = document.getElementById(`question-${index}`);
+        let checkboxes = questionDiv.querySelectorAll('input[type="checkbox"]:checked');
+        if (checkboxes.length > 0) {
+            listBtn.classList.remove('btn-outline-primary');
+            listBtn.classList.add('btn-success');
+        } else {
+            listBtn.classList.remove('btn-success');
+            listBtn.classList.add('btn-outline-primary');
+        }
+    }
+
+    function prevQuestion() {
+        if (currentQuestionIndex > 0) {
+            showQuestion(currentQuestionIndex - 1);
+        }
+    }
+
+    function nextQuestion() {
+        if (currentQuestionIndex < document.querySelectorAll('.question-content').length - 1) {
+            showQuestion(currentQuestionIndex + 1);
+        }
+    }
+
+    let timerInterval = setInterval(updateTimer, 1000);
+    showQuestion(0);
+</script>
 </body>
 </html>

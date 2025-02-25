@@ -63,10 +63,9 @@
                     <option value="Đề THPT QUỐC GIA">Đề THPT QUỐC GIA</option>
                 </select>
 
-                <select name="city" class="form-select flex-grow-1">
-                    <option value="">Chọn thành phố</option>
-                </select>
-            </div>
+            <select name="city" id="city" class="form-select flex-grow-1">
+                <option value="">Chọn thành phố</option>
+            </select>
 
             <button type="submit" class="btn btn-primary w-100 mt-2">Tìm kiếm</button>
         </form>
@@ -77,64 +76,74 @@
 
 
 
-    <div class="popular-exams row">
-        <!-- Cột đề thi -->
-        <div class="exam-grid col-12 col-md-8 pe-md-3"> <!-- Thêm padding right trên desktop -->
-            <div class="row g-4">
-                <div class="col-12 col-md-6 mb-4" th:each="exam : ${exams}"> <!-- Thêm margin-bottom -->
-                    <div class="exam-card p-3 shadow-sm rounded border">
-                        <!-- Nội dung thẻ đề thi giữ nguyên -->
-                        <strong th:text="${exam.examName}" class="text-primary d-block mb-2"></strong> <!-- Thêm margin-bottom -->
-                        <p class="mb-2"><b>Môn học:</b> <span th:text="${exam.subject}"></span></p> <!-- Thêm margin-bottom -->
-                        <p class="mb-2"><b>Ngày đăng:</b> <span th:text="${exam.date}"></span></p> <!-- Thêm margin-bottom -->
-                        <p class="mb-3"><b>Câu hỏi:</b> <span th:text="${exam.questionCount}"></span></p> <!-- Thêm margin-bottom -->
+    <div class="container">
+        <div class="popular-exams row gx-md-5 px-md-5">
+            <!-- Cột đề thi -->
+            <div class="exam-grid col-12 col-md-8 pe-md-3">
+                <div class="row g-4">
+                    <div class="col-12 col-md-6 mb-4" th:each="exam : ${exams}">
+                        <div class="exam-card p-3 shadow-sm rounded border">
+                            <strong th:text="${exam.examName}" class="text-primary d-block mb-2"></strong>
+                            <p class="mb-2"><i class="bi bi-people-fill text-info"></i> <b>Lớp: </b> <span th:text="${exam.grade}"></span></p>
+                            <p class="mb-2"><i class="bi bi-journal-text text-success"></i> <b>Môn học:</b> <span th:text="${exam.subject}"></span></p>
+                            <p class="mb-2"><i class="bi bi-ui-checks-grid text-warning"></i> <b>Dạng đề: </b><span th:text="${exam.examType}"></span></p>
+                            <p class="mb-2"><i class="bi bi-geo-alt-fill text-danger"></i> <b>Tỉnh - Thành Phố: </b><span th:text="${exam.city}"></span></p>
+                            <p class="mb-2"><i class="bi bi-calendar-event text-secondary"></i> <b>Ngày đăng:</b> <span th:text="${exam.date}"></span></p>
+                            <p class="mb-3"><i class="bi bi-list-ol text-primary"></i> <b>Câu hỏi:</b> <span th:text="${exam.questionCount}"></span></p>
 
-                        <div class="button-container d-flex justify-content-between align-items-center">
-                            <div th:if="${exam.examID}">
-                                <form th:action="@{/exams/{id}/detail(id=${exam.examID})}" method="get">
-                                    <button class="btn btn-sm btn-primary">Xem chi tiết</button>
-                                </form>
+                            <div class="button-container d-flex justify-content-between align-items-center">
+                                <div th:if="${exam.examID}" class="d-flex gap-2 w-100">
+                                    <form th:action="@{/exams/{id}/detail(id=${exam.examID})}" method="get" class="w-50">
+                                        <button class="btn btn-sm btn-primary w-70">
+                                            <i class="bi bi-eye-fill"></i> Xem chi tiết
+                                        </button>
+                                    </form>
+                                    <form th:action="@{/exams/{id}/do(id=${exam.examID})}" method="get" class="w-50">
+                                        <button class="btn btn-sm btn-danger w-70">
+                                            <i class="bi bi-play-fill"></i> Bắt đầu làm bài
+                                        </button>
+                                    </form>
+                                </div>
+                                <button class="likeButton btn btn-sm btn-outline-danger" th:attr="data-exam-id=${exam.examID}, data-liked=${isLiked}">
+                                    <i class="bi bi-heart"></i>
+                                </button>
                             </div>
-                            <button class="likeButton btn btn-sm btn-outline-danger" th:attr="data-exam-id=${exam.examID}, data-liked=${isLiked}">
-                                <i class="fa-regular fa-heart"></i>
-                            </button>
+
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Bảng xếp hạng -->
-        <div class="rank-panel col-12 col-md-4 mt-4 mt-md-0 ps-md-3"> <!-- Thêm padding left trên desktop -->
-            <h4 class="text-center mb-4">BXH học sinh có điểm số cao nhất</h4> <!-- Margin-bottom -->
-            <ul class="list-group">
-                <li class="list-group-item d-flex align-items-center mb-3 rounded"> <!-- Thêm margin-bottom -->
-                    <div class="avatar bg-primary text-white rounded-circle d-flex justify-content-center align-items-center me-2" style="width: 32px; height: 32px">A</div>
-                    Username1 - Điểm
-                </li>
-                <!-- Thêm class mb-3 cho các item khác -->
-                <li class="list-group-item d-flex align-items-center mb-3 rounded">
-                    <div class="avatar bg-secondary text-white rounded-circle d-flex justify-content-center align-items-center me-2" style="width: 32px; height: 32px">B</div>
-                    Username2 - Điểm
-                </li>
-                <li class="list-group-item d-flex align-items-center mb-3 rounded">
-                    <div class="avatar bg-success text-white rounded-circle d-flex justify-content-center align-items-center me-2" style="width: 32px; height: 32px">C</div>
-                    Username3 - Điểm
-                </li>
-            </ul>
+            <!-- Bảng xếp hạng -->
+            <div class="rank-panel col-12 col-md-4 mt-4 mt-md-0 ps-md-3">
+                <h4 class="text-center mb-4">BXH học sinh có điểm số cao nhất</h4>
+                <ul class="list-group">
+                    <li class="list-group-item d-flex align-items-center mb-3 rounded">
+                        <div class="avatar bg-primary text-white rounded-circle d-flex justify-content-center align-items-center me-2" style="width: 32px; height: 32px">A</div>
+                        Username1 - Điểm
+                    </li>
+                    <li class="list-group-item d-flex align-items-center mb-3 rounded">
+                        <div class="avatar bg-secondary text-white rounded-circle d-flex justify-content-center align-items-center me-2" style="width: 32px; height: 32px">B</div>
+                        Username2 - Điểm
+                    </li>
+                    <li class="list-group-item d-flex align-items-center mb-3 rounded">
+                        <div class="avatar bg-success text-white rounded-circle d-flex justify-content-center align-items-center me-2" style="width: 32px; height: 32px">C</div>
+                        Username3 - Điểm
+                    </li>
+                </ul>
 
-            <h4 class="text-center mt-5 mb-4">BXH đóng góp</h4> <!-- Margin-top lớn hơn -->
-            <ul class="list-group">
-                <li class="list-group-item d-flex align-items-center mb-3 rounded"> <!-- Thêm margin-bottom -->
-                    <div class="avatar bg-warning text-white rounded-circle d-flex justify-content-center align-items-center me-2" style="width: 32px; height: 32px">A</div>
-                    Username1 - Điểm đóng góp
-                </li>
-                <!-- Thêm class mb-3 cho các item khác -->
-                <li class="list-group-item d-flex align-items-center mb-3 rounded">
-                    <div class="avatar bg-danger text-white rounded-circle d-flex justify-content-center align-items-center me-2" style="width: 32px; height: 32px">B</div>
-                    Username2 - Điểm đóng góp
-                </li>
-            </ul>
+                <h4 class="text-center mt-5 mb-4">BXH đóng góp</h4>
+                <ul class="list-group">
+                    <li class="list-group-item d-flex align-items-center mb-3 rounded">
+                        <div class="avatar bg-warning text-white rounded-circle d-flex justify-content-center align-items-center me-2" style="width: 32px; height: 32px">A</div>
+                        Username1 - Điểm đóng góp
+                    </li>
+                    <li class="list-group-item d-flex align-items-center mb-3 rounded">
+                        <div class="avatar bg-danger text-white rounded-circle d-flex justify-content-center align-items-center me-2" style="width: 32px; height: 32px">B</div>
+                        Username2 - Điểm đóng góp
+                    </li>
+                </ul>
+            </div>
         </div>
     </div>
 

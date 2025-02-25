@@ -307,12 +307,11 @@ public class ManageExamController {
                               @RequestParam(required = false) String examType,
                               @RequestParam(required = false) String city,
                               Model model) {
-        // Xử lý giá trị mặc định cho các tham số
+        log.info("Search params - Grade: {}, Subject: {}, ExamType: {}, City: {}", grade, subject, examType, city);
         grade = (grade != null) ? grade : "";
         subject = (subject != null) ? subject : "";
         examType = (examType != null) ? examType : "";
         city = (city != null) ? city : "";
-
         List<Exam> examList = examService.searchExamsByFilter(grade, subject, examType, city);
         model.addAttribute("examList", examList);
         return "resultSearchExam";
