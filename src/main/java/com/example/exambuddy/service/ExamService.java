@@ -400,14 +400,10 @@ public class ExamService {
     public List<Exam> searchExamsByFilter(String grade, String subject, String examType, String city) {
         List<Exam> resultList = new ArrayList<>();
         Firestore db = FirestoreClient.getFirestore();
-
         try {
             CollectionReference examsRef = db.collection("exams");
             Query query = examsRef;
-            if (!examType.isEmpty()) {
-                query = query.whereEqualTo("examType", examType);
-            }
-            // Thêm điều kiện lọc cho từng tham số (nếu có giá trị)
+            // Áp dụng các điều kiện lọc nếu có giá trị
             if (!grade.isEmpty()) {
                 query = query.whereEqualTo("grade", grade); // Lọc theo lớp
             }
@@ -424,7 +420,6 @@ public class ExamService {
             // Thực hiện truy vấn
             ApiFuture<QuerySnapshot> future = query.get();
             List<QueryDocumentSnapshot> documents = future.get().getDocuments();
-
             // Xử lý kết quả
             for (QueryDocumentSnapshot doc : documents) {
                 Exam exam = doc.toObject(Exam.class);
@@ -436,6 +431,7 @@ public class ExamService {
                     exam.setDate(formattedDate);
                 }
                 resultList.add(exam);
+
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -443,6 +439,7 @@ public class ExamService {
         return resultList;
     }
     // Phương thức lấy all đề thi
+
     public List<Exam> getAllExams() {
         Firestore firestore = FirestoreClient.getFirestore();
         List<Exam> examList = new ArrayList<>();
