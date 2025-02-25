@@ -4,51 +4,56 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Search Exam Results</title>
-    <div th:insert="fragments/head :: head"></div>
-
     <link rel="stylesheet" th:href="@{/css/home.css}">
-    <style>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"></div>
+    <link rel="icon" type="image/x-icon" href="https://res.cloudinary.com/dsuav027e/image/upload/v1740393796/favicon_llcueu.ico">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
 
-    </style>
-
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </head>
 <main>
-<div th:insert="fragments/header :: header"></div>
+    <div th:insert="~{fragments/header :: header}"></div>
 
-    <p class="search-text" style="display: flex; justify-content: center">Kết quả tìm kiếm của bạn</p>
-    <section class="search-filter">
-        <div class="search-container">
+    <div class="card shadow-lg p-4 bg-white rounded mx-auto" style="max-width: 900px; margin-bottom: 50px; margin-top:50px;">
+        <h4 class="text-center text-success mb-3">Tìm kiếm đề thi</h4>
+        <form action="/search-by-filter" method="get" class="d-flex flex-wrap gap-2 justify-content-between">
+            <select name="grade" class="form-select flex-grow-1">
+                <option value="">Chọn khối lớp</option>
+                <option value="10">Lớp 10</option>
+                <option value="11">Lớp 11</option>
+                <option value="12">Lớp 12</option>
+            </select>
 
-            <form action="/search-by-filter" method="get">
-                <select name="grade" class="search-item">
-                    <option value="">Chọn khối lớp</option>
-                    <option value="10">Lớp 10</option>
-                    <option value="11">Lớp 11</option>
-                    <option value="12">Lớp 12</option>
-                </select>
+            <select name="subject" class="form-select flex-grow-1">
+                <option value="">Chọn môn học</option>
+                <option value="Toán">Toán</option>
+                <option value="Vật Lý">Vật lý</option>
+            </select>
 
-                <select name="subject" class="search-item">
-                    <option value="">Chọn môn học</option>
-                    <option value="Toán">Toán</option>
-                    <option value="Vật Lý">Vật lý</option>
-                </select>
+            <select name="examType" class="form-select flex-grow-1">
+                <option value="">Chọn loại đề</option>
+                <option value="Đề kiểm tra">Đề kiểm tra</option>
+                <option value="Đề luyện tập">Đề luyện tập</option>
+                <option value="Đề THPT QUỐC GIA">Đề THPT QUỐC GIA</option>
+            </select>
 
-                <select name="examType" class="search-item">
-                    <option value="">Chọn loại đề</option>
-                    <option value="Đề kiểm tra">Đề kiểm tra</option>
-                    <option value="Đề luyện tập">Đề luyện tập</option>
-                    <option value="Đề THPT QUỐC GIA">Đề THPT QUỐC GIA</option>
-                </select>
+            <select name="city" id="city" class="form-select flex-grow-1">
+                <option value="">Chọn thành phố</option>
+            </select>
 
-                <select name="city" class="search-item" id="city">
-                    <option value="">Chọn thành phố</option>
-                </select>
-
-                <button class="search-btn">Tìm kiếm</button>
-            </form>        </div>
-    </section>
+            <button type="submit" class="btn btn-primary w-100 mt-2">Tìm kiếm</button>
+        </form>
+    </div>
     <script>
-        const cities = ["Hà Nội", "Hồ Chí Minh", "Đà Nẵng", "Hải Phòng", "Cần Thơ", "An Giang", "Bà Rịa - Vũng Tàu", "Bắc Giang", "Bắc Kạn", "Bạc Liêu", "Bắc Ninh", "Bến Tre", "Bình Định", "Bình Dương", "Bình Phước", "Bình Thuận", "Cà Mau", "Cao Bằng", "Đắk Lắk", "Đắk Nông", "Điện Biên", "Đồng Nai", "Đồng Tháp", "Gia Lai", "Hà Giang", "Hà Nam", "Hà Tĩnh", "Hải Dương", "Hậu Giang", "Hòa Bình", "Hưng Yên", "Khánh Hòa", "Kiên Giang", "Kon Tum", "Lai Châu", "Lâm Đồng", "Lạng Sơn", "Lào Cai", "Long An", "Nam Định", "Nghệ An", "Ninh Bình", "Ninh Thuận", "Phú Thọ", "Phú Yên", "Quảng Bình", "Quảng Nam", "Quảng Ngãi", "Quảng Ninh", "Quảng Trị", "Sóc Trăng", "Sơn La", "Tây Ninh", "Thái Bình", "Thái Nguyên", "Thanh Hóa", "Thừa Thiên Huế", "Tiền Giang", "Trà Vinh", "Tuyên Quang", "Vĩnh Long", "Vĩnh Phúc", "Yên Bái"];
+        const cities = ["Hà Nội", "Hồ Chí Minh", "Đà Nẵng", "Hải Phòng", "Cần Thơ", "An Giang", "Bà Rịa - Vũng Tàu",
+            "Bắc Giang", "Bắc Kạn", "Bạc Liêu", "Bắc Ninh", "Bến Tre", "Bình Định", "Bình Dương", "Bình Phước",
+            "Bình Thuận", "Cà Mau", "Cao Bằng", "Đắk Lắk", "Đắk Nông", "Điện Biên", "Đồng Nai", "Đồng Tháp", "Gia Lai",
+            "Hà Giang", "Hà Nam", "Hà Tĩnh", "Hải Dương", "Hậu Giang", "Hòa Bình", "Hưng Yên", "Khánh Hòa", "Kiên Giang",
+            "Kon Tum", "Lai Châu", "Lâm Đồng", "Lạng Sơn", "Lào Cai", "Long An", "Nam Định", "Nghệ An", "Ninh Bình", "Ninh Thuận",
+            "Phú Thọ", "Phú Yên", "Quảng Bình", "Quảng Nam", "Quảng Ngãi", "Quảng Ninh", "Quảng Trị", "Sóc Trăng", "Sơn La",
+            "Tây Ninh", "Thái Bình", "Thái Nguyên", "Thanh Hóa", "Thừa Thiên Huế", "Tiền Giang", "Trà Vinh", "Tuyên Quang",
+            "Vĩnh Long", "Vĩnh Phúc", "Yên Bái"];
 
         const citySelect = document.getElementById('city');
         // Sửa lại phần JS xử lý city options
@@ -59,33 +64,73 @@
             citySelect.appendChild(option);
         });
     </script>
+<table>
+    <div class="container my-4">
+        <!-- Thông báo khi không có đề thi -->
+        <div th:if="${examList.isEmpty()}" class="alert alert-warning text-center">
+            <i class="bi bi-exclamation-triangle-fill text-danger"></i>
+            <p class="mb-0">Không có đề thi nào khớp với từ khóa "<span th:text="${exam}" class="fw-bold text-primary"></span>"</p>
+        </div>
 
-    <tbody>
-    <div th:if="${examList.isEmpty()}" class="no-results">
-        <p>Không có đề thi nào khớp với từ khóa "<span th:text="${examName}"></span>"</p>
-    </div>
-    <!-- Dữ liệu sẽ được đẩy từ ManageExamController vào đây -->
-    <div class="exam-grid">
-        <!-- Hiển thị các exam-card dựa trên dữ liệu từ examList -->
-        <div class="exam-card" th:each="exam : ${examList}">
-            <h3 th:text="${exam.examName}">Tên đề thi</h3>
-            <p>Môn: <span th:text="${exam.subject}"></span></p>
-            <span><b>Ngày đăng:</b> <span th:text="${#dates.format(exam.date,'dd/MM/yyyy')}"></span></span>
-            <p>Lớp: <span th:text="${exam.grade}"></span></p>
-            <p>Tỉnh - Thành phố: <span th:text="${exam.city}"></span></p>
-            <p>Dạng đề: <span th:text="${exam.examType}"></span></p>
-            <p>Số câu hỏi: <span th:text="${exam.questionCount}"></span></p>
-            <div th:if="${exam.examID}">
-                <form th:action="@{/exams/{id}/detail(id=${exam.examID})}" method="get">
-                    <button type="submit">Xem chi tiết</button>
-                </form>
+        <!-- Danh sách đề thi -->
+        <!-- Danh sách đề thi -->
+        <div class="row g-4"> <!-- Thêm g-4 để tăng khoảng cách -->
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3" style="margin-bottom: 30px;" th:each="exam : ${examList}">
+                <div class="card border-primary shadow-sm h-100">
+                    <div class="card-body">
+                        <h5 class="card-title text-primary fw-bold">
+                            <i class="bi bi-bookmark-star-fill text-warning"></i>
+                            <span th:text="${exam.examName}">Tên đề thi</span>
+                        </h5>
+                        <p class="card-text">
+                            <i class="bi bi-journal-text text-success"></i>
+                            <strong>Môn:</strong> <span th:text="${exam.subject}"></span>
+                        </p>
+                        <p class="card-text">
+                            <i class="bi bi-people-fill text-info"></i>
+                            <strong>Lớp:</strong> <span th:text="${exam.grade}"></span>
+                        </p>
+                        <p class="card-text">
+                            <i class="bi bi-geo-alt-fill text-danger"></i>
+                            <strong>Tỉnh - Thành phố:</strong> <span th:text="${exam.city}"></span>
+                        </p>
+                        <p class="card-text">
+                            <i class="bi bi-ui-checks-grid text-warning"></i>
+                            <strong>Dạng đề:</strong> <span th:text="${exam.examType}"></span>
+                        </p>
+                        <p class="card-text">
+                            <i class="bi bi-list-ol text-primary"></i>
+                            <strong>Số câu hỏi:</strong> <span th:text="${exam.questionCount}"></span>
+                        </p>
+                        <p class="card-text">
+                            <i class="bi bi-calendar-event text-secondary"></i>
+                            <strong>Ngày đăng:</strong>
+                            <span th:text="${#dates.format(exam.date, 'dd/MM/yyyy')}"></span>
+                        </p>
+                    </div>
+                    <div class="card-footer bg-transparent text-center">
+                        <a th:href="@{/exams/{id}/detail(id=${exam.examID})}" class="btn btn-primary w-100 mb-2">
+                            <i class="bi bi-eye-fill"></i> Xem chi tiết
+                        </a>
+                        <form th:action="@{/exams/{id}/do(id=${exam.examID})}" method="get">
+                            <button class="btn btn-danger w-100" type="submit">
+                                <i class="bi bi-play-fill"></i> Bắt đầu làm bài
+                            </button>
+                        </form>
+                    </div>
+
+                </div>
             </div>
         </div>
-    </div>
-    </tbody>
-</table>
+ </table>
 <br>
 </main>
-<a href="searchExam.html">Back to Search</a>
+<div class="text-center mt-3">
+    <a href="searchExam.html" class="btn btn-primary">
+        <i class="bi bi-arrow-left"></i> Back to Search
+    </a>
+</div>
+
+<div th:insert="~{fragments/footer :: footer}"></div>
 
 </html>

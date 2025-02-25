@@ -42,7 +42,7 @@ body {
     border-collapse: collapse;
     width: 100%;
   }
-  
+
 #result td, #result th {
     border: 1px solid #ddd;
     padding: 8px;

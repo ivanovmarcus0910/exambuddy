@@ -4,174 +4,163 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Đăng ký | E-Learning</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" th:href="@{/css/signup.css}">
-
+  <link rel="icon" type="image/x-icon" href="https://res.cloudinary.com/dsuav027e/image/upload/v1740393796/favicon_llcueu.ico">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
 </head>
-<body>
-<div class="flex bg-[#15152D] shadow-2xl rounded-lg overflow-hidden max-w-5xl w-full">
-  <div class="hidden md:flex flex-col justify-center items-center p-10 w-1/2">
-    <h2 class="text-3xl font-bold text-white">HỌC CỰC CHẤT</h2>
-    <h3 class="text-2xl font-bold text-blue-400">GIÁ CỰC HỜI</h3>
-    <p class="text-white mt-4 text-center max-w-md">
-      Combo tiết kiệm với chi phí siêu ưu đãi, tiết kiệm đến 70% so với mua khóa học lẻ.
-    </p>
-    <div class="flex space-x-4 mt-6">
-      <img src="https://via.placeholder.com/120x160?text=Book+VR" class="rounded-lg">
-      <img src="https://via.placeholder.com/120x160?text=VR+Student" class="rounded-lg">
+<body class="bg-light">
+<!-- Header -->
+<div th:insert="~{fragments/header :: header}"></div>
+
+<!-- Container đăng ký -->
+<div class="container d-flex justify-content-center align-items-center min-vh-100">
+  <div class="row shadow-lg p-5 bg-white rounded-4 w-100" style="max-width: 450px;">
+    <div class="text-center">
+      <img th:src="@{/img/logo.png}" class="img-fluid mb-3 rounded-circle" style="width: 120px; height: 120px;">
+      <h2 class="fw-bold">TẠO TÀI KHOẢN</h2>
+      <p class="text-muted">Bắt đầu khám phá khóa học ngay hôm nay!</p>
     </div>
-  </div>
-  <div class="w-full md:w-1/2 p-10">
-    <h2 class="text-3xl font-semibold text-white text-center">Tạo tài khoản</h2>
-    <p class="text-gray-400 text-center mt-2">Bắt đầu khám phá khóa học ngay hôm nay!</p>
 
-    <form action="/signup" method="post" class="mt-6" onsubmit="return validateForm()">
-
-      <!-- Email -->
-      <div class="mb-4">
-        <label class="block text-white">Email</label>
-        <input type="email" id="email" name="email" placeholder="Email"
-               class="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-600 text-white placeholder:text-sm placeholder:text-gray-400 focus:border-blue-400 focus:outline-none"
-               th:value="${emailValue}" oninput="clearError('emailError')">
-        <p class="error-message text-red-500 mt-1 text-sm" id="emailError" th:if="${emailError}" th:text="${emailError}"></p>
+    <!-- Form đăng ký -->
+    <form action="/signup" method="post" class="mt-3" onsubmit="return validateForm()">
+      <!-- Ô nhập Email -->
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Email</label>
+        <input type="email" id="email" name="email" class="form-control rounded-pill px-4" placeholder="Nhập email" required>
+        <p class="text-danger small" id="emailError" style="display: none;"></p>
       </div>
 
-      <!-- Tên đăng nhập -->
-      <div class="mb-4">
-        <label class="block text-white">Tên tài khoản</label>
-        <input type="text" id="username" name="username" placeholder="Tên tài khoản"
-               class="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-600 text-white placeholder:text-sm placeholder:text-gray-400 focus:border-blue-400 focus:outline-none"
-               oninput="clearError('usernameError')">
-        <p class="error-message text-red-500 mt-1 text-sm" id="usernameError" th:if="${usernameError}" th:text="${usernameError}"></p>
+      <!-- Ô nhập Tên đăng nhập -->
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Tên tài khoản</label>
+        <input type="text" id="username" name="username" class="form-control rounded-pill px-4" placeholder="Nhập tên tài khoản" required>
+        <p class="text-danger small" id="usernameError" style="display: none;"></p>
       </div>
 
-      <!-- Mật khẩu -->
-      <div class="mb-4 input-container">
-        <label class="block text-white">Mật khẩu</label>
-        <input type="password" id="password" name="password" placeholder="Nhập mật khẩu"
-               class="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-600 text-white placeholder:text-sm placeholder:text-gray-400 focus:border-blue-400 focus:outline-none"
-               oninput="clearError('passwordError')">
-        <img src="https://cdn-icons-png.flaticon.com/512/2767/2767146.png" class="eye-icon w-6 h-6"
-             onclick="togglePassword('password', this)">
-        <p class="error-message text-red-500 mt-1 text-sm" id="passwordError" style="display: none;"></p>
+      <!-- Ô nhập Mật khẩu -->
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Mật khẩu</label>
+        <div class="position-relative">
+          <input type="password" id="password" name="password" class="form-control rounded-pill px-4 pe-5" placeholder="Nhập mật khẩu" required>
+          <i id="passwordIcon" class="bi bi-eye position-absolute top-50 end-0 translate-middle-y me-3"
+             style="cursor: pointer; font-size: 1.2rem; color: #6c757d;"></i>
+        </div>
+        <p class="text-danger small" id="passwordError" style="display: none;"></p>
       </div>
 
-      <!-- Xác nhận mật khẩu -->
-      <div class="mb-4 input-container">
-        <label class="block text-white">Xác thực mật khẩu</label>
-        <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Nhập lại mật khẩu"
-               class="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-600 text-white placeholder:text-sm placeholder:text-gray-400 focus:border-blue-400 focus:outline-none"
-               oninput="clearError('confirmPasswordError')">
-        <img src="https://cdn-icons-png.flaticon.com/512/2767/2767146.png" class="eye-icon w-6 h-6"
-             onclick="togglePassword('confirmPassword', this)">
-        <p class="error-message text-red-500 mt-1 text-sm" id="confirmPasswordError" style="display: none;"></p>
+      <!-- Ô nhập Xác nhận mật khẩu -->
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Xác nhận mật khẩu</label>
+        <div class="position-relative">
+          <input type="password" id="confirmPassword" name="confirmPassword" class="form-control rounded-pill px-4 pe-5" placeholder="Nhập lại mật khẩu" required>
+          <i id="confirmPasswordIcon" class="bi bi-eye position-absolute top-50 end-0 translate-middle-y me-3"
+             style="cursor: pointer; font-size: 1.2rem; color: #6c757d;"></i>
+        </div>
+        <p class="text-danger small" id="confirmPasswordError" style="display: none;"></p>
       </div>
 
       <!-- Chọn vai trò -->
-      <div class="mb-4">
-        <label class="block text-white">Vai trò</label>
-        <select id="role" name="role" class="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-600 text-white placeholder:text-sm placeholder:text-gray-400 focus:border-blue-400 focus:outline-none">
-          <option value="USER" class = "placeholder:text-sm placeholder:text-gray-400">Học sinh</option>
-          <option value="TEACHER" class = "placeholder:text-sm placeholder:text-gray-400">Giáo viên</option>
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Vai trò</label>
+        <select id="role" name="role" class="form-select rounded-pill px-3">
+          <option value="USER">Học sinh</option>
+          <option value="TEACHER">Giáo viên</option>
         </select>
       </div>
 
-      <!-- Điều khoản và Dịch vụ -->
-      <div class="mb-4 flex items-start">
-        <input type="checkbox" id="terms" name="terms" class="mt-1" style="margin-top: 10px;" onchange="clearError('termsError')">
-        <label for="terms" class="ml-2 text-white" style="margin-top: 8px;">
-          Tôi đồng ý với <a href="/terms" class="text-blue-400 hover:underline">Điều khoản & Dịch vụ</a> của nền tảng.
+      <!-- Điều khoản & Dịch vụ -->
+      <div class="form-check mb-3">
+        <input type="checkbox" id="terms" class="form-check-input" required>
+        <label class="form-check-label" for="terms">
+          Tôi đồng ý với <a href="/terms" class="text-primary">Điều khoản & Dịch vụ</a>
         </label>
+        <p class="text-danger small" id="termsError" style="display: none;"></p>
       </div>
-      <p class="error-message text-red-500 mt-1 text-sm" id="termsError" style="display: none;"></p>
 
-      <button type="submit" class="w-full text-white py-3 rounded-lg gradient-btn font-semibold mt-4">Tạo tài khoản →</button>
+      <button type="submit" class="btn btn-primary w-100 rounded-pill">Tạo tài khoản →</button>
     </form>
 
-    <p class="text-center text-gray-400 text-sm mt-4">Đã có tài khoản? <a href="/login" class="text-white hover:underline">Đăng nhập</a></p>
+    <!-- Đăng nhập -->
+    <p class="text-center text-muted mt-4">Đã có tài khoản? <a href="/login" class="text-primary">Đăng nhập</a></p>
   </div>
 </div>
+
+<!-- Footer -->
+<div th:insert="~{fragments/footer :: footer}"></div>
+
+<!-- Bootstrap Bundle with Popper -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Toggle Password -->
 <script>
-  function togglePassword(fieldId, icon) {
-    const field = document.getElementById(fieldId);
-    if (field.type === "password") {
-      field.type = "text";
-      icon.src = "https://cdn-icons-png.flaticon.com/512/709/709612.png";
+  function togglePassword(fieldId, iconId) {
+    const passwordField = document.getElementById(fieldId);
+    const icon = document.getElementById(iconId);
+
+    if (passwordField.type === "password") {
+      passwordField.type = "text";
+      icon.classList.remove("bi-eye");
+      icon.classList.add("bi-eye-slash");
     } else {
-      field.type = "password";
-      icon.src = "https://cdn-icons-png.flaticon.com/512/2767/2767146.png";
+      passwordField.type = "password";
+      icon.classList.remove("bi-eye-slash");
+      icon.classList.add("bi-eye");
     }
   }
+
+  document.getElementById("passwordIcon").addEventListener("click", function() {
+    togglePassword("password", "passwordIcon");
+  });
+
+  document.getElementById("confirmPasswordIcon").addEventListener("click", function() {
+    togglePassword("confirmPassword", "confirmPasswordIcon");
+  });
+
   function validateForm() {
     let isValid = true;
-
     const email = document.getElementById("email").value;
-    //const phone = document.getElementById("phone").value;
     const username = document.getElementById("username").value;
     const password = document.getElementById("password").value;
     const confirmPassword = document.getElementById("confirmPassword").value;
     const termsChecked = document.getElementById("terms").checked;
-    // Reset lỗi
+
     clearAllErrors();
 
-    // Kiểm tra email
     if (!email.match(/^[A-Za-z0-9+_.-]+@(.+)$/)) {
       showError("emailError", "Email không hợp lệ!");
       isValid = false;
     }
 
-    // Kiểm tra số điện thoại (tối thiểu 9 số)
-    // if (!phone.match(/^\d{9,}$/)) {
-    //   showError("phoneError", "Số điện thoại không hợp lệ!");
-    //   isValid = false;
-    // }
-
-    // Kiểm tra tên đăng nhập không để trống
     if (username.trim() === "") {
       showError("usernameError", "Tên đăng nhập không được bỏ trống!");
       isValid = false;
     }
 
-    // Kiểm tra mật khẩu mạnh
-    if (!password.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/)) {
-      showError("passwordError", "Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt!");
+    if (password.length < 8) {
+      showError("passwordError", "Mật khẩu phải có ít nhất 8 ký tự!");
       isValid = false;
     }
 
-
-    // Kiểm tra xác nhận mật khẩu
     if (password !== confirmPassword) {
       showError("confirmPasswordError", "Mật khẩu xác nhận không khớp!");
       isValid = false;
     }
 
     if (!termsChecked) {
-      showError("termsError", "Bạn phải đồng ý với Điều khoản & Dịch vụ để tiếp tục.");
+      showError("termsError", "Bạn phải đồng ý với Điều khoản & Dịch vụ.");
       isValid = false;
     }
 
     return isValid;
   }
 
-  // Hiển thị lỗi
   function showError(id, message) {
-    const errorElement = document.getElementById(id);
-    errorElement.textContent = message;
-    errorElement.style.display = "block";
+    document.getElementById(id).textContent = message;
+    document.getElementById(id).style.display = "block";
   }
 
-  // Ẩn lỗi khi nhập lại
-  function clearError(id) {
-    const errorElement = document.getElementById(id);
-    if (errorElement) {
-      errorElement.style.display = "none";
-    }
-  }
-
-  // Ẩn tất cả lỗi khi tải lại trang
   function clearAllErrors() {
-    document.querySelectorAll(".error-message").forEach(e => e.style.display = "none");
-
+    document.querySelectorAll(".text-danger").forEach(e => e.style.display = "none");
   }
 </script>
 </body>
