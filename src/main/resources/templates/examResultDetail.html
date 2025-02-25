@@ -2,6 +2,7 @@
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Kết quả bài thi</title>
     <link rel="icon" type="image/x-icon" href="https://res.cloudinary.com/dsuav027e/image/upload/v1740393796/favicon_llcueu.ico">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
@@ -10,57 +11,56 @@
 <body class="bg-light">
 <div th:insert="fragments/header :: header"></div>
 
-<div class="container mt-4">
-    <div class="card shadow-sm p-4">
-        <h2 class="text-center text-primary">Kết quả bài thi</h2>
-        <p class="fs-5 text-center">
-            <strong>Điểm của bạn:</strong>
-            <span class="badge bg-success fs-4" th:text="${score}"></span>/10
-        </p>
+<div class="container mt-5">
+    <div class="card shadow-lg border-0 rounded-4">
+        <div class="card-body p-5">
+            <h2 class="text-center text-primary fw-bold">Kết quả bài thi</h2>
+            <p class="fs-5 text-center mt-3">
+                <strong>Điểm của bạn:</strong>
+                <span class="badge bg-success fs-4" th:text="${score}"></span>/10
+            </p>
 
-        <h3 class="mt-4">Chi tiết bài làm</h3>
-        <ul class="list-group">
-            <li class="list-group-item" th:each="question, i : ${exam.questions}">
-                <p class="fw-bold mb-2">Câu hỏi: <span th:text="${question.questionText}"></span></p>
+            <h3 class="mt-4 text-secondary">Chi tiết bài làm</h3>
+            <div class="list-group mt-3">
+                <div class="list-group-item border-0" th:each="question, i : ${exam.questions}">
+                    <h5 class="fw-bold mb-3">
+                        Câu <span th:text="${i.index + 1}"></span>: <span th:text="${question.questionText}"></span>
+                    </h5>
+                    <ul class="list-unstyled">
+                        <li th:each="option, j : ${question.options}" class="mb-2">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox"
+                                       th:checked="${userAnswers['q' + i.index] != null
+                                                   && #lists.contains(userAnswers['q' + i.index], j.index + '')}"
+                                       disabled>
+                                <label class="form-check-label" th:text="${option}"></label>
 
-                <!-- Hiển thị các lựa chọn -->
-                <ul class="list-unstyled">
-                    <li th:each="option, j : ${question.options}" class="mb-1">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox"
-                                   th:checked="${userAnswers['q' + i.index] != null
-                                           && #lists.contains(userAnswers['q' + i.index], j.index + '')}"
-                                   disabled>
-                            <label class="form-check-label" th:text="${option}"></label>
+                                <span th:if="${userAnswers['q' + i.index] != null
+                                            && #lists.contains(userAnswers['q' + i.index], j.index + '')}">
+                                        <span th:if="${question.correctAnswers.contains(j.index)}"
+                                              class="text-success fw-bold ms-2"> ✅</span>
+                                        <span th:unless="${question.correctAnswers.contains(j.index)}"
+                                              class="text-danger fw-bold ms-2"> ❌</span>
+                                    </span>
 
-                            <!-- Nếu người dùng đã chọn đáp án này -->
-                            <span th:if="${userAnswers['q' + i.index] != null
-                                    && #lists.contains(userAnswers['q' + i.index], j.index + '')}">
-                                    <!-- Nếu đáp án đúng -->
-                                    <span th:if="${question.correctAnswers.contains(j.index)}"
-                                          class="text-success fw-bold ms-2"> ✅</span>
-                                <!-- Nếu đáp án sai -->
-                                    <span th:unless="${question.correctAnswers.contains(j.index)}"
-                                          class="text-danger fw-bold ms-2"> ❌</span>
-                                </span>
+                                <span th:if="${question.correctAnswers.contains(j.index)
+                                            && (userAnswers['q' + i.index] == null
+                                            || !#lists.contains(userAnswers['q' + i.index], j.index + ''))}"
+                                      class="text-success fw-bold ms-2"> (Đáp án đúng)</span>
+                            </div>
+                        </li>
+                    </ul>
+                    <hr class="my-3">
+                </div>
+            </div>
 
-                            <!-- Đánh dấu đáp án đúng nếu người dùng không chọn -->
-                            <span th:if="${question.correctAnswers.contains(j.index)
-                                    && (userAnswers['q' + i.index] == null
-                                    || !#lists.contains(userAnswers['q' + i.index], j.index + ''))}"
-                                  class="text-success fw-bold ms-2"> (Đáp án đúng)</span>
-                        </div>
-                    </li>
-                </ul>
-            </li>
-        </ul>
-
-        <div class="text-center mt-4">
-            <a href="/exams/result-list" class="btn btn-primary">Quay lại danh sách bài thi</a>
+            <div class="text-center mt-4">
+                <a href="/exams/result-list" class="btn btn-primary px-4 py-2 fw-bold">Quay lại danh sách bài thi</a>
+            </div>
         </div>
     </div>
 </div>
-<div th:insert="fragments/footer :: footer"></div>
 
+<div th:insert="fragments/footer :: footer"></div>
 </body>
 </html>
