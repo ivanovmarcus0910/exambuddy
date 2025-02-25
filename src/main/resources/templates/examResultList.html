@@ -3,41 +3,56 @@
 <head>
   <meta charset="UTF-8">
   <title>Exam Results</title>
+  <link rel="icon" type="image/x-icon" href="https://res.cloudinary.com/dsuav027e/image/upload/v1740393796/favicon_llcueu.ico">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </head>
+<body class="bg-light">
+
 <div th:insert="fragments/header :: header"></div>
 
-<h2 class="mb-4">Exam Results</h2>
+<div class="container mt-4">
+  <div class="card shadow-sm p-4">
+    <h2 class="mb-4 text-center text-primary">Exam Results</h2>
 
-<!-- Form tìm kiếm theo username -->
+    <!-- Form tìm kiếm theo username -->
+    <!-- Bảng kết quả -->
+    <div class="table-responsive">
+      <table class="table table-bordered table-hover">
+        <thead class="table-dark text-center">
+        <tr>
+          <th>Exam ID</th>
+          <th>Username</th>
+          <th>Score</th>
+          <th>Submission Time</th>
+          <th>Detail</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="result : ${results}">
+          <td class="text-center" th:text="${result.getExamID()}"></td>
+          <td class="text-center" th:text="${username}"></td>
+          <td class="text-center">
+            <span class="badge bg-info fs-6" th:text="${#numbers.formatDecimal(result.getScore(), 1, 2)}"></span>
+          </td>
+          <td class="text-center" th:text="${#dates.format(result.getSubmittedAt(), 'dd/MM/yyyy HH:mm:ss')}"></td>
+          <td class="text-center">
+            <a th:href="@{/exams/result/{resultId}/{examId}(resultId=${result.resultId},examId=${result.getExamID()})}"
+               class="btn btn-primary btn-sm">
+              Xem chi tiết
+            </a>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
 
-<!-- Bảng kết quả -->
-<table class="table table-bordered">
-  <thead class="table-dark">
-  <tr>
-    <th>Exam ID</th>
-    <th>Username</th>
-    <th>Score</th>
-    <th>Submission Time</th>
-    <th>Detail</th>
-  </tr>
-  </thead>
-  <tbody>
-  <tr th:each="result : ${results}">
-    <td th:text="${result.getResultId()}"></td>
-    <td th:text="${username}"></td>
-    <td th:text="${result.getScore()}"></td>
-    <td th:text="${#dates.format(result.getSubmittedAt(), 'dd/MM/yyyy HH:mm:ss')}"></td>
-    <td>
-      <a th:href="@{/exams/result/{resultId}/{examId}(resultId=${result.resultId},examId=${result.getExamID()})}" class="btn btn-primary btn-sm">
-        Xem chi tiết
-      </a>
-    </td>
-
-
-  </tr>
-  </tbody>
-</table>
+    <div class="text-center mt-3">
+      <a href="/exams" class="btn btn-secondary">Quay lại danh sách đề thi</a>
+    </div>
+  </div>
+</div>
+<div th:insert="fragments/footer :: footer"></div>
 
 </body>
 </html>

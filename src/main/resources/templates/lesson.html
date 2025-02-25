@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bài Học</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 800px; margin: auto; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1 th:text="${lesson != null ? lesson.name : 'Bài học'}"></h1>
+
+    <div th:if="${lesson != null}">
+        <div th:utext="${lesson.content}"></div>
+    </div>
+
+    <div th:if="${lesson == null}" class="error">
+        <p th:text="${error}"></p>
+    </div>
+</div>
+</body>
+</html>
