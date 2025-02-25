@@ -292,6 +292,11 @@ public class ExamService {
                 if (examDoc.exists()) {
                     Exam exam = examDoc.toObject(Exam.class);
                     exam.setExamID(examDoc.getId()); // Đặt examID trực tiếp từ ID tài liệu
+                    exam.setQuestionCount(countQuestions(exam.getExamID()));
+
+                    if (exam.getDate() != null) {
+                        exam.setDate(formatDate(exam.getDate()));
+                    }
                     likedExams.add(exam);
                 }
             }
