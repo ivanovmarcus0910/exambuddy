@@ -307,7 +307,6 @@ public class ManageExamController {
                               @RequestParam(required = false) String examType,
                               @RequestParam(required = false) String city,
                               Model model) {
-        log.info("Search params - Grade: {}, Subject: {}, ExamType: {}, City: {}", grade, subject, examType, city);
         grade = (grade != null) ? grade : "";
         subject = (subject != null) ? subject : "";
         examType = (examType != null) ? examType : "";
