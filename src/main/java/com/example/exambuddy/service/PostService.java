@@ -133,7 +133,7 @@ public class PostService {
         }
     }
 
-        public static List<Comment> getCommentsByPostId(String postId) {
+    public static List<Comment> getCommentsByPostId(String postId) {
         List<Comment> comments = new ArrayList<>();
         try {
             DocumentReference postRef = db.collection("posts").document(postId);

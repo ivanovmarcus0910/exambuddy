@@ -2,7 +2,6 @@ package com.example.exambuddy.controller;
 
 import com.example.exambuddy.model.Exam;
 import com.example.exambuddy.service.ExamService;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -16,7 +15,7 @@ import java.util.List;
 public class HomeController {
     @Autowired
     private ExamService examService;
-    @GetMapping("/home")
+    @GetMapping({"/*", "/home"})
     public String homePage(@RequestParam(defaultValue = "0") int page,
                            @RequestParam(defaultValue = "6") int size,
                            Model model) {
@@ -32,11 +31,6 @@ public class HomeController {
             model.addAttribute("error", "Lỗi khi tải danh sách đề thi: " + e.getMessage());
             return "error";
         }
-    }
-    @RequestMapping("*")
-    public String handleAllRequests(HttpServletRequest request) {
-        System.out.println("Request không khớp: " + request.getRequestURI());
-        return "redirect:/home"; // Trả về view "home" cho tất cả các URL không khớp
     }
 
     @RequestMapping("/signup")

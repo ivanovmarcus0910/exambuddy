@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
+
     <style>body {
         font-family: Arial, sans-serif;
         background-color: #f4f4f9;
@@ -164,8 +165,15 @@
         loadProgress();
 
     </script>
+    <meta charset="UTF-8">
+    <title>Chi tiết đề thi</title>
+    <!--  <link rel="stylesheet" th:href="@{/css/createdExam.css}">-->
+<!--    <link rel="stylesheet" th:href="@{/css/general.css}">-->
+    <link rel="stylesheet" th:href="@{/css/home.css}">
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
+<div th:insert="fragments/header :: header"></div>
+
 
 <p><strong>Tên đề:</strong> <span th:text="${exam.examName}"></span></p>
 <p><strong>Môn học:</strong> <span th:text="${exam.subject}"></span></p>
@@ -183,7 +191,7 @@
             </ul>
         </li>
     </ul>
-    <button type="submit">Nộp bài</button>
+    <button class="detailButton" type="submit">Nộp bài</button>
 </form>
 
 </body>
