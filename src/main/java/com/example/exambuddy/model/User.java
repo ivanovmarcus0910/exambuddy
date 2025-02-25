@@ -9,6 +9,7 @@ public class User {
     private boolean verified;
     private String avatarUrl;
     private String role;
+    private String fullName;
 
     public enum Role {
         ADMIN, USER, TEACHER, UPGRADED_USER
@@ -83,4 +84,12 @@ public class User {
     }
     public Role getRole() { return Role.valueOf(this.role); }
     public void setRole(Role role) { this.role = role.name(); }
+
+    public String getFullName() {
+        return fullName;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
+    }
 }

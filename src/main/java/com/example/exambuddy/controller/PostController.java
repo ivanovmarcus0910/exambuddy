@@ -16,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/forum")
@@ -29,6 +30,8 @@ public class PostController {
 
     @PostMapping("/create")
     public String createPost(@RequestParam String content,
+                             @RequestParam("subject") String subject,
+                             @RequestParam(value = "grade", required = false, defaultValue = "Chung") String grade,
                              @RequestParam("images") MultipartFile[] files,
                              HttpServletRequest request,
                              Model model) {
@@ -36,7 +39,6 @@ public class PostController {
         String username = (String) session.getAttribute("loggedInUser");
 
         if (username == null) {
-            System.out.println("❌ Lỗi: User chưa đăng nhập!");
             return "redirect:/login";
         }
 
@@ -45,37 +47,53 @@ public class PostController {
             if (!file.isEmpty()) {
                 String imageUrl = this.cloudinaryService.upLoadImg(file, "imgForum");
                 imageUrls.add(imageUrl);
-                System.out.println("URL = " + imageUrl);
             }
         }
+        subject = subject.trim().replace(",", "");
 
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String date = formatter.format(new Date());
 
-        Post post = PostService.savePost(username, content, date, imageUrls);
+        // Lưu bài viết
+        Post post = PostService.savePost(username, content, subject, grade, date, imageUrls);
         model.addAttribute("post", post);
-        return "redirect:/forum";
+
+        return "redirect:/forum?subject=" + subject;
     }
 
     @GetMapping
-    public String getForum(Model model, HttpServletRequest request) {
+    public String getForum(@RequestParam(value = "subject", required = false) String subject,
+                           @RequestParam(value = "grade", required = false) String grade,
+                           Model model, HttpServletRequest request) {
         HttpSession session = request.getSession();
         String username = (String) session.getAttribute("loggedInUser");
 
+        // Lấy tất cả bài viết ban đầu (trang forum chung)
         List<Post> posts = postService.getPostsFromFirestore();
+
+        // Nếu có subject, lọc bài viết theo môn học
+        if (subject != null && !subject.isEmpty()) {
+            posts = posts.stream()
+                    .filter(post -> subject.trim().replace(",", "").equalsIgnoreCase(post.getSubject()))
+                    .collect(Collectors.toList());
+        }
+
+        // Nếu có chọn lớp học, lọc tiếp
+        if (grade != null && !grade.isEmpty()) {
+            posts = posts.stream()
+                    .filter(post -> grade.equals(post.getGrade()))
+                    .collect(Collectors.toList());
+        }
+
         for (Post post : posts) {
-            // Lấy danh sách bình luận của bài viết
             List<Comment> comments = PostService.getCommentsByPostId(post.getPostId());
             if (comments != null) {
                 for (Comment comment : comments) {
-                    // Gán avatarUrl cho từng comment
                     String avatarUrl = UserService.getAvatarUrlByUsername(comment.getUsername());
                     comment.setAvatarUrl(avatarUrl);
                 }
             }
             post.setComments(comments != null ? comments : new ArrayList<>());
-
-            // Kiểm tra xem username hiện tại đã like bài viết hay chưa
             post.setLiked(post.getLikedUsernames() != null && post.getLikedUsernames().contains(username));
         }
 
@@ -84,7 +102,10 @@ public class PostController {
         model.addAttribute("posts", posts);
         model.addAttribute("username", username);
         model.addAttribute("avatarUrl", avatarUrl);
-        return "forum";
+        model.addAttribute("selectedSubject", subject);
+        model.addAttribute("selectedGrade", grade);
+
+        return "forum"; // Hiển thị trang forum chung nếu không có subject
     }
 
     @PostMapping("/comment")
