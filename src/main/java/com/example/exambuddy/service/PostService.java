@@ -16,12 +16,14 @@ public class PostService {
     private static final Firestore db = FirestoreClient.getFirestore();
     private static final String COLLECTION_NAME = "posts";
 
-    public static Post savePost(String username, String content, String date, List<String> imageUrls) {
+    public static Post savePost(String username, String content, String subject, String grade, String date, List<String> imageUrls) {
         CollectionReference posts = db.collection(COLLECTION_NAME);
 
         Post post = new Post();
         post.setUsername(username);
         post.setContent(content);
+        post.setSubject(subject);
+        post.setGrade(grade);
         post.setDate(date);
         post.setImageUrls(imageUrls);
         post.setLikeCount(0);

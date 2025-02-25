@@ -1,6 +1,4 @@
 package com.example.exambuddy.model;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.time.Duration;
 import java.time.LocalDateTime;

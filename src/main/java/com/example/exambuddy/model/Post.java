@@ -1,9 +1,5 @@
 package com.example.exambuddy.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -14,6 +10,8 @@ public class Post {
     private String username;
     private String content;
     private String date;
+    private String subject;
+    private String grade;
     private String avatarUrl;
     private List<String> imageUrls;
     private int likeCount;
@@ -65,6 +63,22 @@ public class Post {
 
     public void setDate(String date) {
         this.date = date;
+    }
+
+    public String getSubject() {
+        return subject;
+    }
+
+    public void setSubject(String subject) {
+        this.subject = subject;
+    }
+
+    public String getGrade() {
+        return grade;
+    }
+
+    public void setGrade(String grade) {
+        this.grade = grade;
     }
 
     public String getAvatarUrl() {
