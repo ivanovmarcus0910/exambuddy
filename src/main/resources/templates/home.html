@@ -4,13 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>E-Learning - Học Online</title>
-<!--    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">-->
-<!--    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"></div>-->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="icon" type="image/x-icon" href="https://res.cloudinary.com/dsuav027e/image/upload/v1740393796/favicon_llcueu.ico">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
 </head>
 <body class="bg-white">
 <div th:insert="~{fragments/header :: header}"></div>
@@ -42,30 +39,34 @@
 <p class="search-text col-md-12" style="display: flex; justify-content: center; font-size: 40px;">Tìm kiếm đề thi mong muốn của bạn</p>
     <div class="card shadow-lg p-4 bg-white rounded mx-auto" style="max-width: 900px; margin-bottom: 50px;">
         <h4 class="text-center text-success mb-3">Tìm kiếm đề thi</h4>
-        <form action="/search-by-filter" method="get" class="d-flex flex-wrap gap-2 justify-content-between">
-            <select name="grade" class="form-select flex-grow-1">
-                <option value="">Chọn khối lớp</option>
-                <option value="10">Lớp 10</option>
-                <option value="11">Lớp 11</option>
-                <option value="12">Lớp 12</option>
-            </select>
+        <form action="/search-by-filter" method="get" class="d-flex flex-wrap gap-2">
+            <div class="d-flex flex-grow-1 gap-2">
+                <select name="grade" class="form-select flex-grow-1">
+                    <option value="">Chọn khối lớp</option>
+                    <option value="10">Lớp 10</option>
+                    <option value="11">Lớp 11</option>
+                    <option value="12">Lớp 12</option>
+                </select>
 
-            <select name="subject" class="form-select flex-grow-1">
-                <option value="">Chọn môn học</option>
-                <option value="Toán">Toán</option>
-                <option value="Vật Lý">Vật lý</option>
-            </select>
+                <select name="subject" class="form-select flex-grow-1">
+                    <option value="">Chọn môn học</option>
+                    <option value="Toán">Toán</option>
+                    <option value="Vật Lý">Vật lý</option>
+                </select>
+            </div>
 
-            <select name="examType" class="form-select flex-grow-1">
-                <option value="">Chọn loại đề</option>
-                <option value="Đề kiểm tra">Đề kiểm tra</option>
-                <option value="Đề luyện tập">Đề luyện tập</option>
-                <option value="Đề THPT QUỐC GIA">Đề THPT QUỐC GIA</option>
-            </select>
+            <div class="d-flex flex-grow-1 gap-2">
+                <select name="examType" class="form-select flex-grow-1">
+                    <option value="">Chọn loại đề</option>
+                    <option value="Đề kiểm tra">Đề kiểm tra</option>
+                    <option value="Đề luyện tập">Đề luyện tập</option>
+                    <option value="Đề THPT QUỐC GIA">Đề THPT QUỐC GIA</option>
+                </select>
 
-            <select name="city" class="form-select flex-grow-1">
-                <option value="">Chọn thành phố</option>
-            </select>
+                <select name="city" class="form-select flex-grow-1">
+                    <option value="">Chọn thành phố</option>
+                </select>
+            </div>
 
             <button type="submit" class="btn btn-primary w-100 mt-2">Tìm kiếm</button>
         </form>
