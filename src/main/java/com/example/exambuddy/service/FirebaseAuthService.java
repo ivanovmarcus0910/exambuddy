@@ -216,15 +216,11 @@ public class FirebaseAuthService {
             // ✅ Lấy mật khẩu mã hóa từ Firestore
             String hashedPasswordFromDB = passService.getPasswordByUsername(username);
             if (hashedPasswordFromDB == null) {
-                System.out.println("Không tìm thấy user: "+ username);
                 return false; // Không tìm thấy user
             }
 
-            System.out.println("Password nhập vào: "+ password);
-            System.out.println("Password từ Firebase: "+ hashedPasswordFromDB);
 
             boolean match = passService.matches(password, hashedPasswordFromDB);
-            System.out.println("Ket qua la: "+match);
             return match;
 
         } catch (Exception e) {

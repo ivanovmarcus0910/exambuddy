@@ -4,53 +4,56 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profile - Exam Buddy E-Learning</title>
-    <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" th:href="@{/css/profile.css}">
+    <link rel="icon" type="image/x-icon" href="https://res.cloudinary.com/dsuav027e/image/upload/v1740393796/favicon_llcueu.ico">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </head>
-<body>
-<header>
-    <div class="logo">
-        <img src="../img/logo.jpg" alt="Logo">
-    </div>
-    <nav>
-        <ul>
-            <li><a href="/home">Trang chủ</a></li>
-            <li><a href="/forum">Diễn đàn</a></li>
-            <li><a href="/theory">Lý thuyết</a></li>
-            <li><a href="/contact">Liên hệ</a></li>
-        </ul>
-    </nav>
-</header>
-<div class="container">
-    <div class="sidebar">
+<body class="bg-light">
 
-        <a href="/profile"><span>&#128100;</span> Thông tin cá nhân</a>
-        <a href="#"><span>&#128179;</span> Lịch sử thanh toán</a>
-        <a href="/changePass"><span>&#128273;</span> Thay đổi mật khẩu</a>
-        <a href="/logout"><span>&#128682;</span> Đăng xuất</a>
-    </div>
-    <div class="profile-content">
-        <div class="profile-header">
-            <div class="avatar">
-                <img th:src="${user.avatarUrl}" alt="Avatar">
-            </div>
-            <div>
-                <h2>Xin chào, <span th:text="${user.username}"></span></h2>
+<div th:insert="fragments/header :: header"></div>
+
+
+<div class="container mt-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3">
+            <div class="list-group">
+                <a href="/profile" class="list-group-item list-group-item-action"><span>&#128100;</span> Thông tin cá nhân</a>
+                <a href="#" class="list-group-item list-group-item-action"><span>&#128179;</span> Lịch sử thanh toán</a>
+                <a href="/changePass" class="list-group-item list-group-item-action"><span>&#128273;</span> Thay đổi mật khẩu</a>
+                <a href="/logout" class="list-group-item list-group-item-action text-danger"><span>&#128682;</span> Đăng xuất</a>
             </div>
         </div>
-        <p><strong>Họ và Tên:</strong> <span th:text="${user.username}"></span></p>
-        <p><strong>SĐT:</strong> <span th:text="${user.phone}"></span></p>
-        <p><strong>Email:</strong> <span th:text="${user.email}"></span></p>
 
-        <!-- Upload Avatar -->
-        <form action="/profile/upload" method="post" enctype="multipart/form-data">
-            <input type="file" name="image" required>
-            <input type="hidden" name="username" th:value="${user.username}">
-            <button type="submit">Tải lên</button>
-        </form>
+        <!-- Profile Content -->
+        <div class="col-md-9">
+            <div class="card p-4 shadow-sm">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="me-3">
+                        <img th:src="${user.avatarUrl}" alt="Avatar" class="rounded-circle" style="width: 80px; height: 80px;">
+                    </div>
+                    <h2 class="mb-0">Xin chào, <span th:text="${user.username}"></span></h2>
+                </div>
 
-        <a href="#" class="edit-profile">✎ Chỉnh sửa hồ sơ</a>
+                <p><strong>Họ và Tên:</strong> <span th:text="${user.username}"></span></p>
+                <p><strong>SĐT:</strong> <span th:text="${user.phone}"></span></p>
+                <p><strong>Email:</strong> <span th:text="${user.email}"></span></p>
+
+                <!-- Upload Avatar -->
+                <form action="/profile/upload" method="post" enctype="multipart/form-data" class="mt-3">
+                    <div class="input-group">
+                        <input type="file" name="image" class="form-control" required>
+                        <input type="hidden" name="username" th:value="${user.username}">
+                        <button type="submit" class="btn btn-success">Tải lên</button>
+                    </div>
+                </form>
+
+                <a href="#" class="btn btn-warning mt-3">✎ Chỉnh sửa hồ sơ</a>
+            </div>
+        </div>
     </div>
 </div>
+<div th:insert="fragments/footer :: footer"></div>
+
 </body>
 </html>
