@@ -118,6 +118,13 @@ public class AuthController {
             session.setAttribute("urlimg",UserService.getAvatarUrlByUsername(username));
             System.out.println("Người dùng đăng nhập: " + username);
 
+            // 🔥 Thêm role vào session
+            User user = userService.getUserByUsername(username);
+            if (user != null) {
+                session.setAttribute("role", user.getRole().toString()); // 🔥 Lưu role vào session
+                System.out.println("Đã lưu role vào session: " + user.getRole());
+            }
+
             // Nếu là admin thi chuyển trang
             if(authService.isAdmin(username)) {
                 System.out.println("✅ Gọi isAdmin() thành công.");

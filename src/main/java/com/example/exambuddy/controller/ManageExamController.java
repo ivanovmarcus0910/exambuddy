@@ -3,8 +3,10 @@ package com.example.exambuddy.controller;
 import com.example.exambuddy.model.Exam;
 import com.example.exambuddy.model.ExamResult;
 import com.example.exambuddy.model.Question;
+import com.example.exambuddy.model.User;
 import com.example.exambuddy.service.CookieService;
 import com.example.exambuddy.service.ExamService;
+import com.example.exambuddy.service.UserService;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.*;
 import com.google.firebase.cloud.FirestoreClient;
@@ -36,6 +38,8 @@ public class ManageExamController {
     private CookieService cookieService;
     @Autowired
     private ExamService examService;
+    @Autowired
+    private UserService userService;
 
     @GetMapping("/exams")
     public String listExams(Model model) {
@@ -151,7 +155,19 @@ public class ManageExamController {
     }
 
     @PostMapping("/exams/addExam")
-    public String addQuestion(@RequestBody Map<String, Object> examData) {
+    public String addExam(@RequestBody Map<String, Object> examData, HttpSession session, HttpServletRequest request) {
+        // Lấy username từ session
+        String username = (String) session.getAttribute("loggedInUser");
+        if (username == null) {
+            return "redirect:/login"; // Nếu chưa đăng nhập, chuyển hướng về trang đăng nhập
+        }
+
+        // Lấy thông tin user từ UserService
+        User user = userService.getUserByUsername(username);
+        if (user == null || (user.getRole() != User.Role.ADMIN && user.getRole() != User.Role.TEACHER)) {
+            return "error"; // Chuyển hướng hoặc hiển thị lỗi nếu không có quyền
+        }
+
         try {
             boolean status = examService.addExam(examData);
             if (status)
@@ -161,6 +177,7 @@ public class ManageExamController {
             return "Lỗi khi lưu đề thi: " + e.getMessage();
         }
     }
+
 
     @GetMapping("exams/progress")
     public ResponseEntity<?> getProgress(@RequestParam String userId, @RequestParam String examId) {
