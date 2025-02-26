@@ -118,6 +118,13 @@ public class AuthController {
             session.setAttribute("urlimg",UserService.getAvatarUrlByUsername(username));
             System.out.println("Người dùng đăng nhập: " + username);
 
+            // 🔥 Thêm role vào session
+            User user = userService.getUserByUsername(username);
+            if (user != null) {
+                session.setAttribute("role", user.getRole().toString()); // 🔥 Lưu role vào session
+                System.out.println("Đã lưu role vào session: " + user.getRole());
+            }
+
             // Nếu là admin thi chuyển trang
             if(authService.isAdmin(username)) {
                 System.out.println("✅ Gọi isAdmin() thành công.");
@@ -144,16 +151,18 @@ public class AuthController {
 
 
 
-    @RequestMapping("/logout")
-    public String logout(HttpSession session, HttpServletResponse response, HttpServletRequest request) {
-        session.removeAttribute("loggedInUser");
-        session.invalidate();
-        cookieService.removeCookie(response,"rememberedUsername");
-        cookieService.removeCookie(response,"rememberedPassword");
-        cookieService.removeCookie(response,"noname");
-        System.out.println("Đã logout");
-        return "home"; // Chuyển hướng về trang home, đảm bảo session đã bị xóa
-    }
+//    @RequestMapping("/logout")
+//    public String logout(HttpSession session, HttpServletResponse response, HttpServletRequest request) {
+//        System.out.println("Đã logout");
+//        session.removeAttribute("loggedInUser");
+//        session.removeAttribute("urlimg");
+//        session.invalidate();
+//        cookieService.removeCookie(response,"rememberedUsername");
+//        cookieService.removeCookie(response,"rememberedPassword");
+//        cookieService.removeCookie(response,"noname");
+//        System.out.println("Đã logout");
+//        return "redirect:/home";
+//    }
 
     @GetMapping("/forgotPass")
     public String forgotPasswordPage() {
@@ -238,11 +247,6 @@ public class AuthController {
             hasError = true;
         }
 
-        // Kiểm tra số điện thoại hợp lệ (tối thiểu 9 số)
-//        if (!phone.matches("^\\d{9,}$")) {
-//            model.addAttribute("phoneError", "Số điện thoại không hợp lệ!");
-//            hasError = true;
-//        }
 
         // Kiểm tra mật khẩu xác nhận
         if (!password.equals(confirmPassword)) {

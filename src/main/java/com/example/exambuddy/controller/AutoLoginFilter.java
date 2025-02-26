@@ -30,6 +30,11 @@ public class AutoLoginFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
     {
     try {
+        if (request.getRequestURI().equals("/logout")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         HttpSession session = request.getSession(false);
         if (session == null || session.getAttribute("loggedInUser") == null) {
 
@@ -43,12 +48,16 @@ public class AutoLoginFilter extends OncePerRequestFilter {
                     session.setAttribute("urlimg", UserService.getAvatarUrlByUsername(username));
                 }
             }
-
+            else
+            {
+                filterChain.doFilter(request, response);
+                return;
+            }
         }
         filterChain.doFilter(request, response);
 
     } catch (Exception e) {
-        System.out.println("Lỗi mẹ rồi");
+        System.out.println("Lỗi rồi");
         e.printStackTrace();
     }
 

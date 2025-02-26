@@ -93,10 +93,10 @@
                 <a class="list-group-item list-group-item-action" href="/changePass">
                     <i class="bi bi-key"></i> Thay đổi mật khẩu
                 </a>
-                <a class="list-group-item list-group-item-action" href="#">
+                <a class="list-group-item list-group-item-action" href="/exams/result-list">
                     <i class="bi bi-clock-history"></i> Lịch sử làm đề
                 </a>
-                <a class="list-group-item list-group-item-action" href="#">
+                <a class="list-group-item list-group-item-action" href="/exams/created">
                     <i class="bi bi-file-earmark"></i> Lịch sử tạo đề
                 </a>
                 <a class="list-group-item list-group-item-action" href="#">
@@ -130,7 +130,7 @@
                         </div>
                         <h4 class="mt-3" th:text="${user.fullName}"></h4>
                         <div class="user-badges">
-                            <span class="badge bg-info me-2" th:text="${user.role}">Học viên</span>
+                            <span class="badge bg-info me-2" th:text="${user.role}"></span>
                             <span class="badge bg-warning"><i class="bi bi-star-fill"></i> Premium User</span>
                         </div>
                     </div>
