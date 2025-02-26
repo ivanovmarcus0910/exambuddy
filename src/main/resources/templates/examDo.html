@@ -3,50 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <title>Làm bài thi</title>
-    <link rel="icon" type="image/x-icon"
-          href="https://res.cloudinary.com/dsuav027e/image/upload/v1740393796/favicon_llcueu.ico">
+    <link rel="icon" type="image/x-icon" href="https://res.cloudinary.com/dsuav027e/image/upload/v1740393796/favicon_llcueu.ico">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <style>
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
-        }
-
-        .active-question {
-            background-color: #007bff !important;
-            color: white !important;
-        }
-
-        .btn-warning {
-            background-color: #ffc107 !important;
-            border-color: #ffc107 !important;
-        }
-
-        .btn-success {
-            background-color: #28a745 !important;
-            border-color: #28a745 !important;
-        }
-
-        .marked-and-answered {
-            background-color: #28a745 !important; /* Xanh làm nền */
-            border: 2px solid #ffc107 !important; /* Viền vàng để biểu thị đánh dấu */
-        }
-
-        .question-content {
-            min-height: 200px;
-        }
+        body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
+        .active-question { background-color: #007bff !important; color: white !important; }
+        .btn-warning { background-color: #ffc107 !important; border-color: #ffc107 !important; }
+        .btn-success { background-color: #28a745 !important; border-color: #28a745 !important; }
+        .marked-and-answered { background-color: #28a745 !important; border: 2px solid #ffc107 !important; }
+        .question-content { min-height: 200px; }
     </style>
 </head>
 <body class="bg-light">
-<!-- Header -->
 <div th:insert="fragments/header :: header"></div>
 
-<!-- Container -->
 <div class="container py-4">
     <div class="row">
-        <!-- Danh sách câu hỏi (bên trái) -->
         <div class="col-md-3">
             <div class="card p-3">
                 <h5 class="text-center">Thời gian còn lại:</h5>
@@ -66,7 +39,6 @@
             </div>
         </div>
 
-        <!-- Nội dung câu hỏi (bên phải) -->
         <div class="col-md-9">
             <div class="card shadow-sm p-4 position-relative">
                 <h4 class="text-primary fw-bold" th:text="${exam.examName}"></h4>
@@ -79,7 +51,6 @@
                         <h5 class="fw-bold">
                             Câu [[${i.index + 1}]]: <span th:text="${question.questionText}"></span>
                         </h5>
-                        <!-- Nút đánh dấu -->
                         <button type="button"
                                 class="btn btn-outline-warning btn-sm"
                                 style="position:absolute; top:10px; right:10px;"
@@ -94,7 +65,7 @@
                                        th:name="'q' + ${i.index}"
                                        th:value="${j.index}"
                                        th:id="'option-' + ${i.index} + '-' + ${j.index}"
-                                       th:onchange="'updateQuestionStatus(' + ${i.index} + ')'"/>
+                                       th:onchange="'updateQuestionStatus(' + ${i.index} + ')'" />
                                 <label class="form-check-label"
                                        th:for="'option-' + ${i.index} + '-' + ${j.index}"
                                        th:text="${option}">
@@ -106,7 +77,6 @@
                         <button class="btn btn-success px-4 py-2" type="submit">Nộp bài</button>
                     </div>
                 </form>
-                <!-- Nút chuyển câu hỏi -->
                 <div class="d-flex justify-content-between mt-3">
                     <button class="btn btn-primary" onclick="prevQuestion()"><<</button>
                     <button class="btn btn-primary" onclick="nextQuestion()">>></button>
@@ -116,7 +86,6 @@
     </div>
 </div>
 
-<!-- Footer -->
 <div th:replace="fragments/footer :: footer"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -126,28 +95,131 @@
     let timeLeft = parseInt("[[${timeduration}]]", 10);
     let totalDuration = timeLeft;
     let currentQuestionIndex = 0;
-    let markedQuestions = {}; // Lưu trạng thái đánh dấu của từng câu hỏi
+    let markedQuestions = {};
 
+    // Đồng bộ thời gian với server
+    function syncTime() {
+        fetch(`/exams/time-left?userId=${userId}&examId=${examId}`)
+            .then(response => {
+                if (!response.ok) throw new Error("Lỗi server đồng bộ thời gian");
+                return response.json();
+            })
+            .then(data => {
+                console.log("Sync time:", data);
+                timeLeft = data.timeLeft;
+                updateTimerDisplay();
+                if (data.submitted) {
+                    alert("Bài thi đã được nộp!");
+                    window.location.href = "/exam-result";
+                }
+            })
+            .catch(error => console.error("Lỗi đồng bộ thời gian:", error));
+    }
+
+    // Lưu tiến trình lên server
+    function saveProgress() {
+        let answers = {};
+        document.querySelectorAll('.question-content').forEach((questionDiv, index) => {
+            let checkboxes = questionDiv.querySelectorAll('input[type="checkbox"]:checked');
+            let selectedOptions = Array.from(checkboxes).map(cb => cb.value);
+            if (selectedOptions.length > 0) {
+                answers[`q${index}`] = selectedOptions;
+            }
+        });
+        if (Object.keys(answers).length === 0) {
+            console.log("Không có tiến trình nào để lưu.");
+            return;
+        }
+        console.log("Saving progress:", JSON.stringify({ userId, examId, answers }));
+        fetch(`/exams/progress`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ userId, examId, answers })
+        })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(errorData => {
+                        throw new Error(`Lỗi server lưu tiến trình: ${response.status} - ${JSON.stringify(errorData)}`);
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.status === "success") {
+                    console.log("Tiến trình đã lưu thành công:", data);
+                } else {
+                    console.warn("Phản hồi từ server không mong đợi:", data);
+                }
+            })
+            .catch(error => {
+                console.error("Lỗi lưu tiến trình:", error.message);
+                alert("Không thể lưu tiến trình. Vui lòng thử lại hoặc liên hệ hỗ trợ.");
+            });
+    }
+
+    // Tải tiến trình từ server
+    function loadProgress() {
+        fetch(`/exams/progress?userId=${userId}&examId=${examId}`)
+            .then(response => {
+                if (!response.ok) throw new Error(`Lỗi server tải tiến trình: ${response.status}`);
+                return response.json();
+            })
+            .then(data => {
+                console.log("Loaded progress:", data);
+                const answers = data.answers || {};
+                if (Object.keys(answers).length === 0) {
+                    console.log("Không có tiến trình nào để tải.");
+                    return;
+                }
+                for (let question in answers) {
+                    let index = parseInt(question.replace('q', ''));
+                    let selectedOptions = answers[question] || [];
+                    selectedOptions.forEach(value => {
+                        let checkbox = document.querySelector(`#question-${index} input[name='q${index}'][value='${value}']`);
+                        if (checkbox) {
+                            checkbox.checked = true;
+                            console.log(`Đã đánh dấu q${index} với giá trị ${value}`);
+                        } else {
+                            console.warn(`Không tìm thấy checkbox cho q${index} với giá trị ${value}`);
+                        }
+                    });
+                    updateQuestionStatus(index);
+                }
+            })
+            .catch(error => console.error("Lỗi tải tiến trình:", error));
+    }
+
+    // Cập nhật giao diện thời gian
+    function updateTimerDisplay() {
+        document.getElementById("timer").innerText = formatTime(timeLeft);
+        document.getElementById("progress-bar").style.width = (timeLeft / totalDuration * 100) + "%";
+    }
+
+    // Đếm ngược thời gian
     function updateTimer() {
         if (timeLeft <= 0) {
             clearInterval(timerInterval);
             submitExam();
+            return;
         }
-        document.getElementById("timer").innerText = formatTime(timeLeft);
-        document.getElementById("progress-bar").style.width = (timeLeft / totalDuration * 100) + "%";
         timeLeft--;
+        updateTimerDisplay();
     }
 
+    // Định dạng thời gian
     function formatTime(seconds) {
         let minutes = Math.floor(seconds / 60);
         let secs = seconds % 60;
         return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
     }
 
+    // Nộp bài
     function submitExam() {
+        console.log("Đang nộp bài...");
         document.getElementById("exam-form").submit();
     }
 
+    // Hiển thị câu hỏi
     function showQuestion(index) {
         document.querySelectorAll('.question-content').forEach(q => q.style.display = 'none');
         document.getElementById(`question-${index}`).style.display = 'block';
@@ -155,14 +227,15 @@
         updateButtonStatus(index);
     }
 
+    // Cập nhật trạng thái nút
     function updateButtonStatus(index) {
         document.querySelectorAll('[id^="btn-question-"]').forEach(btn => {
             btn.classList.remove('active-question');
         });
-        let listBtn = document.getElementById(`btn-question-${index}`);
-        listBtn.classList.add('active-question');
+        document.getElementById(`btn-question-${index}`).classList.add('active-question');
     }
 
+    // Đánh dấu câu hỏi
     function toggleMark(index) {
         let listBtn = document.getElementById(`btn-question-${index}`);
         let markBtn = document.getElementById(`mark-btn-${index}`);
@@ -170,7 +243,6 @@
         let isAnswered = listBtn.classList.contains('btn-success');
 
         if (isMarked) {
-            // Hủy đánh dấu
             markBtn.classList.remove('btn-warning');
             markBtn.classList.add('btn-outline-warning');
             markedQuestions[index] = false;
@@ -182,7 +254,6 @@
                 listBtn.classList.add('btn-outline-primary');
             }
         } else {
-            // Đánh dấu
             markBtn.classList.remove('btn-outline-warning');
             markBtn.classList.add('btn-warning');
             markedQuestions[index] = true;
@@ -196,6 +267,7 @@
         }
     }
 
+    // Cập nhật trạng thái câu hỏi
     function updateQuestionStatus(index) {
         let listBtn = document.getElementById(`btn-question-${index}`);
         let questionDiv = document.getElementById(`question-${index}`);
@@ -203,7 +275,6 @@
         let isMarked = markedQuestions[index] || false;
 
         if (checkboxes.length > 0) {
-            // Câu hỏi đã được trả lời
             listBtn.classList.remove('btn-outline-primary');
             if (isMarked) {
                 listBtn.classList.remove('btn-success');
@@ -213,7 +284,6 @@
                 listBtn.classList.add('btn-success');
             }
         } else {
-            // Câu hỏi chưa được trả lời
             listBtn.classList.remove('btn-success', 'marked-and-answered');
             if (isMarked) {
                 listBtn.classList.add('btn-warning');
@@ -223,10 +293,9 @@
         }
     }
 
+    // Điều hướng câu hỏi
     function prevQuestion() {
-        if (currentQuestionIndex > 0) {
-            showQuestion(currentQuestionIndex - 1);
-        }
+        if (currentQuestionIndex > 0) showQuestion(currentQuestionIndex - 1);
     }
 
     function nextQuestion() {
@@ -235,8 +304,21 @@
         }
     }
 
+    // Khởi động
     let timerInterval = setInterval(updateTimer, 1000);
-    showQuestion(0);
+    setInterval(() => {
+        saveProgress();
+        syncTime();
+    }, 10000);
+
+    window.onload = function() {
+        console.log("Trang đang tải...");
+        syncTime();
+        setTimeout(() => {
+            loadProgress();
+            showQuestion(0);
+        }, 500);
+    };
 </script>
 </body>
 </html>
