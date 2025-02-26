@@ -82,28 +82,7 @@
     </style>
 </head>
 <body>
-<header>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="/home">
-                <img alt="Logo" class="d-inline-block align-text-top" height="50" src="/img/logo.png" width="50">
-                Exam Buddy
-            </a>
-            <div class="collapse navbar-collapse">
-                <ul class="navbar-nav mx-auto">
-                    <li class="nav-item"><a class="nav-link" href="/home">Trang chủ</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/forum">Diễn đàn</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/theory">Lý thuyết</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/contact">Liên hệ</a></li>
-                </ul>
-            </div>
-            <div class="ms-auto">
-                <img alt="User" class="rounded-circle"
-                     height="32" th:src="${user.avatarUrl}" width="32">
-            </div>
-        </div>
-    </nav>
-</header>
+<div th:insert="~{fragments/header :: header}"></div>
 <div class="container-fluid">
     <div class="row">
         <div class="col-lg-3 col-md-4 sidebar">
