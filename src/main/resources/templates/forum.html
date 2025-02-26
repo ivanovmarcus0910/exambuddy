@@ -4,8 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>E-Learning - Học Online</title>
-  <link rel="stylesheet" th:href="@{/css/general.css}">
-  <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
   <style>
@@ -168,7 +166,6 @@
       color: white;
       cursor: pointer;
     }
-
   </style>
 </head>
 <body>
@@ -178,21 +175,52 @@
     <aside class="col-md-3">
       <div class="card">
         <div class="card-header">
-          <h2>Other Test</h2>
+          <h2>Chủ đề môn học</h2>
         </div>
         <ul class="list-group list-group-flush">
-          <li class="list-group-item">Test 1</li>
-          <li class="list-group-item">Test 2</li>
-          <li class="list-group-item">Test 3</li>
+          <li><a href="/forum">Tất cả</a></li>
+          <li><a href="/forum?subject=toan">Toán học</a></li>
+          <li><a href="/forum?subject=van">Ngữ văn</a></li>
+          <li><a href="/forum?subject=su">Lịch sử</a></li>
+          <li><a href="/forum?subject=sinh">Sinh học</a></li>
+          <li><a href="/forum?subject=dia">Địa lý</a></li>
+          <li><a href="/forum?subject=ly">Vật lý</a></li>
+          <li><a href="/forum?subject=hoa">Hóa học</a></li>
+          <li><a href="/forum?subject=ngoaingu">Ngoại ngữ</a></li>
+          <li><a href="/forum?subject=khac">Khác</a></li>
         </ul>
       </div>
     </aside>
 
     <main class="col-md-6">
       <div class="card" th:if="${username}">
-        <form action="/forum/create" method="post" enctype="multipart/form-data" class="mb-3">
+        <form action="/forum/create" method="post" enctype="multipart/form-data" class="mb-2">
           <input type="hidden" name="username" th:value="${username}">
-          <p style="color:white">Username: <span th:text="${username}"></span></p>
+          <div class="row mt-3 mb-2">
+            <div class="col-md-6">
+              <select class="form-select" name="subject" required>
+                <option value="" selected disabled>Chọn môn học</option>
+                <option value="toan">Toán học</option>
+                <option value="van">Ngữ văn</option>
+                <option value="su">Lịch sử</option>
+                <option value="sinh">Sinh học</option>
+                <option value="dia">Địa lý</option>
+                <option value="ly">Vật lý</option>
+                <option value="hoa">Hóa học</option>
+                <option value="ngoaingu">Ngoại ngữ</option>
+                <option value="khac">Khác</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <select class="form-select" name="grade" required>
+                <option value="" selected disabled>Chọn lớp</option>
+                <option value="10">Lớp 10</option>
+                <option value="11">Lớp 11</option>
+                <option value="12">Lớp 12</option>
+              </select>
+            </div>
+          </div>
+          <input type="hidden" name="subject" th:value="${selectedSubject}">
           <textarea name="content" class="form-control" placeholder="Hỏi gì đó ..." required></textarea><br>
           <div class="d-flex justify-content-between align-items-center">
             <input type="file" name="images" multiple class="custom-file-input"><br>
@@ -201,10 +229,16 @@
         </form>
       </div>
       <p style="color:white" th:if="${username == null}">Vui lòng đăng nhập để đăng bài.</p>
-
+      <h3>📚 Chủ đề: <span th:text="${selectedSubject}"></span></h3>
+      <div class="class-filter" th:if="${selectedSubject}">
+        <a th:href="@{/forum(subject=${#strings.trim(selectedSubject)})}" class="btn btn-primary">Chung</a>
+        <a th:href="@{/forum(subject=${#strings.trim(selectedSubject)}, grade='10')}" class="btn btn-secondary">Lớp 10</a>
+        <a th:href="@{/forum(subject=${#strings.trim(selectedSubject)}, grade='11')}" class="btn btn-secondary">Lớp 11</a>
+        <a th:href="@{/forum(subject=${#strings.trim(selectedSubject)}, grade='12')}" class="btn btn-secondary">Lớp 12</a>
+      </div>
       <div class="posts">
         <div class="post" th:each="post : ${posts}">
-          <div class="d-flex justify-content-between mb-3">
+          <div class="d-flex justify-content-between mb-2">
             <div class="d-flex">
               <img th:src="${post.avatarUrl}" class="rounded-circle me-2" width="40" height="40" alt="User">
               <div class="d-flex flex-column align-items-start">
@@ -341,210 +375,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-  function showAllImages(element) {
-    const hiddenImages = element.nextElementSibling;
-    const collapseButton = hiddenImages.nextElementSibling;
-
-    hiddenImages.style.display = "flex";
-    collapseButton.style.display = "block";
-    element.style.display = "none";
-  }
-  function collapseImages(element) {
-    // Tìm phần tử chứa các ảnh ẩn
-    const hiddenImages = element.previousElementSibling;
-    // Tìm phần "+x ảnh"
-    const moreImagesButton = hiddenImages.previousElementSibling;
-
-    // Ẩn các ảnh thừa
-    hiddenImages.style.display = "none";
-    // Ẩn nút "Thu gọn"
-    element.style.display = "none";
-
-    // Hiển thị lại phần "+x ảnh"
-    moreImagesButton.style.display = "flex";
-  }
-
-  function toggleLike(btn) {
-    const usernameInput = document.querySelector('input[name="username"]');
-    const username = usernameInput ? usernameInput.value : null;
-
-    if (!username) {
-      alert("Bạn cần đăng nhập để thích bài viết!");
-      return;
-    }
-
-    const heartIcon = btn.querySelector('.bi');
-    const heartCount = btn.querySelector('.heart-count');
-    const postId = btn.getAttribute("data-post-id");
-    let isLiked = heartIcon.classList.contains('bi-heart-fill');
-
-    // Cập nhật giao diện trước khi gửi request
-    if (isLiked) {
-      heartIcon.classList.remove('bi-heart-fill');
-      heartIcon.classList.add('bi-heart');
-      heartCount.textContent = parseInt(heartCount.textContent) - 1;
-      btn.classList.remove('text-danger');
-    } else {
-      heartIcon.classList.remove('bi-heart');
-      heartIcon.classList.add('bi-heart-fill');
-      heartCount.textContent = parseInt(heartCount.textContent) + 1;
-      btn.classList.add('text-danger');
-    }
-
-    // Gửi request cập nhật trạng thái like
-    fetch("/forum/like", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded"
-      },
-      body: `postId=${postId}&username=${username}&liked=${!isLiked}`
-    })
-            .then(response => response.json())
-            .then(data => {
-              if (data.likeCount !== undefined) {
-                heartCount.textContent = data.likeCount;
-              }
-            })
-            .catch(error => {
-              console.error('❌ Lỗi khi cập nhật số lượt thích:', error);
-            });
-  }
-
-  document.addEventListener('DOMContentLoaded', function() {
-
-    document.querySelectorAll('.toggle-comments').forEach(button => {
-      button.addEventListener('click', function () {
-        const commentsSection = this.closest('.post-actions').nextElementSibling;
-
-        if (commentsSection.style.display === 'none' || commentsSection.style.display === '') {
-          commentsSection.style.display = 'block';
-        } else {
-          commentsSection.style.display = 'none';
-        }
-      });
-    });
-
-    // Hiển thị menu hành động khi hover vào bình luận
-    document.querySelectorAll('.comment-item').forEach(item => {
-      item.addEventListener('mouseenter', function() {
-        this.querySelector('.comment-actions').style.display = 'block';
-      });
-      item.addEventListener('mouseleave', function() {
-        this.querySelector('.comment-actions').style.display = 'none';
-      });
-    });
-
-    // Kiểm tra đăng nhập trước khi bình luận
-    document.querySelectorAll('#comment-form').forEach(form => {
-      form.addEventListener('submit', function(event) {
-        const username = document.querySelector('input[name="username"]').value;
-        if (!username) {
-          alert("Bạn cần đăng nhập để bình luận!");
-          event.preventDefault(); // Ngăn form gửi đi
-        }
-      });
-    });
-  });
-
-  function showMoreComments(button) {
-    const commentsSection = button.parentElement;
-    const hiddenComments = commentsSection.querySelectorAll('.hidden-comment');
-    let commentsToShow = 2;
-
-    for (let i = 0; i < commentsToShow && i < hiddenComments.length; i++) {
-      hiddenComments[i].classList.remove('hidden-comment');
-    }
-
-    // Ẩn nút "Hiển thị thêm bình luận" nếu không còn bình luận nào để hiển thị
-    if (commentsSection.querySelectorAll('.hidden-comment').length === 0) {
-      button.style.display = 'none';
-    }
-  }
-
-  function togglePostSettingsMenu(element) {
-    const menu = element.nextElementSibling;
-    menu.classList.toggle('hidden');
-  }
-
-  function editPost(button) {
-    const postUsername = button.getAttribute('data-post-username');
-    const currentUsername = '[[@{${username}}]]'; // Lấy tên người dùng hiện tại
-
-    if (postUsername !== currentUsername) {
-      alert("Bạn chỉ có thể chỉnh sửa bài viết của mình");
-      return;
-    }
-
-    const postId = button.getAttribute('data-post-id');
-    window.location.href = `/forum/edit/${postId}`;
-  }
-
-  // Xoá bài viết
-  function deletePost(button) {
-    const postUsername = button.getAttribute('data-post-username');
-    const currentUsername = '[[@{${username}}]]';
-
-    if (postUsername !== currentUsername) {
-      alert("Bạn chỉ có thể xoá bài viết của mình");
-      return;
-    }
-
-    const postId = button.getAttribute('data-post-id');
-    if (confirm("Bạn có chắc muốn xoá bài viết này không?")) {
-      window.location.href = `/forum/delete/${postId}`;
-    }
-  }
-
-  // Báo cáo bài viết
-  function reportPost(button) {
-    const postId = button.getAttribute('data-post-id');
-    alert(`Đã báo cáo bài viết với ID: ${postId}`);
-  }
-
-  document.querySelectorAll('.share-button').forEach(button => {
-    button.addEventListener('click', function () {
-      const postUrl = window.location.href; // Lấy URL hiện tại
-      if (navigator.share) {
-        // Nếu trình duyệt hỗ trợ Web Share API
-        navigator.share({
-          title: document.title,
-          url: postUrl
-        }).catch(error => console.error('Lỗi khi chia sẻ:', error));
-      } else {
-        // Nếu không hỗ trợ Web Share API, hiển thị hộp thoại copy link
-        navigator.clipboard.writeText(postUrl).then(() => {
-          alert('🔗 Link bài viết đã được sao chép!');
-        }).catch(error => console.error('Lỗi khi sao chép link:', error));
-      }
-    });
-  });
-
-  function openImage(img) {
-    // Lấy thẻ lightbox và ảnh lớn
-    const lightbox = document.getElementById('lightbox');
-    const lightboxImage = document.getElementById('lightbox-image');
-    const lightboxClose = document.getElementById('lightbox-close');
-
-    // Gán ảnh nguồn vào lightbox
-    lightboxImage.src = img.src;
-
-    // Hiển thị lightbox
-    lightbox.classList.add('show');
-
-    // Đóng lightbox khi nhấn nút "X"
-    lightboxClose.onclick = function () {
-      lightbox.classList.remove('show');
-    };
-
-    // Đóng lightbox khi nhấn ra ngoài ảnh
-    lightbox.onclick = function (e) {
-      if (e.target === lightbox) {
-        lightbox.classList.remove('show');
-      }
-    };
-  }
-</script>
+<script src="/js/forum.js"></script>
 <div id="lightbox" class="hidden fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
   <img id="lightbox-image" class="max-w-full max-h-full object-contain" alt="Enlarged Image">
   <button id="lightbox-close" class="absolute top-4 right-4 text-white text-3xl font-bold cursor-pointer">×</button>

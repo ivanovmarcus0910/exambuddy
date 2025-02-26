@@ -11,29 +11,44 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 @Service
 public class UserService {
     private static final String COLLECTION_NAME = "users";
-    public static User getUserData(String username){
+    public static User getUserData(String username) {
         Firestore firestore = FirestoreClient.getFirestore();
-        User user = new User();
-        try{
-            DocumentSnapshot documentSnapshot = firestore.collection(COLLECTION_NAME).document(username).get().get();
-            if (!documentSnapshot.exists()) return user;
-            user.setEmail(documentSnapshot.getString("email"));
-            user.setPhone(documentSnapshot.getString("phone"));
-            user.setUsername(documentSnapshot.getString("username"));
-            user.setAvatarUrl(documentSnapshot.getString("avatarUrl"));
-        }
-        catch (Exception e){
 
-        }
+        try {
+            DocumentSnapshot documentSnapshot = firestore.collection(COLLECTION_NAME)
+                    .document(username)
+                    .get()
+                    .get();
 
-        return user;
+            if (!documentSnapshot.exists()) {
+                System.out.println("User not found in Firestore: " + username);
+                return null;
+            }
+
+            User user = documentSnapshot.toObject(User.class);
+            if (user == null) {
+                System.out.println("Failed to map Firestore document to User object.");
+                return null;
+            }
+
+            user.setUsername(username); // Đảm bảo username không bị null
+            return user;
+
+        } catch (Exception e) {
+            System.out.println("Error fetching user data for: " + username);
+            e.printStackTrace();
+            return null;
+        }
     }
+
     public static Boolean changeAvatar(String username, String url) {
 
         Firestore firestore = FirestoreClient.getFirestore();
@@ -98,6 +113,20 @@ public class UserService {
             System.out.println("Lỗi khi lấy avatar của: " + username);
         }
         return "http://res.cloudinary.com/dsuav027e/image/upload/v1739939318/dkm6iw7ujnsja8z9d3ek.png"; // Trả về avatar mặc định nếu không tìm thấy
+    }
+
+    public static void updateUserField(String username, String field, Object value) {
+        Firestore firestore = FirestoreClient.getFirestore();
+        DocumentReference userRef = firestore.collection(COLLECTION_NAME).document(username);
+
+        Map<String, Object> updates = new HashMap<>();
+        updates.put(field, value);
+
+        try {
+            userRef.update(updates).get();  // Cập nhật giá trị vào Firestore
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
     }
 
 

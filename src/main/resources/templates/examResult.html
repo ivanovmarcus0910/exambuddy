@@ -21,7 +21,10 @@
     <h3 class="mt-4">Chi tiết bài làm</h3>
     <ul class="list-group">
       <li class="list-group-item" th:each="question, i : ${exam.questions}">
-        <p class="fw-bold mb-2">Câu hỏi: <span th:text="${question.questionText}"></span></p>
+        <p class="fw-bold mb-2">
+          Câu hỏi <span th:text="${i.index + 1}"></span>:
+          <span th:text="${question.questionText}"></span>
+        </p>
 
         <!-- Hiển thị các lựa chọn -->
         <ul class="list-unstyled">
@@ -40,8 +43,8 @@
         </ul>
 
         <!-- Đánh dấu câu đúng/sai -->
-        <p class="fw-bold text-danger mt-2" th:if="${!correctQuestions.contains('q'+i.index)}">❌ Sai</p>
-        <p class="fw-bold text-success mt-2" th:if="${correctQuestions.contains('q'+i.index)}">✅ Đúng</p>
+        <p class="fw-bold text-danger mt-2" th:if="${!correctQuestions.contains('q' + i.index)}">❌ Sai</p>
+        <p class="fw-bold text-success mt-2" th:if="${correctQuestions.contains('q' + i.index)}">✅ Đúng</p>
       </li>
     </ul>
 
@@ -50,5 +53,6 @@
     </div>
   </div>
 </div>
+<div th:insert="fragments/footer :: footer"></div>
 </body>
 </html>

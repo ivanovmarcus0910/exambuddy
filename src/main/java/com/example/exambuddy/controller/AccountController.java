@@ -2,7 +2,6 @@ package com.example.exambuddy.controller;
 
 import com.example.exambuddy.model.User;
 import com.example.exambuddy.service.*;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,21 +9,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.ui.Model;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.io.File;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
-import java.nio.file.Path;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.MediaType;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.ResponseBody;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+
 @Controller
 public class AccountController {
     @Autowired
@@ -42,21 +30,21 @@ public class AccountController {
 
     @RequestMapping("/profile")
     public String profilePage(HttpServletRequest request, Model model) {
+        HttpSession session = request.getSession();
+        String username = (String) session.getAttribute("loggedInUser");
 
-        // Duyệt qua tất cả các cookie để tìm cookie có tên "noname"
-
-        String username = URLDecoder.decode(cookieService.getCookie(request,"noname"));
-
-        if (username != null) {
-            // Lấy thông tin người dùng từ dịch vụ với username đã tìm thấy
-            UserService userService = new UserService();
-            User user = userService.getUserData(username);
-            model.addAttribute("user", user);
-        } else {
-            model.addAttribute("user", null);
+        if (username == null) {
+            return "redirect:/login";
         }
+
+        // Lấy thông tin người dùng từ dịch vụ với username đã tìm thấy
+        UserService userService = new UserService();
+        User user = userService.getUserData(username);
+        model.addAttribute("user", user);
+
         return "profile";
     }
+
     @PostMapping("/profile/upload")
     public String uploadAvatar(@RequestParam("image") MultipartFile file,
                                @RequestParam String username,
@@ -64,15 +52,35 @@ public class AccountController {
         String url = this.cloudinaryService.upLoadImg(file, "imgAvatar");
         System.out.println("URL="+url);
         UserService.changeAvatar(username, url);
-            User user = UserService.getUserData(username);
+        User user = UserService.getUserData(username);
         model.addAttribute("user", user);
 
-        return "profile";  // Trở về trang profile
+        return "redirect:/profile";  // Trở về trang profile
     }
 
-    /**
-    Thay đổi mật khẩu
-     */
+    @PostMapping("/profile/update")
+    public String updateProfile(@RequestParam String fullName,
+                                @RequestParam String phone,
+                                HttpServletRequest request,
+                                Model model) {
+        HttpSession session = request.getSession();
+        String username = (String) session.getAttribute("loggedInUser");
+
+        if (username == null) {
+            return "redirect:/login";
+        }
+
+        // Gọi Firestore Service để cập nhật dữ liệu
+        UserService.updateUserField(username, "fullName", fullName);
+        UserService.updateUserField(username, "phone", phone);
+        // Lấy dữ liệu mới từ Firestore để cập nhật lại model
+        User updatedUser = UserService.getUserData(username);
+        session.setAttribute("user", updatedUser);
+        model.addAttribute("user", updatedUser);
+
+        return "redirect:/profile"; // Trở về trang profile
+    }
+
     @GetMapping("/changePass")
     public String changePasswordPage(HttpSession session, Model model) {
         String username = (String) session.getAttribute("loggedInUser");

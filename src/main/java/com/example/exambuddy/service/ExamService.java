@@ -408,6 +408,7 @@ public class ExamService {
         try {
             CollectionReference examsRef = db.collection("exams");
             Query query = examsRef;
+
             // Áp dụng các điều kiện lọc nếu có giá trị
             if (!grade.isEmpty()) {
                 query = query.whereEqualTo("grade", grade); // Lọc theo lớp
