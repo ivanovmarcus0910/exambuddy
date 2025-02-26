@@ -46,8 +46,12 @@ public class AutoLoginFilter extends OncePerRequestFilter {
                         session = request.getSession(true);
                         session.setAttribute("loggedInUser", username);
                         session.setAttribute("urlimg", UserService.getAvatarUrlByUsername(username));
+                        filterChain.doFilter(request, response);
+                        return;
                     }
-                } else {
+                }
+                else
+                {
                     filterChain.doFilter(request, response);
                     return;
                 }
@@ -55,8 +59,8 @@ public class AutoLoginFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
 
         } catch (Exception e) {
-            System.out.println("Lỗi rồi");
-            e.printStackTrace();
+            System.out.println("Lỗi ở Filter rồi");
+           // e.printStackTrace();
         }
 
     }

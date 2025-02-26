@@ -1,5 +1,6 @@
 package com.example.exambuddy.controller;
 
+import com.example.exambuddy.model.Payment;
 import com.example.exambuddy.model.User;
 import com.example.exambuddy.service.*;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,6 +13,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.net.URLDecoder;
+import java.net.http.HttpRequest;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 import org.springframework.web.bind.annotation.GetMapping;
 
@@ -22,10 +26,11 @@ public class AccountController {
     @Autowired
     private PasswordService passService;
     @Autowired
-
     private CloudinaryService cloudinaryService = new CloudinaryService();
     @Autowired
     private CookieService cookieService;
+    @Autowired
+    private UserService userService;
 
     public AccountController(PasswordService passService) {
         this.passService = passService;
@@ -125,6 +130,33 @@ public class AccountController {
         }
 
         return "changePass";
+    }
+    @GetMapping("/paymentHistory")
+    public String listPayments(@RequestParam(defaultValue = "0") int page, HttpServletRequest request, Model model) {
+        try {
+            String username = cookieService.getCookie(request, "noname");
+            System.out.println("username=" + username);
+            int pageSize = 10; // Số bản ghi trên mỗi trang
+            Long lastTimestamp = page > 0 ? getLastTimestamp(page - 1, pageSize, username) : null;
+            System.out.println(lastTimestamp);
+            List<Payment> payments = userService.getPaymentsByPage(username, pageSize, lastTimestamp);
+            model.addAttribute("payments", payments);
+            model.addAttribute("currentPage", page);
+            model.addAttribute("nextPage", page + 1);
+            //System.out.println(payments);
+            return "paymentHistory"; // Trả về trang payments.html
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+    private Long getLastTimestamp(int page, int pageSize, String username) throws ExecutionException, InterruptedException {
+        List<Payment> previousPage = userService.getPaymentsByPage(username, pageSize, null);
+        if (!previousPage.isEmpty()) {
+            return previousPage.get(previousPage.size() - 1).getTimestamp();
+        }
+        return null;
     }
 
 }

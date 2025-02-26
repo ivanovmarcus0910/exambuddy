@@ -22,6 +22,8 @@ import java.util.Random;
 
 @Controller
 public class CheckoutController {
+    private final UserService userService;
+
     public static long generateOrderCode() {
         long timestamp = Instant.now().toEpochMilli(); // Lấy timestamp hiện tại
         int randomPart = new Random().nextInt(900) + 100; // 3 số ngẫu nhiên (100-999)
@@ -31,12 +33,13 @@ public class CheckoutController {
     private final PayOS payOS;
     private final CookieService cookieService = new CookieService();
 
-    public CheckoutController(PayOS payOS) {
+    public CheckoutController(PayOS payOS, UserService userService) {
         super();
         this.payOS = payOS;
+        this.userService = userService;
     }
 
-    @RequestMapping(value = "/payment-index")
+    @RequestMapping(value = "/payment-coin")
     public String Index() {
         return "createPayment";
     }
@@ -48,11 +51,10 @@ public class CheckoutController {
     }
 
     @RequestMapping(value = "/cancel")
-    public String Cancel() {
-
-        return "cancel";
+    public String cancelTransaction(@RequestParam("orderCode") String paymentCode) {
+        boolean isUpdated = userService.updatePaymentStatusFail(Long.parseLong(paymentCode), "CANCELLED");
+        return "cancel"; // Quay lại danh sách thanh toán
     }
-
     @RequestMapping(method = RequestMethod.POST, value = "/create-payment-link", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public void checkout(HttpServletRequest request, HttpServletResponse httpServletResponse, @RequestParam("amount") int amount) {
         try {

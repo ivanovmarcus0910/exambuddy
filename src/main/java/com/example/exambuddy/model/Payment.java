@@ -17,6 +17,9 @@ public class Payment {
         this.timestamp = timestamp;
     }
 
+    public Payment() {
+    }
+
     public long getPaymentCode() {
         return paymentCode;
     }

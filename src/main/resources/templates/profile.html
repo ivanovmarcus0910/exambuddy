@@ -87,8 +87,8 @@
     <div class="row">
         <div class="col-lg-3 col-md-4 sidebar">
             <div class="list-group">
-                <a class="list-group-item list-group-item-action active" href="/profile">
-                    <i class="bi bi-person-circle"></i> Thông tin cá nhân
+                <a class="list-group-item list-group-item-action" href="/payment-coin">
+                    <i class="bi bi-wallet-fill"></i> Nạp Coin
                 </a>
                 <a class="list-group-item list-group-item-action" href="/changePass">
                     <i class="bi bi-key"></i> Thay đổi mật khẩu
@@ -102,7 +102,7 @@
                 <a class="list-group-item list-group-item-action" href="#">
                     <i class="bi bi-pencil-square"></i> Lịch sử đăng bài
                 </a>
-                <a class="list-group-item list-group-item-action" href="#">
+                <a class="list-group-item list-group-item-action" href="paymentHistory">
                     <i class="bi bi-wallet2"></i> Lịch sử thanh toán
                 </a>
                 <a class="list-group-item list-group-item-action text-danger" href="/logout">
@@ -138,8 +138,8 @@
 
                     <div class="account-balance-section text-center mb-4">
                         <div class="card bg-gradient-primary text-white p-3">
-                            <h5>Điểm tích lũy</h5>
-                            <h3 class="mb-0">250 điểm</h3>
+                            <h5> EB Coin</h5>
+                            <h3 class="mb-0" th:text="${user.coin + ' coin'}"></h3>
                             <small class="text-white-50">Hết hạn Premium User: 05/03/2024</small>
                         </div>
                     </div>
