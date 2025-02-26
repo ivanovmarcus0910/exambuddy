@@ -32,7 +32,11 @@ public class SecurityConfig {
                 )
                 .logout(logout -> logout
                         .logoutUrl("/logout") // Đường dẫn logout
-                        .deleteCookies("noname") // Xóa cookie "noname"
+                        .deleteCookies("JSESSIONID")
+                        .deleteCookies("noname")
+                        .deleteCookies("rememberedUsername")
+                        .deleteCookies("rememberedPassword")
+                        .invalidateHttpSession(true)
                         .logoutSuccessUrl("/home") // Chuyển hướng sau khi logout
                 );
 
