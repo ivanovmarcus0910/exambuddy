@@ -240,11 +240,6 @@ public class AuthController {
             hasError = true;
         }
 
-        // Kiểm tra số điện thoại hợp lệ (tối thiểu 9 số)
-//        if (!phone.matches("^\\d{9,}$")) {
-//            model.addAttribute("phoneError", "Số điện thoại không hợp lệ!");
-//            hasError = true;
-//        }
 
         // Kiểm tra mật khẩu xác nhận
         if (!password.equals(confirmPassword)) {
