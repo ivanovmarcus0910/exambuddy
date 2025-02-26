@@ -15,18 +15,19 @@ import java.util.*;
 public class CloudinaryService {
     private CloudinaryConfig x;
     private Cloudinary cloudinary;
+
     public CloudinaryService() {
-         x = new CloudinaryConfig();
-        cloudinary=x.getCloudinary();
+        x = new CloudinaryConfig();
+        cloudinary = x.getCloudinary();
     }
 
 
     public String upLoadImg(MultipartFile file, String foldername) {
-        try{
+        try {
             Map data = this.cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap("folder", foldername));
             String url = (String) data.get("url");
             return url;
-        }catch (Exception e){
+        } catch (Exception e) {
             System.out.println("Image upload fail");
             return null;
         }

@@ -9,8 +9,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.ui.Model;
 import org.springframework.web.multipart.MultipartFile;
+
 import java.io.IOException;
 import java.net.URLDecoder;
+
 import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
@@ -21,9 +23,10 @@ public class AccountController {
     private PasswordService passService;
     @Autowired
 
-    private CloudinaryService cloudinaryService=new CloudinaryService();
+    private CloudinaryService cloudinaryService = new CloudinaryService();
     @Autowired
     private CookieService cookieService;
+
     public AccountController(PasswordService passService) {
         this.passService = passService;
     }
@@ -51,7 +54,7 @@ public class AccountController {
                                HttpSession session,
                                Model model) throws IOException {
         String url = this.cloudinaryService.upLoadImg(file, "imgAvatar");
-        System.out.println("URL="+url);
+        System.out.println("URL=" + url);
         UserService.changeAvatar(username, url);
         session.setAttribute("urlimg", url);
         User user = UserService.getUserData(username);

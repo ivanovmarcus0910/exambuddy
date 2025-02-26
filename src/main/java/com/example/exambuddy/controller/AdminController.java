@@ -30,7 +30,6 @@ public class AdminController {
     private ExamService examService;
 
 
-
     // ✅ Chỉ Admin mới có thể truy cập trang này
     @GetMapping("/dashboard")
     public String adminDashboard(Model model, HttpSession session) throws ExecutionException, InterruptedException {

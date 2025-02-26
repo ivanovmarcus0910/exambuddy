@@ -8,7 +8,8 @@ public class Question {
     private List<Integer> correctAnswers; // Nhiều đáp án đúng
 
     // Constructor mặc định
-    public Question() {}
+    public Question() {
+    }
 
     public Question(String questionText, List<String> options, List<Integer> correctAnswers) {
         this.questionText = questionText;

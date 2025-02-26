@@ -1,5 +1,6 @@
 package com.example.exambuddy.service;
 
+import com.example.exambuddy.model.Payment;
 import com.example.exambuddy.model.User;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.*;
@@ -19,6 +20,7 @@ import java.util.concurrent.ExecutionException;
 @Service
 public class UserService {
     private static final String COLLECTION_NAME = "users";
+
     public static User getUserData(String username) {
         Firestore firestore = FirestoreClient.getFirestore();
 
@@ -60,12 +62,11 @@ public class UserService {
                 return false;
             }
             userSnapshot.getReference().update("avatarUrl", url);
+        } catch (Exception e) {
+            System.out.println("Lỗi khi đổi avatar");
+            return false;
         }
-            catch (Exception e){
-                System.out.println("Lỗi khi đổi avatar");
-                return false;
-            }
-            return true;
+        return true;
     }
 
     // ✅ Thêm mới hàm lưu tài khoản OAuth2 vào Firestore
@@ -164,6 +165,15 @@ public class UserService {
             e.printStackTrace();
             return null;
         }
+    }
+
+    public boolean addPaymentTransaction(long paymentCode, int amoutn, String link, String status, String username) {
+        Firestore firestore = FirestoreClient.getFirestore();
+        CollectionReference transaction = firestore.collection("Transactions");
+        Long time = System.currentTimeMillis();
+        Payment payment = new Payment(paymentCode, amoutn, link, status, username, time);
+        transaction.document().set(payment);
+        return false;
     }
 
 }

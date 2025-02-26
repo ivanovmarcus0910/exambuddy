@@ -17,13 +17,13 @@ public class SecurityConfig {
                 .cors(cors -> cors.disable()) // Tắt CORS của Spring Security
                 .csrf(csrf -> csrf.disable()) // Tắt CSRF để tránh lỗi Forbidden
                 .authorizeHttpRequests(auth -> auth
-                        //.requestMatchers("/api/users/register","/api/users/login","/api/users/verify").permitAll() // Cho phép truy cập tất cả API
-                        //.requestMatchers("/signup").permitAll()
+                                //.requestMatchers("/api/users/register","/api/users/login","/api/users/verify").permitAll() // Cho phép truy cập tất cả API
+                                //.requestMatchers("/signup").permitAll()
 //                        .requestMatchers("/admin/**").hasRole("ADMIN")
 //                        .requestMatchers("/user/**").hasAnyRole("USER", "UPGRADED_USER")
 //                        .requestMatchers("/teacher/**").hasRole("TEACHER")
 //                        .requestMatchers("/upgraded/**").hasRole("UPGRADED_USER")
-                        .anyRequest().permitAll() // Cho phép tất cả request khác
+                                .anyRequest().permitAll() // Cho phép tất cả request khác
                 )
                 .oauth2Login(oauth2 -> oauth2
                         .loginPage("/login")

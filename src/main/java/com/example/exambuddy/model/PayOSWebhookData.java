@@ -52,53 +52,133 @@ public class PayOSWebhookData {
     private String virtualAccountNumber;
 
     // Getters & Setters
-    public Long getOrderCode() { return orderCode; }
-    public void setOrderCode(Long orderCode) { this.orderCode = orderCode; }
+    public Long getOrderCode() {
+        return orderCode;
+    }
 
-    public Long getAmount() { return amount; }
-    public void setAmount(Long amount) { this.amount = amount; }
+    public void setOrderCode(Long orderCode) {
+        this.orderCode = orderCode;
+    }
 
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
+    public Long getAmount() {
+        return amount;
+    }
 
-    public String getAccountNumber() { return accountNumber; }
-    public void setAccountNumber(String accountNumber) { this.accountNumber = accountNumber; }
+    public void setAmount(Long amount) {
+        this.amount = amount;
+    }
 
-    public String getReference() { return reference; }
-    public void setReference(String reference) { this.reference = reference; }
+    public String getDescription() {
+        return description;
+    }
 
-    public String getTransactionDateTime() { return transactionDateTime; }
-    public void setTransactionDateTime(String transactionDateTime) { this.transactionDateTime = transactionDateTime; }
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
-    public String getCurrency() { return currency; }
-    public void setCurrency(String currency) { this.currency = currency; }
+    public String getAccountNumber() {
+        return accountNumber;
+    }
 
-    public String getPaymentLinkId() { return paymentLinkId; }
-    public void setPaymentLinkId(String paymentLinkId) { this.paymentLinkId = paymentLinkId; }
+    public void setAccountNumber(String accountNumber) {
+        this.accountNumber = accountNumber;
+    }
 
-    public String getCode() { return code; }
-    public void setCode(String code) { this.code = code; }
+    public String getReference() {
+        return reference;
+    }
 
-    public String getDesc() { return desc; }
-    public void setDesc(String desc) { this.desc = desc; }
+    public void setReference(String reference) {
+        this.reference = reference;
+    }
 
-    public String getCounterAccountBankId() { return counterAccountBankId; }
-    public void setCounterAccountBankId(String counterAccountBankId) { this.counterAccountBankId = counterAccountBankId; }
+    public String getTransactionDateTime() {
+        return transactionDateTime;
+    }
 
-    public String getCounterAccountBankName() { return counterAccountBankName; }
-    public void setCounterAccountBankName(String counterAccountBankName) { this.counterAccountBankName = counterAccountBankName; }
+    public void setTransactionDateTime(String transactionDateTime) {
+        this.transactionDateTime = transactionDateTime;
+    }
 
-    public String getCounterAccountName() { return counterAccountName; }
-    public void setCounterAccountName(String counterAccountName) { this.counterAccountName = counterAccountName; }
+    public String getCurrency() {
+        return currency;
+    }
 
-    public String getCounterAccountNumber() { return counterAccountNumber; }
-    public void setCounterAccountNumber(String counterAccountNumber) { this.counterAccountNumber = counterAccountNumber; }
+    public void setCurrency(String currency) {
+        this.currency = currency;
+    }
 
-    public String getVirtualAccountName() { return virtualAccountName; }
-    public void setVirtualAccountName(String virtualAccountName) { this.virtualAccountName = virtualAccountName; }
+    public String getPaymentLinkId() {
+        return paymentLinkId;
+    }
 
-    public String getVirtualAccountNumber() { return virtualAccountNumber; }
-    public void setVirtualAccountNumber(String virtualAccountNumber) { this.virtualAccountNumber = virtualAccountNumber; }
+    public void setPaymentLinkId(String paymentLinkId) {
+        this.paymentLinkId = paymentLinkId;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
+    }
+
+    public String getDesc() {
+        return desc;
+    }
+
+    public void setDesc(String desc) {
+        this.desc = desc;
+    }
+
+    public String getCounterAccountBankId() {
+        return counterAccountBankId;
+    }
+
+    public void setCounterAccountBankId(String counterAccountBankId) {
+        this.counterAccountBankId = counterAccountBankId;
+    }
+
+    public String getCounterAccountBankName() {
+        return counterAccountBankName;
+    }
+
+    public void setCounterAccountBankName(String counterAccountBankName) {
+        this.counterAccountBankName = counterAccountBankName;
+    }
+
+    public String getCounterAccountName() {
+        return counterAccountName;
+    }
+
+    public void setCounterAccountName(String counterAccountName) {
+        this.counterAccountName = counterAccountName;
+    }
+
+    public String getCounterAccountNumber() {
+        return counterAccountNumber;
+    }
+
+    public void setCounterAccountNumber(String counterAccountNumber) {
+        this.counterAccountNumber = counterAccountNumber;
+    }
+
+    public String getVirtualAccountName() {
+        return virtualAccountName;
+    }
+
+    public void setVirtualAccountName(String virtualAccountName) {
+        this.virtualAccountName = virtualAccountName;
+    }
+
+    public String getVirtualAccountNumber() {
+        return virtualAccountNumber;
+    }
+
+    public void setVirtualAccountNumber(String virtualAccountNumber) {
+        this.virtualAccountNumber = virtualAccountNumber;
+    }
 
     @Override
     public String toString() {

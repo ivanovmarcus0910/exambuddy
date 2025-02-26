@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 import jakarta.mail.*;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
+
 import java.util.Properties;
 import java.util.Random;
 
@@ -12,6 +13,7 @@ public class EmailService {
 
     private final String senderEmail = "apartmentprovjp@gmail.com"; // Email gửi
     private final String senderPassword = "ijws suhs qiwz zmuk"; // Mật khẩu ứng dụng (App Password)
+
     public String generateOtp() {
         Random random = new Random();
         int otp = 100000 + random.nextInt(900000); // OTP 6 chữ số
@@ -32,6 +34,7 @@ public class EmailService {
         sendEmail(recipientEmail, subject, message);
     }
     */
+
     /**
      * Gửi email chứa mã OTP để đặt lại mật khẩu
      */
@@ -50,11 +53,13 @@ public class EmailService {
 
         sendEmail(recipientEmail, subject, message);
     }
+
     /**
      * Cấu hình và gửi email qua SMTP với SSL (Port 465)
+     *
      * @param recipientEmail Địa chỉ email nhận
-     * @param subject Chủ đề email
-     * @param message Nội dung email
+     * @param subject        Chủ đề email
+     * @param message        Nội dung email
      */
     private void sendEmail(String recipientEmail, String subject, String message) throws MessagingException {
         // Cấu hình SMTP với SSL (Port 465)
