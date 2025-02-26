@@ -7,199 +7,152 @@
   <link rel="icon" type="image/x-icon" href="https://res.cloudinary.com/dsuav027e/image/upload/v1740393796/favicon_llcueu.ico">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
+  <style>
+    body {
+      background-color: #f8f9fa;
+    }
+    .btn-custom {
+      background-color: #007bff;
+      color: white;
+      border-radius: 8px;
+      transition: all 0.3s ease-in-out;
+    }
+    .btn-custom:hover {
+      background-color: #0056b3;
+      transform: scale(1.05);
+    }
+    .details-container {
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .chapter-container, .lesson-container {
+      background: #f1f1f1;
+      padding: 15px;
+      border-radius: 10px;
+      margin-top: 10px;
+    }
+  </style>
 </head>
 <body>
 <div th:insert="fragments/header :: header"></div>
-<div class="container">
-  <h1 class="text-center text-primary mb-4">Quản lý Lý Thuyết</h1>
+<div class="container mt-4">
+  <h1 class="text-center text-primary mb-4">Lý Thuyết</h1>
   <div class="row">
-    <!-- Cột chứa danh sách Lớp -->
     <div class="col-md-3">
-      <div id="class-list"></div>
+      <div class="card p-3">
+        <h5 class="text-center">Danh sách Lớp</h5>
+        <div id="class-list"></div>
+      </div>
     </div>
-    <!-- Cột chứa chi tiết Môn, Chương, Bài -->
     <div class="col-md-9">
       <div id="details-container" class="details-container"></div>
     </div>
   </div>
 </div>
-
-<!-- JavaScript chính -->
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     const classList = document.getElementById('class-list');
     const detailsContainer = document.getElementById('details-container');
+    let currentClass = null, currentSubject = null, currentChapter = null, currentChapterDiv = null;
 
-    let currentClass = null;
-    let currentSubject = null;
-
-    // Giữ thêm tham chiếu để đóng chương cũ
-    let currentChapter = null;
-    let currentChapterDiv = null;  // Lưu trữ DOM của chương đang mở
-
-    // 1. Tải danh sách Lớp
     function loadClasses() {
       fetch('/api/theory/classes')
               .then(response => response.json())
               .then(classes => {
-                // Sắp xếp danh sách lớp theo tên (đảm bảo lớp 10, 11, 12 theo thứ tự)
-                classes.sort((a, b) =>
-                        a.name.localeCompare(b.name, undefined, { numeric: true })
-                );
-
+                classes.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
                 classList.innerHTML = '';
                 classes.forEach(cls => {
-                  const classDiv = document.createElement('div');
-                  classDiv.classList.add('class-item', 'mb-3');
+                  const classDiv = document.createElement('button');
+                  classDiv.classList.add('btn', 'btn-custom', 'mb-2', 'w-100');
                   classDiv.textContent = cls.name;
-
-                  // Khi click vào Lớp
                   classDiv.onclick = (event) => {
                     event.stopPropagation();
-                    // Nếu đang mở lớp này, bấm lại thì ẩn đi
-                    if (currentClass === cls.id) {
-                      detailsContainer.innerHTML = '';
-                      currentClass = null;
-                    } else {
-                      loadSubjects(cls.id);
-                      currentClass = cls.id;
-                    }
+                    detailsContainer.innerHTML = currentClass === cls.id ? '' : loadSubjects(cls.id);
+                    currentClass = currentClass === cls.id ? null : cls.id;
                   };
-
                   classList.appendChild(classDiv);
                 });
               })
               .catch(err => console.error('Lỗi khi tải danh sách Lớp:', err));
     }
 
-    // 2. Tải danh sách Môn (theo Lớp)
     function loadSubjects(classId) {
       fetch(`/api/theory/subjects/${classId}`)
               .then(response => response.json())
               .then(subjects => {
-                // Xoá vùng hiển thị chi tiết cũ
                 detailsContainer.innerHTML = '';
-
                 const subjectContainer = document.createElement('div');
-                subjectContainer.classList.add('subject-container', 'd-flex', 'flex-wrap', 'gap-2');
-
+                subjectContainer.classList.add('d-flex', 'flex-wrap', 'gap-2');
                 subjects.forEach(subject => {
-                  const subjectDiv = document.createElement('div');
-                  subjectDiv.classList.add('subject-item', 'p-2', 'flex-grow-1');
+                  const subjectDiv = document.createElement('button');
+                  subjectDiv.classList.add('btn', 'btn-custom', 'p-2', 'flex-grow-1');
                   subjectDiv.textContent = subject.name;
-
-                  // Khi click vào Môn
                   subjectDiv.onclick = (event) => {
                     event.stopPropagation();
-                    // Nếu đang mở môn này, bấm lại thì ẩn đi
-                    if (currentSubject === subject.id) {
-                      detailsContainer.querySelector('.chapter-container')?.remove();
-                      currentSubject = null;
-                    } else {
+                    detailsContainer.querySelector('.chapter-container')?.remove();
+                    if (currentSubject !== subject.id) {
                       loadChapters(classId, subject.id, subjectDiv);
                       currentSubject = subject.id;
-                    }
+                    } else currentSubject = null;
                   };
-
                   subjectContainer.appendChild(subjectDiv);
                 });
-
                 detailsContainer.appendChild(subjectContainer);
               })
               .catch(err => console.error('Lỗi khi tải danh sách Môn:', err));
     }
 
-    // 3. Tải danh sách Chương (theo Lớp, Môn)
     function loadChapters(classId, subjectId, subjectItem) {
       fetch(`/api/theory/chapters/${classId}/${subjectId}`)
               .then(response => response.json())
               .then(chapters => {
-                // Tìm hoặc tạo vùng chứa chapter
-                let chapterContainer = detailsContainer.querySelector('.chapter-container');
-                if (!chapterContainer) {
-                  chapterContainer = document.createElement('div');
-                  chapterContainer.classList.add('chapter-container', 'mt-3');
-                  detailsContainer.appendChild(chapterContainer);
-                } else {
-                  chapterContainer.innerHTML = '';
-                }
-
+                let chapterContainer = document.createElement('div');
+                chapterContainer.classList.add('chapter-container', 'mt-3');
                 chapters.forEach(chapter => {
-                  const chapterDiv = document.createElement('div');
-                  chapterDiv.classList.add('chapter-item', 'mb-2');
+                  const chapterDiv = document.createElement('button');
+                  chapterDiv.classList.add('btn', 'btn-custom', 'mb-2', 'w-100');
                   chapterDiv.textContent = chapter.name;
-
-                  // Khi click vào Chương
                   chapterDiv.onclick = (event) => {
                     event.stopPropagation();
-
-                    // Nếu click lại cùng chương thì đóng nó
-                    if (currentChapter === chapter.id) {
-                      chapterDiv.querySelector('.lesson-container')?.remove();
-                      currentChapter = null;
-                      currentChapterDiv = null;
-                    }
-                    else {
-                      // Đóng chương cũ (nếu khác chương hiện tại)
-                      if (currentChapterDiv && currentChapterDiv !== chapterDiv) {
-                        currentChapterDiv.querySelector('.lesson-container')?.remove();
-                      }
+                    chapterDiv.querySelector('.lesson-container')?.remove();
+                    if (currentChapter !== chapter.id) {
                       loadLessons(classId, subjectId, chapter.id, chapterDiv);
                       currentChapter = chapter.id;
-                      currentChapterDiv = chapterDiv;
-                    }
+                    } else currentChapter = null;
                   };
-
                   chapterContainer.appendChild(chapterDiv);
                 });
+                detailsContainer.appendChild(chapterContainer);
               })
               .catch(err => console.error('Lỗi khi tải danh sách Chương:', err));
     }
 
-    // 4. Tải danh sách Bài học (theo Lớp, Môn, Chương)
     function loadLessons(classId, subjectId, chapterId, chapterDiv) {
       fetch(`/api/theory/lessons/${classId}/${subjectId}/${chapterId}`)
               .then(response => response.json())
               .then(lessons => {
-                // Tạo vùng chứa Bài học riêng cho mỗi chương
-                let lessonContainer = chapterDiv.querySelector('.lesson-container');
-                if (!lessonContainer) {
-                  lessonContainer = document.createElement('div');
-                  lessonContainer.classList.add('lesson-container', 'mt-2', 'ms-3');
-                  // Quan trọng: append vào 'chapterDiv' thay vì 'chapterContainer'
-                  chapterDiv.appendChild(lessonContainer);
-                } else {
-                  lessonContainer.innerHTML = '';
-                }
-
+                let lessonContainer = document.createElement('div');
+                lessonContainer.classList.add('lesson-container', 'mt-2', 'ms-3');
                 lessons.forEach(lesson => {
-                  const lessonDiv = document.createElement('div');
-                  lessonDiv.classList.add('lesson-item', 'mb-2');
+                  const lessonDiv = document.createElement('button');
+                  lessonDiv.classList.add('btn', 'btn-custom', 'mb-2', 'w-100');
                   lessonDiv.textContent = lesson.name;
-
-                  // Khi click vào Bài học
                   lessonDiv.onclick = (event) => {
                     event.stopPropagation();
                     window.location.href = `/lesson?classId=${classId}&subjectId=${subjectId}&chapterId=${chapterId}&lessonId=${lesson.id}`;
                   };
-
                   lessonContainer.appendChild(lessonDiv);
                 });
+                chapterDiv.appendChild(lessonContainer);
               })
               .catch(error => console.error('Lỗi khi tải danh sách bài học:', error));
     }
 
-    // Khởi chạy ban đầu: tải danh sách Lớp
     loadClasses();
   });
 </script>
-
-<!-- Bootstrap JS -->
-<script
-        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
-></script>
 <div th:replace="fragments/footer :: footer"></div>
-
 </body>
 </html>
