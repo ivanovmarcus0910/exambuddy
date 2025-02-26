@@ -151,16 +151,18 @@ public class AuthController {
 
 
 
-    @RequestMapping("/logout")
-    public String logout(HttpSession session, HttpServletResponse response, HttpServletRequest request) {
-        session.removeAttribute("loggedInUser");
-        session.invalidate();
-        cookieService.removeCookie(response,"rememberedUsername");
-        cookieService.removeCookie(response,"rememberedPassword");
-        cookieService.removeCookie(response,"noname");
-        System.out.println("Đã logout");
-        return "home"; // Chuyển hướng về trang home, đảm bảo session đã bị xóa
-    }
+//    @RequestMapping("/logout")
+//    public String logout(HttpSession session, HttpServletResponse response, HttpServletRequest request) {
+//        System.out.println("Đã logout");
+//        session.removeAttribute("loggedInUser");
+//        session.removeAttribute("urlimg");
+//        session.invalidate();
+//        cookieService.removeCookie(response,"rememberedUsername");
+//        cookieService.removeCookie(response,"rememberedPassword");
+//        cookieService.removeCookie(response,"noname");
+//        System.out.println("Đã logout");
+//        return "redirect:/home";
+//    }
 
     @GetMapping("/forgotPass")
     public String forgotPasswordPage() {

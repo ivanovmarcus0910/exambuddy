@@ -25,8 +25,8 @@ public class CookieService {
     }
     public void removeCookie(HttpServletResponse response, String name) {
         Cookie cookie = new Cookie(name, null);
-        cookie.setPath("/");
         cookie.setMaxAge(0); // Xóa cookie bằng cách đặt thời gian sống = 0
+        cookie.setPath("/");
         response.addCookie(cookie);
     }
 }
