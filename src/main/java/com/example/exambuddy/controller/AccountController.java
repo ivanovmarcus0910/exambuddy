@@ -48,10 +48,12 @@ public class AccountController {
     @PostMapping("/profile/upload")
     public String uploadAvatar(@RequestParam("image") MultipartFile file,
                                @RequestParam String username,
+                               HttpSession session,
                                Model model) throws IOException {
         String url = this.cloudinaryService.upLoadImg(file, "imgAvatar");
         System.out.println("URL="+url);
         UserService.changeAvatar(username, url);
+        session.setAttribute("urlimg", url);
         User user = UserService.getUserData(username);
         model.addAttribute("user", user);
 
