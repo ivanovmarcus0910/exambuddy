@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Search Exam Results</title>
-    <link rel="icon" type="image/x-icon" href="https://res.cloudinary.com/dsuav027e/image/upload/v1740393796/favicon_llcueu.ico">
+    <link rel="icon" type="image/x-icon"
+          href="https://res.cloudinary.com/dsuav027e/image/upload/v1740393796/favicon_llcueu.ico">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
@@ -12,7 +13,8 @@
 <main>
     <div th:insert="~{fragments/header :: header}"></div>
 
-    <div class="card shadow-lg p-4 bg-white rounded mx-auto" style="max-width: 900px; margin-bottom: 50px; margin-top:50px;">
+    <div class="card shadow-lg p-4 bg-white rounded mx-auto"
+         style="max-width: 900px; margin-bottom: 50px; margin-top:50px;">
         <h4 class="text-center text-success mb-3">Tìm kiếm đề thi</h4>
         <form action="/search-by-filter" method="get" class="d-flex flex-wrap gap-2 justify-content-between">
             <select name="grade" class="form-select flex-grow-1">
@@ -61,66 +63,68 @@
             citySelect.appendChild(option);
         });
     </script>
-<table>
-    <div class="container my-4">
-        <!-- Thông báo khi không có đề thi -->
-        <div th:if="${examList.isEmpty()}" class="alert alert-warning text-center">
-            <i class="bi bi-exclamation-triangle-fill text-danger"></i>
-            <p class="mb-0">Không có đề thi nào khớp với từ khóa "<span th:text="${exam}" class="fw-bold text-primary"></span>"</p>
-        </div>
+    <table>
+        <div class="container my-4">
+            <!-- Thông báo khi không có đề thi -->
+            <div th:if="${examList.isEmpty()}" class="alert alert-warning text-center">
+                <i class="bi bi-exclamation-triangle-fill text-danger"></i>
+                <p class="mb-0">Không có đề thi nào khớp với từ khóa "<span th:text="${exam}"
+                                                                            class="fw-bold text-primary"></span>"</p>
+            </div>
 
-        <!-- Danh sách đề thi -->
-        <!-- Danh sách đề thi -->
-        <div class="row g-4"> <!-- Thêm g-4 để tăng khoảng cách -->
-            <div class="col-12 col-sm-6 col-md-4 col-lg-3" style="margin-bottom: 30px;" th:each="exam : ${examList}">
-                <div class="card border-primary shadow-sm h-100">
-                    <div class="card-body">
-                        <h5 class="card-title text-primary fw-bold">
-                            <i class="bi bi-bookmark-star-fill text-warning"></i>
-                            <span th:text="${exam.examName}">Tên đề thi</span>
-                        </h5>
-                        <p class="card-text">
-                            <i class="bi bi-journal-text text-success"></i>
-                            <strong>Môn:</strong> <span th:text="${exam.subject}"></span>
-                        </p>
-                        <p class="card-text">
-                            <i class="bi bi-people-fill text-info"></i>
-                            <strong>Lớp:</strong> <span th:text="${exam.grade}"></span>
-                        </p>
-                        <p class="card-text">
-                            <i class="bi bi-geo-alt-fill text-danger"></i>
-                            <strong>Tỉnh - Thành phố:</strong> <span th:text="${exam.city}"></span>
-                        </p>
-                        <p class="card-text">
-                            <i class="bi bi-ui-checks-grid text-warning"></i>
-                            <strong>Dạng đề:</strong> <span th:text="${exam.examType}"></span>
-                        </p>
-                        <p class="card-text">
-                            <i class="bi bi-list-ol text-primary"></i>
-                            <strong>Số câu hỏi:</strong> <span th:text="${exam.questionCount}"></span>
-                        </p>
-                        <p class="card-text">
-                            <i class="bi bi-calendar-event text-secondary"></i>
-                            <strong>Ngày đăng:</strong>
-                            <span th:text="${#dates.format(exam.date, 'dd/MM/yyyy')}"></span>
-                        </p>
-                    </div>
-                    <div class="card-footer bg-transparent text-center">
-                        <a th:href="@{/exams/{id}/detail(id=${exam.examID})}" class="btn btn-primary w-100 mb-2">
-                            <i class="bi bi-eye-fill"></i> Xem chi tiết
-                        </a>
-                        <form th:action="@{/exams/{id}/do(id=${exam.examID})}" method="get">
-                            <button class="btn btn-danger w-100" type="submit">
-                                <i class="bi bi-play-fill"></i> Bắt đầu làm bài
-                            </button>
-                        </form>
-                    </div>
+            <!-- Danh sách đề thi -->
+            <!-- Danh sách đề thi -->
+            <div class="row g-4"> <!-- Thêm g-4 để tăng khoảng cách -->
+                <div class="col-12 col-sm-6 col-md-4 col-lg-3" style="margin-bottom: 30px;"
+                     th:each="exam : ${examList}">
+                    <div class="card border-primary shadow-sm h-100">
+                        <div class="card-body">
+                            <h5 class="card-title text-primary fw-bold">
+                                <i class="bi bi-bookmark-star-fill text-warning"></i>
+                                <span th:text="${exam.examName}">Tên đề thi</span>
+                            </h5>
+                            <p class="card-text">
+                                <i class="bi bi-journal-text text-success"></i>
+                                <strong>Môn:</strong> <span th:text="${exam.subject}"></span>
+                            </p>
+                            <p class="card-text">
+                                <i class="bi bi-people-fill text-info"></i>
+                                <strong>Lớp:</strong> <span th:text="${exam.grade}"></span>
+                            </p>
+                            <p class="card-text">
+                                <i class="bi bi-geo-alt-fill text-danger"></i>
+                                <strong>Tỉnh - Thành phố:</strong> <span th:text="${exam.city}"></span>
+                            </p>
+                            <p class="card-text">
+                                <i class="bi bi-ui-checks-grid text-warning"></i>
+                                <strong>Dạng đề:</strong> <span th:text="${exam.examType}"></span>
+                            </p>
+                            <p class="card-text">
+                                <i class="bi bi-list-ol text-primary"></i>
+                                <strong>Số câu hỏi:</strong> <span th:text="${exam.questionCount}"></span>
+                            </p>
+                            <p class="card-text">
+                                <i class="bi bi-calendar-event text-secondary"></i>
+                                <strong>Ngày đăng:</strong>
+                                <span th:text="${#dates.format(exam.date, 'dd/MM/yyyy')}"></span>
+                            </p>
+                        </div>
+                        <div class="card-footer bg-transparent text-center">
+                            <a th:href="@{/exams/{id}/detail(id=${exam.examID})}" class="btn btn-primary w-100 mb-2">
+                                <i class="bi bi-eye-fill"></i> Xem chi tiết
+                            </a>
+                            <form th:action="@{/exams/{id}/do(id=${exam.examID})}" method="get">
+                                <button class="btn btn-danger w-100" type="submit">
+                                    <i class="bi bi-play-fill"></i> Bắt đầu làm bài
+                                </button>
+                            </form>
+                        </div>
 
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-   </table>
+    </table>
 
 </main>
 

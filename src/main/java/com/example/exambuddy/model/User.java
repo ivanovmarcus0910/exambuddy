@@ -10,15 +10,17 @@ public class User {
     private String avatarUrl;
     private String role;
     private String fullName;
+    private int coin;
 
     public enum Role {
         ADMIN, USER, TEACHER, UPGRADED_USER
     }
+
     public User() {
         this.role = Role.USER.name();
     }
 
-    public User(String id, String email, String username, String password, boolean verified,Role role) {
+    public User(String id, String email, String username, String password, boolean verified, Role role) {
         this.id = id;
         this.email = email;
         this.phone = "";
@@ -27,6 +29,7 @@ public class User {
         this.verified = false; // Mặc định chưa xác thực
         this.avatarUrl = "https://res.cloudinary.com/dsuav027e/image/upload/v1739367972/halnqohla5mqr3seve3d.png";
         this.role = role.name();
+        this.coin = 0;
     }
 
     public boolean isVerified() {
@@ -76,14 +79,22 @@ public class User {
     public void setPassword(String password) {
         this.password = password;
     }
+
     public String getAvatarUrl() {
         return avatarUrl;
     }
+
     public void setAvatarUrl(String avatarUrl) {
         this.avatarUrl = avatarUrl;
     }
-    public Role getRole() { return Role.valueOf(this.role); }
-    public void setRole(Role role) { this.role = role.name(); }
+
+    public Role getRole() {
+        return Role.valueOf(this.role);
+    }
+
+    public void setRole(Role role) {
+        this.role = role.name();
+    }
 
     public String getFullName() {
         return fullName;
@@ -91,5 +102,13 @@ public class User {
 
     public void setFullName(String fullName) {
         this.fullName = fullName;
+    }
+
+    public int getCoin() {
+        return coin;
+    }
+
+    public void setCoin(int coin) {
+        this.coin = coin;
     }
 }

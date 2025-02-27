@@ -31,9 +31,11 @@ import java.util.concurrent.ExecutionException;
 @Controller
 public class ManageExamController {
     private Firestore db = FirestoreClient.getFirestore();
+
     public ManageExamController(ExamService examService) {
         this.examService = examService;
     }
+
     @Autowired
     private CookieService cookieService;
     @Autowired
@@ -44,7 +46,7 @@ public class ManageExamController {
     @GetMapping("/exams")
     public String listExams(Model model) {
         try {
-            List<Exam> exams = examService.getExamList(0,6);
+            List<Exam> exams = examService.getExamList(0, 6);
             model.addAttribute("exams", exams);
             return "examList"; // Trả về trang hiển thị danh sách đề thi
         } catch (Exception e) {
@@ -75,11 +77,11 @@ public class ManageExamController {
 
             Exam exam = examService.getExam(examId);
             String username = cookieService.getCookie(request, "noname");
-            examService.addExamSession(examId, username, 1000*60*30);
+            examService.addExamSession(examId, username, 1000 * 60 * 30);
             model.addAttribute("exam", exam);
             model.addAttribute("username", username);
             model.addAttribute("questions", exam.getQuestions()); // Gửi danh sách câu hỏi qua view
-            model.addAttribute("timeduration", 60*30);
+            model.addAttribute("timeduration", 60 * 30);
             return "examDo";
         } catch (Exception e) {
             model.addAttribute("error", "Lỗi khi lấy đề thi: " + e.getMessage());
@@ -88,7 +90,7 @@ public class ManageExamController {
     }
 
     @PostMapping("exams/{examId}/submit")
-    public String submitExam(@PathVariable String examId, @RequestParam MultiValueMap<String, String> userAnswers, HttpServletRequest request ,Model model) {
+    public String submitExam(@PathVariable String examId, @RequestParam MultiValueMap<String, String> userAnswers, HttpServletRequest request, Model model) {
 
         userAnswers.forEach((questionID, answers) ->
                 System.out.println("Câu " + questionID + " => " + answers)
@@ -111,7 +113,7 @@ public class ManageExamController {
             List<Question> questions = exam.getQuestions();
             int totalQuestions = exam.getQuestions().size();
             int correctCount = 0;
-            Question question ;
+            Question question;
             List<String> correctQuestions = new ArrayList<>();
             for (int i = 0; i < totalQuestions; i++) {
                 String questionKey = "q" + i;
@@ -194,14 +196,16 @@ public class ManageExamController {
         examService.saveProgress(userId, examId, answers);
         return ResponseEntity.ok(Collections.singletonMap("status", "success"));
     }
+
     @GetMapping("exams/time-left")
     public ResponseEntity<?> getTimeLeft(@RequestParam String userId, @RequestParam String examId) {
         System.out.println(" Ở controller :userId = " + userId + " examId = " + examId);
         long timeLeft = examService.getRemainingTime(userId, examId);
         boolean submitted = examService.isSubmitted(userId, examId);
-        System.out.println("Time left in controller : " + timeLeft/1000);
-        return ResponseEntity.ok(Map.of("timeLeft", timeLeft/1000, "submitted", submitted));
+        System.out.println("Time left in controller : " + timeLeft / 1000);
+        return ResponseEntity.ok(Map.of("timeLeft", timeLeft / 1000, "submitted", submitted));
     }
+
     @GetMapping("exams/result-list")
     public String getResultList(HttpServletRequest request, HttpSession session, Model model) {
         if (session.getAttribute("loggedInUser") == null) {
@@ -255,7 +259,7 @@ public class ManageExamController {
     }
 
     @GetMapping("/exams/liked")
-    public String showLikedExams(Model model,HttpServletRequest request, HttpSession session) {
+    public String showLikedExams(Model model, HttpServletRequest request, HttpSession session) {
         if (session.getAttribute("loggedInUser") == null) {
             return "redirect:/login"; // Nếu chưa đăng nhập, chuyển hướng về home
         }
@@ -279,9 +283,8 @@ public class ManageExamController {
     }
 
 
-
     @GetMapping("/exams/result/{resultId}/{examId}")
-    public String viewExamResult(@PathVariable String resultId,@PathVariable String examId, Model model,HttpServletRequest request, HttpSession session) throws ExecutionException, InterruptedException {
+    public String viewExamResult(@PathVariable String resultId, @PathVariable String examId, Model model, HttpServletRequest request, HttpSession session) throws ExecutionException, InterruptedException {
         if (session.getAttribute("loggedInUser") == null) {
             return "redirect:/login"; // Nếu chưa đăng nhập, chuyển hướng về home
         }
@@ -306,18 +309,20 @@ public class ManageExamController {
 
         return "examResultDetail";
     }
+
     @GetMapping("/search")
     public String viewExamSearch(@RequestParam(required = false) String examName, Model model)
             throws ExecutionException, InterruptedException {
         List<Exam> examList;
         if (examName != null && !examName.isEmpty()) {
             examList = examService.searchExamByName(examName);
-        }else{
-            examList = examService.getExamList(0,10);
+        } else {
+            examList = examService.getExamList(0, 10);
         }
         model.addAttribute("examList", examList);
         return "resultSearchExam";
     }
+
     @GetMapping("/search-by-filter")
     public String searchExams(@RequestParam(required = false) String grade,
                               @RequestParam(required = false) String subject,

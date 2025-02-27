@@ -35,6 +35,7 @@ public class AuthController {
 
     @Autowired
     private CookieService cookieService;
+
     //Tra ve trang login
     @GetMapping("/login")
     public String showLoginPage(HttpSession session) {
@@ -77,7 +78,7 @@ public class AuthController {
             nonameCookie.setMaxAge(24 * 60 * 60);
             nonameCookie.setPath("/");
             response.addCookie(nonameCookie);
-            session.setAttribute("urlimg",UserService.getAvatarUrlByUsername(email));
+            session.setAttribute("urlimg", UserService.getAvatarUrlByUsername(email));
 
             System.out.println("Đăng nhập thành công với email: " + email);
             return "redirect:/home";
@@ -115,7 +116,7 @@ public class AuthController {
         if (authService.authenticate(username, password)) {
             // Lưu thông tin đăng nhập vào session
             session.setAttribute("loggedInUser", username);
-            session.setAttribute("urlimg",UserService.getAvatarUrlByUsername(username));
+            session.setAttribute("urlimg", UserService.getAvatarUrlByUsername(username));
             System.out.println("Người dùng đăng nhập: " + username);
 
             // 🔥 Thêm role vào session
@@ -126,7 +127,7 @@ public class AuthController {
             }
 
             // Nếu là admin thi chuyển trang
-            if(authService.isAdmin(username)) {
+            if (authService.isAdmin(username)) {
                 System.out.println("✅ Gọi isAdmin() thành công.");
                 return "redirect:/adminDashboard/dashboard";
             }
@@ -137,8 +138,8 @@ public class AuthController {
             } else {
                 // Xoá cookie nếu không chọn "Ghi nhớ đăng nhập"
                 cookieService.setCookie(response, "noname", URLEncoder.encode(username, "UTF-8"));
-                cookieService.removeCookie(response,"rememberedUsername");
-                cookieService.removeCookie(response,"rememberedPassword");
+                cookieService.removeCookie(response, "rememberedUsername");
+                cookieService.removeCookie(response, "rememberedPassword");
 
             }
 
@@ -147,8 +148,6 @@ public class AuthController {
         model.addAttribute("error", "Tên đăng nhập hoặc mật khẩu không đúng!");
         return "login";
     }
-
-
 
 
 //    @RequestMapping("/logout")
@@ -281,7 +280,7 @@ public class AuthController {
             userRole = User.Role.USER;
         }
 
-        String result = authService.registerUser(email, username, password,userRole);
+        String result = authService.registerUser(email, username, password, userRole);
         model.addAttribute("email", email);
         model.addAttribute("actionType", "register");  // Xác thực tài khoản
         model.addAttribute("message", result);

@@ -17,6 +17,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.Date;
 import java.util.TimeZone;
 import java.util.concurrent.ExecutionException;
+
 @Service
 public class ExamService {
     private final Firestore db = FirestoreClient.getFirestore();
@@ -69,8 +70,6 @@ public class ExamService {
     }
 
 
-
-
     // Phương thức format lại ngày
     public static String formatDate(String dateString) {
         try {
@@ -91,7 +90,6 @@ public class ExamService {
     }
 
 
-
     public Exam getExam(String examID) {
         try {
             DocumentReference examRef = db.collection("exams").document(examID);
@@ -101,7 +99,7 @@ public class ExamService {
                 return null;
             }
             Exam exam = document.toObject(Exam.class);
-             exam.setExamID(document.getId());
+            exam.setExamID(document.getId());
             List<Question> questions = new ArrayList<>();
             ApiFuture<QuerySnapshot> future = db.collection("exams").document(examID).collection("questions").get();
             List<QueryDocumentSnapshot> questionDocs = future.get().getDocuments();
@@ -143,8 +141,7 @@ public class ExamService {
             }
             batch.commit().get();
             return true;
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             return false;
         }
     }
@@ -165,6 +162,7 @@ public class ExamService {
             return false;
         }
     }
+
     public boolean isSubmitted(String userId, String examId) {
         DocumentReference docRef = db.collection("examSessions").document(userId + "_" + examId);
         try {
@@ -180,6 +178,7 @@ public class ExamService {
         DocumentReference docRef = db.collection("examProgress").document(userId + "_" + examId);
         docRef.set(Map.of("answers", answers), SetOptions.merge());
     }
+
     public Map<String, Object> getProgress(String userId, String examId) {
         DocumentReference docRef = db.collection("examProgress").document(userId + "_" + examId);
         try {
@@ -190,6 +189,7 @@ public class ExamService {
             return new HashMap<>();
         }
     }
+
     public long getRemainingTime(String userId, String examId) {
         DocumentReference docRef = db.collection("examSessions").document(userId + "_" + examId);
         try {
@@ -205,19 +205,21 @@ public class ExamService {
         }
         return 0;
     }
+
     public void submitExam(String userId, String examId) {
         DocumentReference docRef = db.collection("examSessions").document(userId + "_" + examId);
         docRef.delete();
         docRef = db.collection("examProgress").document(userId + "_" + examId);
         docRef.delete();
     }
+
     public void saveExamResult(String userId, String examId, double score, Exam exam, MultiValueMap<String, String> userAnswers, List<String> correctAnswers) {
         String idRandom = UUID.randomUUID().toString();
         String ResultsId = userId + "_" + examId + "_" + idRandom;
         DocumentReference docRef = db.collection("examResults").document(ResultsId);
         docRef.set(Map.of(
-                "resultId",ResultsId,
-                "examID",examId,
+                "resultId", ResultsId,
+                "examID", examId,
                 "score", score,
                 "answers", userAnswers,
                 "submittedAt", System.currentTimeMillis(),
@@ -225,7 +227,8 @@ public class ExamService {
 
         ), SetOptions.merge());
     }
-    public  List<ExamResult> getExamResultByUsername(String userId) {
+
+    public List<ExamResult> getExamResultByUsername(String userId) {
         List<ExamResult> results = new ArrayList<>();
 
         try {
@@ -241,10 +244,9 @@ public class ExamService {
                 ExamResult examResult = doc.toObject(ExamResult.class);
                 results.add(examResult);
             }
+        } catch (Exception e) {
         }
-        catch (Exception e) {
-        }
-        return  results;
+        return results;
     }
 
     public void likeExam(String userId, String examId) {
@@ -260,6 +262,7 @@ public class ExamService {
         DocumentReference docRef = db.collection("likedExams").document(userId + "_" + examId);
         docRef.delete(); // Xóa like khỏi Firestore
     }
+
     public boolean isExamLiked(String userId, String examId) {
         DocumentReference docRef = db.collection("likedExams").document(userId + "_" + examId);
         try {
@@ -452,7 +455,7 @@ public class ExamService {
         try {
             ApiFuture<QuerySnapshot> future = firestore.collection("exams").get();
             List<QueryDocumentSnapshot> documents = future.get().getDocuments();
-            for(QueryDocumentSnapshot doc : documents) {
+            for (QueryDocumentSnapshot doc : documents) {
                 Exam exam = doc.toObject(Exam.class);
                 exam.setExamID(doc.getId()); // Thêm dòng này để thiết lập ID cho đề thi
                 examList.add(exam);

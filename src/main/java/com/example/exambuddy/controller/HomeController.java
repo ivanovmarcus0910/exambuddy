@@ -15,6 +15,7 @@ import java.util.List;
 public class HomeController {
     @Autowired
     private ExamService examService;
+
     @GetMapping({"/*", "/home"})
     public String homePage(@RequestParam(defaultValue = "0") int page,
                            @RequestParam(defaultValue = "6") int size,
@@ -40,7 +41,7 @@ public class HomeController {
 
     @GetMapping("/theory")
     public String index() {
-        return "index"; // Trả về tên file HTML (không cần đuôi .html)
+        return "createPayment"; // Trả về tên file HTML (không cần đuôi .html)
     }
 
     @GetMapping("/viewTheory")
