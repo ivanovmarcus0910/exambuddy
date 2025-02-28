@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 
-
 public class PayOSWebhookRequest {
 
     @JsonProperty("code")
@@ -23,20 +22,45 @@ public class PayOSWebhookRequest {
     private String signature;
 
     // Getters & Setters
-    public String getCode() { return code; }
-    public void setCode(String code) { this.code = code; }
+    public String getCode() {
+        return code;
+    }
 
-    public String getDesc() { return desc; }
-    public void setDesc(String desc) { this.desc = desc; }
+    public void setCode(String code) {
+        this.code = code;
+    }
 
-    public boolean isSuccess() { return success; }
-    public void setSuccess(boolean success) { this.success = success; }
+    public String getDesc() {
+        return desc;
+    }
 
-    public PayOSWebhookData getData() { return data; }
-    public void setData(PayOSWebhookData data) { this.data = data; }
+    public void setDesc(String desc) {
+        this.desc = desc;
+    }
 
-    public String getSignature() { return signature; }
-    public void setSignature(String signature) { this.signature = signature; }
+    public boolean isSuccess() {
+        return success;
+    }
+
+    public void setSuccess(boolean success) {
+        this.success = success;
+    }
+
+    public PayOSWebhookData getData() {
+        return data;
+    }
+
+    public void setData(PayOSWebhookData data) {
+        this.data = data;
+    }
+
+    public String getSignature() {
+        return signature;
+    }
+
+    public void setSignature(String signature) {
+        this.signature = signature;
+    }
 
     @Override
     public String toString() {

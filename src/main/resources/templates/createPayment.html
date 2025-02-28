@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Nạp Coin</title>
+    <link rel="icon" type="image/x-icon"
+          href="https://res.cloudinary.com/dsuav027e/image/upload/v1740393796/favicon_llcueu.ico">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Custom CSS -->
+    <style>
+        body {
+            background: linear-gradient(135deg, #007bff, #00d4ff);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .card-title {
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #007bff, #00b4db);
+            border: none;
+            font-weight: bold;
+            padding: 12px;
+            border-radius: 8px;
+            transition: all 0.3s ease-in-out;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #0056b3, #0083c7);
+            transform: scale(1.05);
+        }
+
+        .input-group-text {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div th:insert="~{fragments/header :: header}"></div>
+
+<div class="container">
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title text-center">Nạp Coin</h4>
+            <p class="text-center text-muted">Quy đổi: <strong>1 Point = 1000 VNĐ</strong></p>
+            <form action="/create-payment-link" method="post">
+                <div class="mb-3">
+                    <label for="amount" class="form-label">Nhập số coin cần nạp:</label>
+                    <div class="input-group">
+                        <input type="number" class="form-control" id="amount" name="amount" required min="1000"
+                               step="1000" placeholder="Nhập số tiền">
+                        <span class="input-group-text">VNĐ</span>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Tạo Link</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<div th:insert="~{fragments/footer :: footer}"></div>
+
+</body>
+</html>

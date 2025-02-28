@@ -15,6 +15,7 @@ public class CookieService {
         cookie.setMaxAge(24 * 60 * 60); // Thời gian sống (giây)
         response.addCookie(cookie);
     }
+
     public String getCookie(HttpServletRequest request, String name) {
         Cookie[] cookies = request.getCookies();
         for (Cookie cookie : cookies) {
@@ -23,6 +24,7 @@ public class CookieService {
         }
         return null;
     }
+
     public void removeCookie(HttpServletResponse response, String name) {
         Cookie cookie = new Cookie(name, null);
         cookie.setMaxAge(0); // Xóa cookie bằng cách đặt thời gian sống = 0

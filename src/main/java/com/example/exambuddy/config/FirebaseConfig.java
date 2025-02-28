@@ -33,6 +33,7 @@ public class FirebaseConfig {
             System.err.println("Error initializing Firebase: " + e.getMessage());
         }
     }
+
     public Firestore getFirestore() {
         return FirestoreClient.getFirestore();
     }

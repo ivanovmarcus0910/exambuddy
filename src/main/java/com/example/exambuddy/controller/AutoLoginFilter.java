@@ -26,40 +26,42 @@ public class AutoLoginFilter extends OncePerRequestFilter {
     private CookieService cookieService;
     @Autowired
     private FirebaseAuthService authService;
+
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-    {
-    try {
-        if (request.getRequestURI().equals("/logout")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-
-        HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("loggedInUser") == null) {
-
-            String username = cookieService.getCookie(request, "rememberedUsername");
-            String password = cookieService.getCookie(request, "rememberedPassword");
-            if (username != null && password != null) {
-                if (authService.authenticate(URLDecoder.decode(username,  "UTF-8") , URLDecoder.decode(password, "UTF-8"))) {
-                    cookieService.setCookie(response, "noname", URLEncoder.encode(username, "UTF-8"));
-                    session = request.getSession(true);
-                    session.setAttribute("loggedInUser", username);
-                    session.setAttribute("urlimg", UserService.getAvatarUrlByUsername(username));
-                }
-            }
-            else
-            {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) {
+        try {
+            if (request.getRequestURI().equals("/logout") || request.getRequestURI().equals("/payos_transfer_handler")) {
                 filterChain.doFilter(request, response);
                 return;
             }
-        }
-        filterChain.doFilter(request, response);
 
-    } catch (Exception e) {
-        System.out.println("Lỗi rồi");
-        e.printStackTrace();
-    }
+            HttpSession session = request.getSession(false);
+            if (session == null || session.getAttribute("loggedInUser") == null) {
+
+                String username = cookieService.getCookie(request, "rememberedUsername");
+                String password = cookieService.getCookie(request, "rememberedPassword");
+                if (username != null && password != null) {
+                    if (authService.authenticate(URLDecoder.decode(username, "UTF-8"), URLDecoder.decode(password, "UTF-8"))) {
+                        cookieService.setCookie(response, "noname", URLEncoder.encode(username, "UTF-8"));
+                        session = request.getSession(true);
+                        session.setAttribute("loggedInUser", username);
+                        session.setAttribute("urlimg", UserService.getAvatarUrlByUsername(username));
+                        filterChain.doFilter(request, response);
+                        return;
+                    }
+                }
+                else
+                {
+                    filterChain.doFilter(request, response);
+                    return;
+                }
+            }
+            filterChain.doFilter(request, response);
+
+        } catch (Exception e) {
+            System.out.println("Lỗi ở Filter rồi");
+           // e.printStackTrace();
+        }
 
     }
 }

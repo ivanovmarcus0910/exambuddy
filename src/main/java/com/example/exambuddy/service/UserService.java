@@ -1,5 +1,6 @@
 package com.example.exambuddy.service;
 
+import com.example.exambuddy.model.Payment;
 import com.example.exambuddy.model.User;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.*;
@@ -19,6 +20,7 @@ import java.util.concurrent.ExecutionException;
 @Service
 public class UserService {
     private static final String COLLECTION_NAME = "users";
+
     public static User getUserData(String username) {
         Firestore firestore = FirestoreClient.getFirestore();
 
@@ -60,12 +62,11 @@ public class UserService {
                 return false;
             }
             userSnapshot.getReference().update("avatarUrl", url);
+        } catch (Exception e) {
+            System.out.println("Lỗi khi đổi avatar");
+            return false;
         }
-            catch (Exception e){
-                System.out.println("Lỗi khi đổi avatar");
-                return false;
-            }
-            return true;
+        return true;
     }
 
     // ✅ Thêm mới hàm lưu tài khoản OAuth2 vào Firestore
@@ -164,6 +165,112 @@ public class UserService {
             e.printStackTrace();
             return null;
         }
+    }
+
+    public boolean addPaymentTransaction(long paymentCode, int amount, String link, String status, String username) {
+        try {
+            Firestore firestore = FirestoreClient.getFirestore();
+            CollectionReference transaction = firestore.collection("Transactions");
+            Long time = System.currentTimeMillis();
+            Payment payment = new Payment(paymentCode, amount, link, status, username, time);
+            transaction.document().set(payment);
+            return true;
+        }
+        catch (Exception e) {
+            return false;
+
+        }
+    }
+
+    public static List<Payment> getPaymentsByPage(String username, int pageSize, Long lastTimestamp) throws ExecutionException, InterruptedException {
+        Firestore firestore = FirestoreClient.getFirestore();
+        CollectionReference transaction = firestore.collection("Transactions");
+
+        Query query = transaction.whereEqualTo("username", username)
+                .orderBy("timestamp", Query.Direction.DESCENDING)
+                .limit(pageSize);
+
+        // Nếu không phải trang đầu tiên, dùng startAfter() để lấy tiếp
+        if (lastTimestamp != null) {
+            query = query.startAfter(lastTimestamp);
+        }
+
+        ApiFuture<QuerySnapshot> querySnapshot = query.get();
+        List<Payment> payments = new ArrayList<>();
+
+        for (DocumentSnapshot document : querySnapshot.get().getDocuments()) {
+            payments.add(document.toObject(Payment.class));
+        }
+        return payments;
+    }
+    public boolean changeCoinBalance(long change, String username){
+        Firestore firestore = FirestoreClient.getFirestore();
+        DocumentReference userRef = firestore.collection("users").document(username);
+    try {
+        ApiFuture<Boolean> transactionFuture = firestore.runTransaction(transaction -> {
+            // Lấy document của user
+            DocumentSnapshot snapshot = transaction.get(userRef).get();
+            Long coinLong = snapshot.getLong("coin");
+            long currentCoin = coinLong != null ? coinLong.longValue() : 0;
+            long newCoin = currentCoin + change;
+            if (newCoin < 0) {
+                return false;
+            }
+            // Cập nhật lại giá trị coin mới vào document
+            transaction.update(userRef, "coin", newCoin);
+            return true;
+            // Trả về giá trị coin mới
+        });
+        return transactionFuture.get();
+    }
+    catch (Exception e) {
+        return false;
+    }
+    }
+    public String updatePaymentStatus(long paymentCode, long amount, String status) {
+        Firestore firestore = FirestoreClient.getFirestore();
+        CollectionReference transactions = firestore.collection("Transactions");
+        Query query = transactions
+                .whereEqualTo("paymentCode", paymentCode)
+                .whereEqualTo("amount", amount);
+
+        ApiFuture<QuerySnapshot> future = query.get();
+        try {
+            QuerySnapshot snapshot = future.get();
+            if (snapshot.isEmpty()) {
+                return null;
+            } else {
+                for (DocumentSnapshot document : snapshot.getDocuments()) {
+                    document.getReference().update("status", status);
+                    return document.getString("username");
+                }
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+    public boolean updatePaymentStatusFail(long paymentCode, String status) {
+        Firestore firestore = FirestoreClient.getFirestore();
+        CollectionReference transactions = firestore.collection("Transactions");
+        Query query = transactions
+                .whereEqualTo("paymentCode", paymentCode);
+
+        ApiFuture<QuerySnapshot> future = query.get();
+        try {
+            QuerySnapshot snapshot = future.get();
+            if (snapshot.isEmpty()) {
+                return false;
+            } else {
+                for (DocumentSnapshot document : snapshot.getDocuments()) {
+                    document.getReference().update("status", status);
+                    return true;
+                }
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
 }

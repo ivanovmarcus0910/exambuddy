@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class FirebaseAuthService {
     @Autowired
-    private  EmailService emailService;
+    private EmailService emailService;
     @Autowired
     private PasswordService passService;
     private static final String COLLECTION_NAME = "users";
@@ -23,7 +23,7 @@ public class FirebaseAuthService {
     private static final String OTP_COLLECTION = "password_reset_otps"; // quen pass
 
     // Danh sách email là admin
-    private static final List<String> ADMIN_Email    = Arrays.asList(
+    private static final List<String> ADMIN_Email = Arrays.asList(
             "trinhquoctrung10504@gmail.com"
     );
 
@@ -34,12 +34,12 @@ public class FirebaseAuthService {
 
 
         // Kiểm tra email trong danh sách Admin
-        User.Role role  = ADMIN_Email.contains(email) ? User.Role.ADMIN : selectRole;
+        User.Role role = ADMIN_Email.contains(email) ? User.Role.ADMIN : selectRole;
 
-        System.out.println("Mật khẩu trước khi mã hoá: "+password);
+        System.out.println("Mật khẩu trước khi mã hoá: " + password);
         // ✅ Mã hóa mật khẩu trước khi lưu vào Firestore
         String hashedPassword = passService.encodePassword(password);
-        System.out.println("Mật khẩu sau khi mã hoá: "+hashedPassword);
+        System.out.println("Mật khẩu sau khi mã hoá: " + hashedPassword);
         User user = new User(username, email, username, hashedPassword, false, role); // Chưa xác thực tài khoản
 
         try {
@@ -89,7 +89,7 @@ public class FirebaseAuthService {
     }
 
     /**
-    Gửi lại mã OTP khác
+     * Gửi lại mã OTP khác
      */
     public String resendOtp(String email, String actionType) {
         Firestore firestore = FirestoreClient.getFirestore();
@@ -181,7 +181,8 @@ public class FirebaseAuthService {
         private String otp;
         private long expiryTime;
 
-        public OtpRecord() {}
+        public OtpRecord() {
+        }
 
         public OtpRecord(String otp, long expiryTime) {
             this.otp = otp;

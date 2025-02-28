@@ -98,10 +98,12 @@ canvas {
     width: 45%;
     max-height: 250px; /* 🔹 Giảm kích thước biểu đồ tròn */
 }
+
 #lineChart {
     width: 100%;
     max-height: 300px;
 }
+
 /* Bảng quản lý */
 table {
     width: 100%;
@@ -146,13 +148,16 @@ button:hover {
     .charts-container {
         flex-direction: column;
     }
+
     .stats-container {
         flex-direction: column;
         gap: 15px;
     }
+
     .stats-box {
         width: 100%;
     }
+
     canvas {
         width: 100%;
     }
@@ -188,7 +193,7 @@ button:hover {
     display: flex;
     align-items: center;
     padding: 0 20px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 /* Thêm khoảng cách cho nội dung bên dưới header để không bị chồng lên */

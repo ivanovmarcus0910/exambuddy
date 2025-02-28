@@ -32,7 +32,8 @@
             <div class="mb-3">
                 <label class="form-label fw-semibold">Mật khẩu hiện tại</label>
                 <div class="position-relative">
-                    <input type="password" id="currentPassword" name="currentPassword" class="form-control rounded-pill px-4 pe-5" placeholder="Nhập mật khẩu hiện tại" required>
+                    <input type="password" id="currentPassword" name="currentPassword"
+                           class="form-control rounded-pill px-4 pe-5" placeholder="Nhập mật khẩu hiện tại" required>
                     <i id="currentPasswordIcon" class="bi bi-eye position-absolute top-50 end-0 translate-middle-y me-3"
                        style="cursor: pointer; font-size: 1.2rem; color: #6c757d;"></i>
                 </div>
@@ -42,7 +43,8 @@
             <div class="mb-3">
                 <label class="form-label fw-semibold">Mật khẩu mới</label>
                 <div class="position-relative">
-                    <input type="password" id="newPassword" name="newPassword" class="form-control rounded-pill px-4 pe-5" placeholder="Nhập mật khẩu mới" required>
+                    <input type="password" id="newPassword" name="newPassword"
+                           class="form-control rounded-pill px-4 pe-5" placeholder="Nhập mật khẩu mới" required>
                     <i id="newPasswordIcon" class="bi bi-eye position-absolute top-50 end-0 translate-middle-y me-3"
                        style="cursor: pointer; font-size: 1.2rem; color: #6c757d;"></i>
                 </div>
@@ -53,7 +55,8 @@
             <div class="mb-3">
                 <label class="form-label fw-semibold">Xác nhận mật khẩu</label>
                 <div class="position-relative">
-                    <input type="password" id="confirmPassword" name="confirmPassword" class="form-control rounded-pill px-4 pe-5" placeholder="Xác nhận mật khẩu" required>
+                    <input type="password" id="confirmPassword" name="confirmPassword"
+                           class="form-control rounded-pill px-4 pe-5" placeholder="Xác nhận mật khẩu" required>
                     <i id="confirmPasswordIcon" class="bi bi-eye position-absolute top-50 end-0 translate-middle-y me-3"
                        style="cursor: pointer; font-size: 1.2rem; color: #6c757d;"></i>
                 </div>
@@ -94,15 +97,15 @@
         }
     }
 
-    document.getElementById("currentPasswordIcon").addEventListener("click", function() {
+    document.getElementById("currentPasswordIcon").addEventListener("click", function () {
         togglePassword("currentPassword", "currentPasswordIcon");
     });
 
-    document.getElementById("newPasswordIcon").addEventListener("click", function() {
+    document.getElementById("newPasswordIcon").addEventListener("click", function () {
         togglePassword("newPassword", "newPasswordIcon");
     });
 
-    document.getElementById("confirmPasswordIcon").addEventListener("click", function() {
+    document.getElementById("confirmPasswordIcon").addEventListener("click", function () {
         togglePassword("confirmPassword", "confirmPasswordIcon");
     });
 
