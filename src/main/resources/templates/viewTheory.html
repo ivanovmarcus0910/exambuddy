@@ -3,203 +3,263 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Quản lý Lý Thuyết</title>
+  <title>Lý Thuyết</title>
   <link rel="icon" type="image/x-icon" href="https://res.cloudinary.com/dsuav027e/image/upload/v1740393796/favicon_llcueu.ico">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
+  <style>
+    body {
+      background-color: #f0f4f8;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    .header-title {
+      color: #1a73e8;
+      font-weight: bold;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+    }
+    .select-class-container {
+      background: white;
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      transition: transform 0.2s;
+    }
+    .select-class-container:hover {
+      transform: translateY(-5px);
+    }
+    .details-container {
+      background: white;
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      min-height: 400px;
+    }
+    .accordion-button {
+      background-color: #e9ecef;
+      color: #1a73e8;
+      font-weight: 500;
+    }
+    .accordion-button:not(.collapsed) {
+      background-color: #1a73e8;
+      color: white;
+    }
+    .accordion-item {
+      border: none;
+      margin-bottom: 10px;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .accordion-body {
+      background: #f8f9fa;
+    }
+    .list-group-item {
+      border: none;
+      background: #fff;
+      border-radius: 8px;
+      margin-bottom: 5px;
+      transition: all 0.3s ease;
+    }
+    .list-group-item:hover {
+      background: #e9ecef;
+      transform: translateX(5px);
+    }
+    .btn-primary {
+      background-color: #1a73e8;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 20px;
+    }
+    .btn-primary:hover {
+      background-color: #1557b0;
+    }
+  </style>
 </head>
 <body>
 <div th:insert="fragments/header :: header"></div>
-<div class="container">
-  <h1 class="text-center text-primary mb-4">Quản lý Lý Thuyết</h1>
+<div class="container mt-5">
+  <h1 class="text-center header-title mb-4">Lý Thuyết</h1>
   <div class="row">
-    <!-- Cột chứa danh sách Lớp -->
     <div class="col-md-3">
-      <div id="class-list"></div>
+      <div class="select-class-container">
+        <h5 class="text-center mb-3">Chọn loại sách và lớp học</h5>
+        <label for="book-type" class="form-label">Loại sách:</label>
+        <select id="book-type" class="form-select mb-3">
+          <option value="KNTT">Kết Nối Tri Thức</option>
+          <option value="CD">Cánh Diều</option>
+          <option value="CTST">Chân Trời Sáng Tạo</option>
+        </select>
+        <label for="class-grade" class="form-label">Lớp:</label>
+        <select id="class-grade" class="form-select mb-3">
+          <option value="10">10</option>
+          <option value="11">11</option>
+          <option value="12">12</option>
+        </select>
+        <button id="select-class-btn" class="btn btn-primary w-100">Chọn</button>
+      </div>
     </div>
-    <!-- Cột chứa chi tiết Môn, Chương, Bài -->
     <div class="col-md-9">
-      <div id="details-container" class="details-container"></div>
+      <div id="details-container" class="details-container">
+        <div id="subjects" class="accordion"></div>
+      </div>
     </div>
   </div>
 </div>
-
-<!-- JavaScript chính -->
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-    const classList = document.getElementById('class-list');
-    const detailsContainer = document.getElementById('details-container');
+    const bookTypeSelect = document.getElementById('book-type');
+    const classGradeSelect = document.getElementById('class-grade');
+    const selectClassBtn = document.getElementById('select-class-btn');
+    const subjectsContainer = document.getElementById('subjects');
+    let currentClassId = null;
 
-    let currentClass = null;
-    let currentSubject = null;
+    // Xử lý sự kiện chọn loại sách và lớp học
+    selectClassBtn.addEventListener('click', function() {
+      const bookType = bookTypeSelect.value;
+      const classGrade = classGradeSelect.value;
+      currentClassId = ${classGrade}_${bookType};
+      console.log('Step 1: Selected classId:', currentClassId);
+      loadSubjects(currentClassId);
+    });
 
-    // Giữ thêm tham chiếu để đóng chương cũ
-    let currentChapter = null;
-    let currentChapterDiv = null;  // Lưu trữ DOM của chương đang mở
-
-    // 1. Tải danh sách Lớp
-    function loadClasses() {
-      fetch('/api/theory/classes')
-              .then(response => response.json())
-              .then(classes => {
-                // Sắp xếp danh sách lớp theo tên (đảm bảo lớp 10, 11, 12 theo thứ tự)
-                classes.sort((a, b) =>
-                        a.name.localeCompare(b.name, undefined, { numeric: true })
-                );
-
-                classList.innerHTML = '';
-                classes.forEach(cls => {
-                  const classDiv = document.createElement('div');
-                  classDiv.classList.add('class-item', 'mb-3');
-                  classDiv.textContent = cls.name;
-
-                  // Khi click vào Lớp
-                  classDiv.onclick = (event) => {
-                    event.stopPropagation();
-                    // Nếu đang mở lớp này, bấm lại thì ẩn đi
-                    if (currentClass === cls.id) {
-                      detailsContainer.innerHTML = '';
-                      currentClass = null;
-                    } else {
-                      loadSubjects(cls.id);
-                      currentClass = cls.id;
-                    }
-                  };
-
-                  classList.appendChild(classDiv);
-                });
-              })
-              .catch(err => console.error('Lỗi khi tải danh sách Lớp:', err));
-    }
-
-    // 2. Tải danh sách Môn (theo Lớp)
+    // Hàm tải danh sách môn học
     function loadSubjects(classId) {
-      fetch(`/api/theory/subjects/${classId}`)
-              .then(response => response.json())
+      console.log('Step 2: Fetching subjects for classId:', classId);
+      fetch(/api/theory/subjects/${classId})
+    .then(response => {
+        if (!response.ok) throw new Error(HTTP error! Status: ${response.status});
+        return response.json();
+      })
               .then(subjects => {
-                // Xoá vùng hiển thị chi tiết cũ
-                detailsContainer.innerHTML = '';
-
-                const subjectContainer = document.createElement('div');
-                subjectContainer.classList.add('subject-container', 'd-flex', 'flex-wrap', 'gap-2');
-
+                console.log('Step 3: Subjects loaded:', subjects);
+                subjectsContainer.innerHTML = '';
                 subjects.forEach(subject => {
-                  const subjectDiv = document.createElement('div');
-                  subjectDiv.classList.add('subject-item', 'p-2', 'flex-grow-1');
-                  subjectDiv.textContent = subject.name;
+                  const accordionItem = document.createElement('div');
+                  accordionItem.classList.add('accordion-item');
+                  accordionItem.innerHTML = `
+              <h2 class="accordion-header" id="subject-heading-${subject.id}">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#subject-collapse-${subject.id}" aria-expanded="false" aria-controls="subject-collapse-${subject.id}">
+                  ${subject.name}
+                </button>
+              </h2>
+              <div id="subject-collapse-${subject.id}" class="accordion-collapse collapse" aria-labelledby="subject-heading-${subject.id}" data-bs-parent="#subjects">
+                <div class="accordion-body" id="chapters-${subject.id}"></div>
+              </div>
+            `;
+                  subjectsContainer.appendChild(accordionItem);
 
-                  // Khi click vào Môn
-                  subjectDiv.onclick = (event) => {
-                    event.stopPropagation();
-                    // Nếu đang mở môn này, bấm lại thì ẩn đi
-                    if (currentSubject === subject.id) {
-                      detailsContainer.querySelector('.chapter-container')?.remove();
-                      currentSubject = null;
-                    } else {
-                      loadChapters(classId, subject.id, subjectDiv);
-                      currentSubject = subject.id;
+                  // Tải chương khi accordion môn học được mở
+                  const subjectCollapse = document.getElementById(subject-collapse-${subject.id});
+                  subjectCollapse.addEventListener('shown.bs.collapse', function() {
+                    console.log('Step 4: Subject accordion opened for subjectId:', subject.id);
+                    const chaptersContainer = document.getElementById(chapters-${subject.id});
+                    if (chaptersContainer && !chaptersContainer.hasChildNodes()) {
+                      loadChapters(classId, subject.id, chaptersContainer);
                     }
-                  };
-
-                  subjectContainer.appendChild(subjectDiv);
+                  });
                 });
-
-                detailsContainer.appendChild(subjectContainer);
               })
-              .catch(err => console.error('Lỗi khi tải danh sách Môn:', err));
+              .catch(err => {
+                console.error('Lỗi khi tải danh sách môn học:', err);
+                subjectsContainer.innerHTML = '<p class="text-danger">Lỗi tải danh sách môn học.</p>';
+              });
     }
 
-    // 3. Tải danh sách Chương (theo Lớp, Môn)
-    function loadChapters(classId, subjectId, subjectItem) {
-      fetch(`/api/theory/chapters/${classId}/${subjectId}`)
-              .then(response => response.json())
+    // Hàm tải danh sách chương
+    function loadChapters(classId, subjectId, chaptersContainer) {
+      console.log('Step 5: Fetching chapters for classId:', classId, 'subjectId:', subjectId);
+      fetch(/api/theory/chapters/${classId}/${subjectId})
+              .then(response => {
+                if (!response.ok) throw new Error(HTTP error! Status: ${response.status});
+                return response.json();
+              })
               .then(chapters => {
-                // Tìm hoặc tạo vùng chứa chapter
-                let chapterContainer = detailsContainer.querySelector('.chapter-container');
-                if (!chapterContainer) {
-                  chapterContainer = document.createElement('div');
-                  chapterContainer.classList.add('chapter-container', 'mt-3');
-                  detailsContainer.appendChild(chapterContainer);
-                } else {
-                  chapterContainer.innerHTML = '';
-                }
+                console.log('Step 6: Chapters loaded:', chapters);
+                // Sắp xếp chương theo thứ tự tăng dần dựa trên tên
+                chapters.sort((a, b) => {
+                  const numA = parseInt(a.name.match(/\d+/)?.[0] || 0);
+                  const numB = parseInt(b.name.match(/\d+/)?.[0] || 0);
+                  return numA - numB;
+                });
+                console.log('Step 6.1: Chapters sorted:', chapters);
 
+                chaptersContainer.innerHTML = '<div class="accordion" id="chapters-accordion-' + subjectId + '"></div>';
+                const chaptersAccordion = chaptersContainer.querySelector(#chapters-accordion-${subjectId});
                 chapters.forEach(chapter => {
-                  const chapterDiv = document.createElement('div');
-                  chapterDiv.classList.add('chapter-item', 'mb-2');
-                  chapterDiv.textContent = chapter.name;
+                  const chapterItem = document.createElement('div');
+                  chapterItem.classList.add('accordion-item');
+                  chapterItem.innerHTML = `
+              <h2 class="accordion-header" id="chapter-heading-${chapter.id}">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#chapter-collapse-${chapter.id}" aria-expanded="false" aria-controls="chapter-collapse-${chapter.id}">
+                  ${chapter.name}
+                </button>
+              </h2>
+              <div id="chapter-collapse-${chapter.id}" class="accordion-collapse collapse" aria-labelledby="chapter-heading-${chapter.id}" data-bs-parent="#chapters-accordion-${subjectId}">
+                <div class="accordion-body" id="lessons-${chapter.id}"></div>
+              </div>
+            `;
+                  chaptersAccordion.appendChild(chapterItem);
 
-                  // Khi click vào Chương
-                  chapterDiv.onclick = (event) => {
-                    event.stopPropagation();
-
-                    // Nếu click lại cùng chương thì đóng nó
-                    if (currentChapter === chapter.id) {
-                      chapterDiv.querySelector('.lesson-container')?.remove();
-                      currentChapter = null;
-                      currentChapterDiv = null;
+                  // Tải bài học khi accordion chương được mở
+                  const chapterCollapse = document.getElementById(chapter-collapse-${chapter.id});
+                  chapterCollapse.addEventListener('shown.bs.collapse', function() {
+                    console.log('Step 7: Chapter accordion opened for chapterId:', chapter.id);
+                    const lessonsContainer = document.getElementById(lessons-${chapter.id});
+                    if (lessonsContainer && !lessonsContainer.hasChildNodes()) {
+                      loadLessons(classId, subjectId, chapter.id, lessonsContainer);
                     }
-                    else {
-                      // Đóng chương cũ (nếu khác chương hiện tại)
-                      if (currentChapterDiv && currentChapterDiv !== chapterDiv) {
-                        currentChapterDiv.querySelector('.lesson-container')?.remove();
-                      }
-                      loadLessons(classId, subjectId, chapter.id, chapterDiv);
-                      currentChapter = chapter.id;
-                      currentChapterDiv = chapterDiv;
-                    }
-                  };
-
-                  chapterContainer.appendChild(chapterDiv);
+                  });
                 });
               })
-              .catch(err => console.error('Lỗi khi tải danh sách Chương:', err));
+              .catch(err => {
+                console.error('Lỗi khi tải danh sách chương:', err);
+                chaptersContainer.innerHTML = '<p class="text-danger">Lỗi tải danh sách chương.</p>';
+              });
     }
 
-    // 4. Tải danh sách Bài học (theo Lớp, Môn, Chương)
-    function loadLessons(classId, subjectId, chapterId, chapterDiv) {
-      fetch(`/api/theory/lessons/${classId}/${subjectId}/${chapterId}`)
-              .then(response => response.json())
-              .then(lessons => {
-                // Tạo vùng chứa Bài học riêng cho mỗi chương
-                let lessonContainer = chapterDiv.querySelector('.lesson-container');
-                if (!lessonContainer) {
-                  lessonContainer = document.createElement('div');
-                  lessonContainer.classList.add('lesson-container', 'mt-2', 'ms-3');
-                  // Quan trọng: append vào 'chapterDiv' thay vì 'chapterContainer'
-                  chapterDiv.appendChild(lessonContainer);
-                } else {
-                  lessonContainer.innerHTML = '';
+    // Hàm tải danh sách bài học
+    function loadLessons(classId, subjectId, chapterId, lessonsContainer) {
+      const url = /api/theory/lessons/${classId}/${subjectId}/${chapterId};
+      console.log('Step 8: Fetching lessons from:', url);
+      fetch(url)
+              .then(response => {
+                if (!response.ok) {
+                  console.error(HTTP error! Status: ${response.status} - ${response.statusText});
+                  throw new Error('Không thể tải danh sách bài học');
                 }
-
-                lessons.forEach(lesson => {
-                  const lessonDiv = document.createElement('div');
-                  lessonDiv.classList.add('lesson-item', 'mb-2');
-                  lessonDiv.textContent = lesson.name;
-
-                  // Khi click vào Bài học
-                  lessonDiv.onclick = (event) => {
-                    event.stopPropagation();
-                    window.location.href = `/lesson?classId=${classId}&subjectId=${subjectId}&chapterId=${chapterId}&lessonId=${lesson.id}`;
-                  };
-
-                  lessonContainer.appendChild(lessonDiv);
-                });
+                return response.json();
               })
-              .catch(error => console.error('Lỗi khi tải danh sách bài học:', error));
-    }
+              .then(lessons => {
+                console.log('Step 9: Lessons loaded:', lessons);
+                // Sắp xếp bài học theo thứ tự tăng dần dựa trên tên
+                lessons.sort((a, b) => {
+                  const numA = parseInt(a.name.match(/\d+/)?.[0] || 0);
+                  const numB = parseInt(b.name.match(/\d+/)?.[0] || 0);
+                  return numA - numB;
+                });
+                console.log('Step 9.1: Lessons sorted:', lessons);
 
-    // Khởi chạy ban đầu: tải danh sách Lớp
-    loadClasses();
+                lessonsContainer.innerHTML = '<ul class="list-group"></ul>';
+                const lessonList = lessonsContainer.querySelector('.list-group');
+                if (!lessons || lessons.length === 0) {
+                  lessonList.innerHTML = '<li class="list-group-item text-muted">Không có bài học nào.</li>';
+                } else {
+                  lessons.forEach(lesson => {
+                    const lessonItem = document.createElement('li');
+                    lessonItem.classList.add('list-group-item');
+                    lessonItem.innerHTML = `
+                <a href="/lesson?classId=${classId}&subjectId=${subjectId}&chapterId=${chapterId}&lessonId=${lesson.id}" class="text-decoration-none text-dark">${lesson.name}</a>
+              `;
+                    lessonList.appendChild(lessonItem);
+                  });
+                }
+              })
+              .catch(error => {
+                console.error('Lỗi khi tải danh sách bài học:', error);
+                lessonsContainer.innerHTML = '<p class="text-danger">Lỗi tải danh sách bài học.</p>';
+              });
+    }
   });
 </script>
-
-<!-- Bootstrap JS -->
-<script
-        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
-></script>
 <div th:replace="fragments/footer :: footer"></div>
-
 </body>
-</html>
+</htm>
