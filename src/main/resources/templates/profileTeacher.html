@@ -4,232 +4,270 @@
     <meta charset="UTF-8">
     <title>Thông tin tài khoản - Giáo viên</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <!-- Bootstrap 5 (CDN hoặc file nội bộ) -->
-    <link rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+    <style>
+        /* Placeholder màu nhạt */
+        ::placeholder {
+            color: #ccc;
+            opacity: 1;
+            font-size: small;
+        }
+        /* Các ô nhập (input, select, textarea) có border-radius */
+        input.form-control,
+        select.form-select,
+        textarea.form-control {
+            border-radius: 0.75rem;
+        }
+    </style>
 </head>
 <body style="margin:0; padding:0; background-color:#f5f6fa; font-family:'Segoe UI', sans-serif;">
 
-<!-- Header (nếu có) -->
-<!-- <div th:insert="~{fragments/header :: header}"></div> -->
+<!-- Chèn fragment header + sidebar -->
+<div th:insert="~{fragments/headerProfile :: headerSidebar}"></div>
 
+<!-- MAIN CONTENT -->
 <div class="container-fluid p-0">
+
     <div class="row g-0">
-
-        <!-- SIDEBAR -->
-        <div class="col-12 col-md-3 bg-white border-end p-3" style="min-height:100vh;">
-            <nav class="nav flex-column">
-                <a class="nav-link text-dark mb-1" href="/dashboard">Bảng điều khiển</a>
-                <a class="nav-link text-dark mb-1" href="/my-courses">Bài học của tôi</a>
-                <a class="nav-link text-dark mb-1" href="/history">Lịch sử mua hàng</a>
-                <a class="nav-link text-dark mb-1" href="/invite">Quản lý giới thiệu</a>
-                <!-- Link active -->
-                <a class="nav-link mb-1 fw-bold" href="/profile"
-                   style="background-color:#e7f1ff; color:#6f42c1;">
-                    Thông tin tài khoản
-                </a>
-            </nav>
-        </div>
-
-        <!-- MAIN CONTENT -->
-        <div class="col-12 col-md-9 p-4">
+        <!-- Margin-top:70px, Margin-left:240px để không bị che bởi header và sidebar -->
+        <div class="col-12 p-4" style="margin-top:70px; margin-left:240px; max-width:1150px;">
 
             <!-- Tabs -->
             <ul class="nav nav-tabs mb-3" style="border-bottom:2px solid #dee2e6;">
                 <li class="nav-item">
-                    <button class="nav-link active border-0" data-bs-toggle="tab" data-bs-target="#editProfile"
-                            style="color:#6f42c1;">
+                    <button class="nav-link active border-0" data-bs-toggle="tab" data-bs-target="#editProfile" style="color:#6f42c1;">
                         Chỉnh sửa hồ sơ
                     </button>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link border-0" th:href="@{/changePass}">
-                        Mật khẩu
-                    </a>
+                    <a class="nav-link border-0" th:href="@{/changePass}">Mật khẩu</a>
                 </li>
             </ul>
 
-            <!-- Thông báo trạng thái (nếu cần) -->
+            <!-- Thông báo trạng thái -->
             <div th:if="${user.role == 'TEACHER_PENDING'}" class="alert alert-warning" style="font-size:0.9rem;">
-                Tài khoản giáo viên của bạn đang <strong>chờ duyệt</strong>.
-                Vui lòng cập nhật đầy đủ thông tin để Admin xác thực.
+                Tài khoản giáo viên của bạn đang <strong>chờ duyệt</strong>. Vui lòng cập nhật đầy đủ thông tin để Admin xác thực.
             </div>
             <div th:if="${user.role == 'TEACHER'}" class="alert alert-success" style="font-size:0.9rem;">
                 Bạn đã được phê duyệt làm giáo viên. Giờ bạn có thể tạo đề, quản lý khóa học,...
             </div>
 
-            <!-- Tab content -->
-            <div class="tab-content">
-                <!-- Tab: Chỉnh sửa hồ sơ -->
-                <div class="tab-pane fade show active" id="editProfile">
-                    <div class="card border shadow-sm" style="border-radius:8px;">
-                        <div class="card-body">
+            <!-- Hiển thị thông báo sau khi cập nhật thông tin -->
+            <div th:if="${success}" class="alert alert-success" style="font-size:0.9rem;">
+                [[${success}]]
+            </div>
 
-                            <!-- Tiêu đề -->
-                            <h5 class="mb-2" style="font-weight:600; color:#6f42c1;">
-                                Sửa hồ sơ Giáo viên
-                            </h5>
-                            <p class="text-muted small mb-4">
-                                Thông tin này sẽ được chia sẻ với các học viên khác
-                            </p>
+            <!-- Card profileTeacher -->
+            <div class="card border shadow-sm" style="border-radius:8px;">
+                <div class="card-body">
+                    <!-- Tiêu đề và mô tả -->
+                    <h5 class="mb-2" style="font-weight:600; color:#6f42c1;">Sửa hồ sơ Giáo viên</h5>
+                    <p class="text-muted small mb-4">
+                        Thông tin này sẽ được chia sẻ với các học viên khác
+                    </p>
 
-                            <!-- Form -->
-                            <form th:action="@{/profile/teacher/update}"
-                                  method="post"
-                                  enctype="multipart/form-data"
-                                  class="mt-3">
-                                <div class="row">
-                                    <!-- Ảnh đại diện -->
-                                    <div class="col-md-3 text-center mb-3">
-                                        <!-- Placeholder nếu chưa có avatar -->
-                                        <div class="d-flex align-items-center justify-content-center border"
-                                             style="width:100px; height:100px; border-style:dashed; border-color:#ccc; border-radius:6px;"
-                                             th:if="${#strings.isEmpty(user.avatarUrl)}">
-                                            <span class="text-secondary small">100x100</span>
-                                        </div>
-                                        <!-- Nếu có avatarUrl -->
-                                        <div th:if="${not #strings.isEmpty(user.avatarUrl)}" class="mb-2">
-                                            <img th:src="${user.avatarUrl}"
-                                                 alt="Avatar"
-                                                 style="width:100px; height:100px; object-fit:cover; border-radius:6px;">
-                                        </div>
+                    <!-- Khu vực Avatar + EB Coin (ở trên cùng, canh giữa) -->
+                    <div class="text-center mb-4">
+                        <!-- Nếu chưa có avatar -->
+                        <div th:if="${#strings.isEmpty(user.avatarUrl)}">
+                            <div class="d-flex align-items-center justify-content-center bg-light"
+                                 style="width:120px; height:120px; border-radius:50%; margin:0 auto; border: 4px solid #007bff;">
+                                <span class="text-secondary small">No Avatar</span>
+                            </div>
+                        </div>
+                        <!-- Nếu đã có avatar -->
+                        <div th:if="${not #strings.isEmpty(user.avatarUrl)}" class="mb-3">
+                            <img th:src="${user.avatarUrl}"
+                                 alt="Avatar"
+                                 style="width:160px; height:160px; object-fit:cover; border-radius:50%; border: 4px solid #007bff;">
+                        </div>
+                        <form action="/profile/upload" enctype="multipart/form-data" method="post">
+                            <input type="file" id="imageUpload" class="d-none" name="image" accept="image/*" required onchange="this.form.submit()">
+                            <input type="hidden" name="username" th:value="${user.username}">
+                            <label class="btn btn-primary btn-sm mt-2" for="imageUpload">
+                                <i class="bi bi-camera"></i> Thay đổi ảnh
+                            </label>
+                        </form>
 
-                                        <!-- Nút chọn file -->
-                                        <label class="btn btn-outline-primary btn-sm mt-2">
-                                            Chọn ảnh
-                                            <input type="file" name="avatar" class="d-none" accept="image/*"
-                                                   onchange="this.form.submit()">
-                                        </label>
-                                        <div class="text-muted small mt-2">
-                                            PNG/JPG, &le; 800px
-                                        </div>
-                                    </div>
+                        <!-- Badges và EB Coin -->
+                        <div class="mt-3 d-flex flex-column align-items-center gap-2">
+                            <!-- Badges -->
+                            <div>
+                                <span class="badge bg-info me-1" th:text="${user.role}"></span>
+                                <span class="badge bg-warning text-dark">
+                    <i class="bi bi-star-fill"></i> Premium User
+                  </span>
+                            </div>
+                            <!-- Khối EB Coin -->
+                            <div class="px-3 py-2 text-white" style="background-color: #007bff; border-radius: 8px;">
+                                <h6 style="margin:0; font-size:1rem;">EB Coin</h6>
+                                <h5 style="margin:0; font-size:1.2rem;" th:text="${user.coin != null ? user.coin : 0}">
+                                    0
+                                </h5>
+                                <small style="font-size:0.75rem;">Hết hạn Premium User: 05/03/2024</small>
+                            </div>
+                        </div>
+                    </div>
 
-                                    <!-- Thông tin form chung -->
-                                    <div class="col-md-9">
-                                        <div class="row">
-                                            <!-- Tên -->
-                                            <div class="col-sm-6 mb-3">
-                                                <label class="form-label">
-                                                    Tên <span class="text-danger">*</span>
-                                                </label>
-                                                <input type="text" class="form-control"
-                                                       th:field="*{firstName}" required
-                                                       placeholder="VD: Văn A, Thị B,...">
-                                            </div>
-                                            <!-- Họ -->
-                                            <div class="col-sm-6 mb-3">
-                                                <label class="form-label">
-                                                    Họ <span class="text-danger">*</span>
-                                                </label>
-                                                <input type="text" class="form-control"
-                                                       th:field="*{lastName}" required
-                                                       placeholder="VD: Nguyễn, Trần,...">
-                                            </div>
-                                            <!-- Sinh nhật -->
-                                            <div class="col-sm-6 mb-3">
-                                                <label class="form-label">Sinh nhật</label>
-                                                <input type="date" class="form-control"
-                                                       th:field="*{birthDate}">
-                                            </div>
-                                            <!-- Số điện thoại -->
-                                            <div class="col-sm-6 mb-3">
-                                                <label class="form-label">Số điện thoại</label>
-                                                <input type="text" class="form-control"
-                                                       th:field="*{phone}"
-                                                       placeholder="VD: 0123456789">
-                                            </div>
-                                            <!-- Email -->
-                                            <div class="col-sm-12 mb-3">
-                                                <label class="form-label">Email</label>
-                                                <input type="email" class="form-control"
-                                                       th:field="*{email}" readonly>
-                                            </div>
-                                            <!-- Địa chỉ -->
-                                            <div class="col-sm-12 mb-3">
-                                                <label class="form-label">Địa chỉ</label>
-                                                <input type="text" class="form-control"
-                                                       th:field="*{address}"
-                                                       placeholder="VD: TP. HCM, Hà Nội...">
-                                            </div>
-                                            <!-- Mã giáo viên (Teacher Code) -->
-                                            <div class="col-sm-6 mb-3">
-                                                <label class="form-label">
-                                                    Mã giáo viên
-                                                </label>
-                                                <input type="text" class="form-control"
-                                                       th:field="*{teacherCode}"
-                                                       placeholder="VD: GV-123456">
-                                            </div>
-                                            <!-- Trường / Nơi công tác -->
-                                            <div class="col-sm-6 mb-3">
-                                                <label class="form-label">
-                                                       Trường / Nơi công tác
-                                                </label>
-                                                <input type="text" class="form-control"
-                                                       th:field="*{school}"
-                                                       placeholder="VD: THPT ABC, Trung tâm XYZ,...">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div><!-- /row -->
+                    <!-- Form thông tin Giáo viên -->
+                    <form id="teacherForm" th:object="${user}" th:action="@{/profile/teacher/update}" method="post" enctype="multipart/form-data" class="mt-3">
+                        <div class="row g-3">
+                            <!-- Hàng 1: Tên, Họ, Ngày sinh -->
+                            <div class="col-sm-3">
+                                <label class="form-label" style="color:#333; font-weight:650;">Tên <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" th:field="*{firstName}" placeholder="Nhập tên" required style="color:#000; min-height:40px; font-size:1rem; padding: 0.75rem 1rem;">
+                            </div>
+                            <div class="col-sm-3">
+                                <label class="form-label" style="color:#333; font-weight:650;">Họ <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" th:field="*{lastName}" placeholder="Nhập họ" required style="color:#000; min-height:40px; font-size:1rem; padding: 0.75rem 1rem;">
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="form-label" style="color:#333; font-weight:650;">Ngày sinh</label>
+                                <input type="date" class="form-control" th:field="*{birthDate}" style="color:#000; min-height:40px; font-size:1rem; padding: 0.75rem 1rem;">
+                            </div>
+                        </div>
 
-                                <!-- CHUYÊN MÔN, KINH NGHIỆM, BẰNG CẤP -->
-                                <div class="row">
-                                    <!-- Chuyên môn / Môn giảng dạy -->
-                                    <div class="col-sm-6 mb-3">
-                                        <label class="form-label">Chuyên môn / Môn giảng dạy</label>
-                                        <input type="text" class="form-control"
-                                               th:field="*{speciality}"
-                                               placeholder="VD: Tiếng Anh, Lập trình web,...">
-                                    </div>
-                                    <!-- Kinh nghiệm -->
-                                    <div class="col-sm-6 mb-3">
-                                        <label class="form-label">Kinh nghiệm (năm)</label>
-                                        <input type="number" class="form-control"
-                                               th:field="*{experience}"
-                                               placeholder="VD: 2, 5...">
-                                    </div>
-                                    <!-- Bằng cấp -->
-                                    <div class="col-sm-12 mb-3">
-                                        <label class="form-label">Tải lên bằng cấp / chứng chỉ</label>
-                                        <input type="file" name="degreeFile" class="form-control">
-                                        <small class="text-muted">
-                                            Admin sẽ kiểm duyệt tệp này
-                                        </small>
-                                    </div>
-                                </div>
+                        <!-- Hàng 2: Email, Số điện thoại, Tỉnh/Thành phố -->
+                        <div class="row g-3 mt-3">
+                            <div class="col-sm-4">
+                                <label class="form-label" style="color:#333; font-weight:650;">Email</label>
+                                <input type="email" class="form-control" th:field="*{email}" placeholder="Email" readonly style="color:#000; min-height:40px; font-size:1rem; padding: 0.75rem 1rem;">
+                            </div>
+                            <div class="col-sm-4">
+                                <label class="form-label" style="color:#333; font-weight:650;">Số điện thoại</label>
+                                <input type="text" class="form-control" th:field="*{phone}" placeholder="VD: 0123456789" style="color:#000; min-height:40px; font-size:1rem; padding: 0.75rem 1rem;">
+                            </div>
+                            <div class="col-sm-4">
+                                <label class="form-label" style="color:#333; font-weight:650;">Tỉnh/Thành phố</label>
+                                <select class="form-select" th:field="*{address}" id="address" style="color:#000; min-height:40px; font-size:1rem; padding: 0.75rem 1rem;">
+                                    <option value="">-- Chọn Tỉnh/Thành phố --</option>
+                                    <option value="Hà Nội">Hà Nội</option>
+                                    <option value="Hồ Chí Minh">Hồ Chí Minh</option>
+                                    <option value="Đà Nẵng">Đà Nẵng</option>
+                                    <option value="Hải Phòng">Hải Phòng</option>
+                                    <option value="Cần Thơ">Cần Thơ</option>
+                                    <option value="An Giang">An Giang</option>
+                                    <option value="Bà Rịa - Vũng Tàu">Bà Rịa - Vũng Tàu</option>
+                                    <option value="Bắc Giang">Bắc Giang</option>
+                                    <option value="Bắc Kạn">Bắc Kạn</option>
+                                    <option value="Bạc Liêu">Bạc Liêu</option>
+                                    <option value="Bắc Ninh">Bắc Ninh</option>
+                                    <option value="Bến Tre">Bến Tre</option>
+                                    <option value="Bình Định">Bình Định</option>
+                                    <option value="Bình Dương">Bình Dương</option>
+                                    <option value="Bình Phước">Bình Phước</option>
+                                    <option value="Bình Thuận">Bình Thuận</option>
+                                    <option value="Cà Mau">Cà Mau</option>
+                                    <option value="Cao Bằng">Cao Bằng</option>
+                                    <option value="Đắk Lắk">Đắk Lắk</option>
+                                    <option value="Đắk Nông">Đắk Nông</option>
+                                    <option value="Điện Biên">Điện Biên</option>
+                                    <option value="Đồng Nai">Đồng Nai</option>
+                                    <option value="Đồng Tháp">Đồng Tháp</option>
+                                    <option value="Gia Lai">Gia Lai</option>
+                                    <option value="Hà Giang">Hà Giang</option>
+                                    <option value="Hà Nam">Hà Nam</option>
+                                    <option value="Hà Tĩnh">Hà Tĩnh</option>
+                                    <option value="Hải Dương">Hải Dương</option>
+                                    <option value="Hậu Giang">Hậu Giang</option>
+                                    <option value="Hòa Bình">Hòa Bình</option>
+                                    <option value="Hưng Yên">Hưng Yên</option>
+                                    <option value="Khánh Hòa">Khánh Hòa</option>
+                                    <option value="Kiên Giang">Kiên Giang</option>
+                                    <option value="Kon Tum">Kon Tum</option>
+                                    <option value="Lai Châu">Lai Châu</option>
+                                    <option value="Lâm Đồng">Lâm Đồng</option>
+                                    <option value="Lạng Sơn">Lạng Sơn</option>
+                                    <option value="Lào Cai">Lào Cai</option>
+                                    <option value="Long An">Long An</option>
+                                    <option value="Nam Định">Nam Định</option>
+                                    <option value="Nghệ An">Nghệ An</option>
+                                    <option value="Ninh Bình">Ninh Bình</option>
+                                    <option value="Ninh Thuận">Ninh Thuận</option>
+                                    <option value="Phú Thọ">Phú Thọ</option>
+                                    <option value="Phú Yên">Phú Yên</option>
+                                    <option value="Quảng Bình">Quảng Bình</option>
+                                    <option value="Quảng Nam">Quảng Nam</option>
+                                    <option value="Quảng Ngãi">Quảng Ngãi</option>
+                                    <option value="Quảng Ninh">Quảng Ninh</option>
+                                    <option value="Quảng Trị">Quảng Trị</option>
+                                    <option value="Sóc Trăng">Sóc Trăng</option>
+                                    <option value="Sơn La">Sơn La</option>
+                                    <option value="Tây Ninh">Tây Ninh</option>
+                                    <option value="Thái Bình">Thái Bình</option>
+                                    <option value="Thái Nguyên">Thái Nguyên</option>
+                                    <option value="Thanh Hóa">Thanh Hóa</option>
+                                    <option value="Thừa Thiên Huế">Thừa Thiên Huế</option>
+                                    <option value="Tiền Giang">Tiền Giang</option>
+                                    <option value="Trà Vinh">Trà Vinh</option>
+                                    <option value="Tuyên Quang">Tuyên Quang</option>
+                                    <option value="Vĩnh Long">Vĩnh Long</option>
+                                    <option value="Vĩnh Phúc">Vĩnh Phúc</option>
+                                    <option value="Yên Bái">Yên Bái</option>
+                                </select>
+                            </div>
+                        </div>
 
-                                <!-- MÔ TẢ -->
-                                <div class="row">
-                                    <div class="col-sm-12 mb-3">
-                                        <label class="form-label">Mô tả</label>
-                                        <textarea class="form-control"
-                                                  th:field="*{description}"
-                                                  rows="3"
-                                                  placeholder="Bạn có thể tóm tắt ngắn gọn về kinh nghiệm, triết lý giảng dạy..."></textarea>
-                                    </div>
-                                </div>
+                        <!-- Hàng 3: Mã giáo viên, Nơi làm việc -->
+                        <div class="row g-3 mt-3">
+                            <!-- Mã giáo viên -->
+                            <div class="col-sm-6">
+                                <label class="form-label" style="color:#333; font-weight:650;">Mã giáo viên (Nếu có)</label>
+                                <input type="text" class="form-control" th:field="*{teacherCode}" placeholder="VD: GV123" style="color:#000; min-height:40px; font-size:1rem; padding: 0.75rem 1rem;">
+                            </div>
+                            <!-- Nơi làm việc -->
+                            <div class="col-sm-6">
+                                <label class="form-label" style="color:#333; font-weight:650;">Nơi làm việc</label>
+                                <input type="text" class="form-control" th:field="*{school}" placeholder="VD: Trường THPT FPT" style="color:#000; min-height:40px; font-size:1rem; padding: 0.75rem 1rem;">
+                            </div>
+                        </div>
 
-                                <!-- Nút Lưu -->
-                                <div class="text-end mt-3">
-                                    <button type="submit" class="btn btn-primary px-4" style="border-radius:4px;">
-                                        Lưu
-                                    </button>
-                                </div>
-                            </form>
+                        <!-- Hàng 4: Môn giảng dạy, Kinh nghiệm -->
+                        <div class="row g-3 mt-3">
+                            <!-- Môn giảng dạy -->
+                            <div class="col-sm-6">
+                                <label class="form-label" style="color:#333; font-weight:650;">Môn giảng dạy</label>
+                                <input type="text" class="form-control" th:field="*{speciality}" placeholder="VD: Toán, Lý, Hóa" style="color:#000; min-height:40px; font-size:1rem; padding: 0.75rem 1rem;">
+                            </div>
+                            <!-- Kinh nghiệm -->
+                            <div class="col-sm-6">
+                                <label class="form-label" style="color:#333; font-weight:650;">Kinh nghiệm (năm)</label>
+                                <input type="number" class="form-control" th:field="*{experience}" placeholder="VD:1" style="color:#000; min-height:40px; font-size:1rem; padding: 0.75rem 1rem;">
+                            </div>
+                        </div>
 
-                        </div><!-- /card-body -->
-                    </div><!-- /card -->
-                </div><!-- /tab-pane -->
-            </div><!-- /tab-content -->
+                        <!-- Hàng 5: Tải lên bằng cấp -->
+                        <div class="row g-3 mt-3">
+                            <div class="col-sm-12">
+                                <label class="form-label" style="color:#333; font-weight:650;">Tải lên bằng cấp, chứng chỉ (Nếu có)</label>
+                                <input type="file" name="degreeFile" class="form-control">
+                                <small class="text-muted">Admin sẽ kiểm duyệt tệp này</small>
+                            </div>
+                        </div>
+
+                        <!-- Hàng 6: Mô tả -->
+                        <div class="row g-3 mt-3">
+                            <div class="col-sm-12">
+                                <label class="form-label" style="color:#333; font-weight:650;">Mô tả</label>
+                                <textarea class="form-control" rows="3" th:field="*{description}" placeholder="Bạn có thể tóm tắt ngắn gọn về kinh nghiệm, triết lý giảng dạy..." style="color:#000; min-height:40px; font-size:1rem; padding: 0.75rem 1rem;"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Nút Lưu -->
+                        <div class="text-end mt-3">
+                            <button type="submit" class="btn btn-primary px-4" style="border-radius:8px;">Lưu</button>
+                        </div>
+                    </form>
+                </div><!-- /card-body -->
+            </div><!-- /card -->
         </div><!-- /col -->
-
     </div><!-- /row -->
-</div><!-- /container-fluid-->
+</div><!-- /container-fluid -->
 
 <!-- Bootstrap Bundle JS -->
+<script src="/js/addExam.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
