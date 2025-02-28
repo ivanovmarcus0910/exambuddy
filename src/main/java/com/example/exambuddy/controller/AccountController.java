@@ -36,22 +36,22 @@ public class AccountController {
         this.passService = passService;
     }
 
-    @RequestMapping("/profile")
-    public String profilePage(HttpServletRequest request, Model model) {
-        HttpSession session = request.getSession();
-        String username = (String) session.getAttribute("loggedInUser");
-
-        if (username == null) {
-            return "redirect:/login";
-        }
-
-        // Lấy thông tin người dùng từ dịch vụ với username đã tìm thấy
-        UserService userService = new UserService();
-        User user = userService.getUserData(username);
-        model.addAttribute("user", user);
-
-        return "profile";
-    }
+//    @RequestMapping("/profile")
+//    public String profilePage(HttpServletRequest request, Model model) {
+//        HttpSession session = request.getSession();
+//        String username = (String) session.getAttribute("loggedInUser");
+//
+//        if (username == null) {
+//            return "redirect:/login";
+//        }
+//
+//        // Lấy thông tin người dùng từ dịch vụ với username đã tìm thấy
+//        UserService userService = new UserService();
+//        User user = userService.getUserData(username);
+//        model.addAttribute("user", user);
+//
+//        return "profile";
+//    }
 
     @PostMapping("/profile/upload")
     public String uploadAvatar(@RequestParam("image") MultipartFile file,
@@ -68,28 +68,28 @@ public class AccountController {
         return "redirect:/profile";  // Trở về trang profile
     }
 
-    @PostMapping("/profile/update")
-    public String updateProfile(@RequestParam String fullName,
-                                @RequestParam String phone,
-                                HttpServletRequest request,
-                                Model model) {
-        HttpSession session = request.getSession();
-        String username = (String) session.getAttribute("loggedInUser");
-
-        if (username == null) {
-            return "redirect:/login";
-        }
-
-        // Gọi Firestore Service để cập nhật dữ liệu
-        UserService.updateUserField(username, "fullName", fullName);
-        UserService.updateUserField(username, "phone", phone);
-        // Lấy dữ liệu mới từ Firestore để cập nhật lại model
-        User updatedUser = UserService.getUserData(username);
-        session.setAttribute("user", updatedUser);
-        model.addAttribute("user", updatedUser);
-
-        return "redirect:/profile"; // Trở về trang profile
-    }
+//    @PostMapping("/profile/update")
+//    public String updateProfile(@RequestParam String fullName,
+//                                @RequestParam String phone,
+//                                HttpServletRequest request,
+//                                Model model) {
+//        HttpSession session = request.getSession();
+//        String username = (String) session.getAttribute("loggedInUser");
+//
+//        if (username == null) {
+//            return "redirect:/login";
+//        }
+//
+//        // Gọi Firestore Service để cập nhật dữ liệu
+//        UserService.updateUserField(username, "fullName", fullName);
+//        UserService.updateUserField(username, "phone", phone);
+//        // Lấy dữ liệu mới từ Firestore để cập nhật lại model
+//        User updatedUser = UserService.getUserData(username);
+//        session.setAttribute("user", updatedUser);
+//        model.addAttribute("user", updatedUser);
+//
+//        return "redirect:/profile"; // Trở về trang profile
+//    }
 
     @GetMapping("/changePass")
     public String changePasswordPage(HttpSession session, Model model) {

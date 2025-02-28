@@ -116,7 +116,7 @@
     selectClassBtn.addEventListener('click', function() {
       const bookType = bookTypeSelect.value;
       const classGrade = classGradeSelect.value;
-      currentClassId = `${classGrade}_${bookType}`;
+      currentClassId = ${classGrade}_${bookType};
       console.log('Step 1: Selected classId:', currentClassId);
       loadSubjects(currentClassId);
     });
@@ -124,11 +124,11 @@
     // Hàm tải danh sách môn học
     function loadSubjects(classId) {
       console.log('Step 2: Fetching subjects for classId:', classId);
-      fetch(`/api/theory/subjects/${classId}`)
-              .then(response => {
-                if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-                return response.json();
-              })
+      fetch(/api/theory/subjects/${classId})
+    .then(response => {
+        if (!response.ok) throw new Error(HTTP error! Status: ${response.status});
+        return response.json();
+      })
               .then(subjects => {
                 console.log('Step 3: Subjects loaded:', subjects);
                 subjectsContainer.innerHTML = '';
@@ -148,10 +148,10 @@
                   subjectsContainer.appendChild(accordionItem);
 
                   // Tải chương khi accordion môn học được mở
-                  const subjectCollapse = document.getElementById(`subject-collapse-${subject.id}`);
+                  const subjectCollapse = document.getElementById(subject-collapse-${subject.id});
                   subjectCollapse.addEventListener('shown.bs.collapse', function() {
                     console.log('Step 4: Subject accordion opened for subjectId:', subject.id);
-                    const chaptersContainer = document.getElementById(`chapters-${subject.id}`);
+                    const chaptersContainer = document.getElementById(chapters-${subject.id});
                     if (chaptersContainer && !chaptersContainer.hasChildNodes()) {
                       loadChapters(classId, subject.id, chaptersContainer);
                     }
@@ -167,9 +167,9 @@
     // Hàm tải danh sách chương
     function loadChapters(classId, subjectId, chaptersContainer) {
       console.log('Step 5: Fetching chapters for classId:', classId, 'subjectId:', subjectId);
-      fetch(`/api/theory/chapters/${classId}/${subjectId}`)
+      fetch(/api/theory/chapters/${classId}/${subjectId})
               .then(response => {
-                if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+                if (!response.ok) throw new Error(HTTP error! Status: ${response.status});
                 return response.json();
               })
               .then(chapters => {
@@ -183,7 +183,7 @@
                 console.log('Step 6.1: Chapters sorted:', chapters);
 
                 chaptersContainer.innerHTML = '<div class="accordion" id="chapters-accordion-' + subjectId + '"></div>';
-                const chaptersAccordion = chaptersContainer.querySelector(`#chapters-accordion-${subjectId}`);
+                const chaptersAccordion = chaptersContainer.querySelector(#chapters-accordion-${subjectId});
                 chapters.forEach(chapter => {
                   const chapterItem = document.createElement('div');
                   chapterItem.classList.add('accordion-item');
@@ -200,10 +200,10 @@
                   chaptersAccordion.appendChild(chapterItem);
 
                   // Tải bài học khi accordion chương được mở
-                  const chapterCollapse = document.getElementById(`chapter-collapse-${chapter.id}`);
+                  const chapterCollapse = document.getElementById(chapter-collapse-${chapter.id});
                   chapterCollapse.addEventListener('shown.bs.collapse', function() {
                     console.log('Step 7: Chapter accordion opened for chapterId:', chapter.id);
-                    const lessonsContainer = document.getElementById(`lessons-${chapter.id}`);
+                    const lessonsContainer = document.getElementById(lessons-${chapter.id});
                     if (lessonsContainer && !lessonsContainer.hasChildNodes()) {
                       loadLessons(classId, subjectId, chapter.id, lessonsContainer);
                     }
@@ -218,12 +218,12 @@
 
     // Hàm tải danh sách bài học
     function loadLessons(classId, subjectId, chapterId, lessonsContainer) {
-      const url = `/api/theory/lessons/${classId}/${subjectId}/${chapterId}`;
+      const url = /api/theory/lessons/${classId}/${subjectId}/${chapterId};
       console.log('Step 8: Fetching lessons from:', url);
       fetch(url)
               .then(response => {
                 if (!response.ok) {
-                  console.error(`HTTP error! Status: ${response.status} - ${response.statusText}`);
+                  console.error(HTTP error! Status: ${response.status} - ${response.statusText});
                   throw new Error('Không thể tải danh sách bài học');
                 }
                 return response.json();
