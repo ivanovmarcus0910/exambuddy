@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Quản lý Lý Thuyết</title>
+  <title>Lý Thuyết</title>
   <link rel="icon" type="image/x-icon" href="https://res.cloudinary.com/dsuav027e/image/upload/v1740393796/favicon_llcueu.ico">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -174,6 +174,14 @@
               })
               .then(chapters => {
                 console.log('Step 6: Chapters loaded:', chapters);
+                // Sắp xếp chương theo thứ tự tăng dần dựa trên tên
+                chapters.sort((a, b) => {
+                  const numA = parseInt(a.name.match(/\d+/)?.[0] || 0);
+                  const numB = parseInt(b.name.match(/\d+/)?.[0] || 0);
+                  return numA - numB;
+                });
+                console.log('Step 6.1: Chapters sorted:', chapters);
+
                 chaptersContainer.innerHTML = '<div class="accordion" id="chapters-accordion-' + subjectId + '"></div>';
                 const chaptersAccordion = chaptersContainer.querySelector(`#chapters-accordion-${subjectId}`);
                 chapters.forEach(chapter => {
@@ -222,6 +230,14 @@
               })
               .then(lessons => {
                 console.log('Step 9: Lessons loaded:', lessons);
+                // Sắp xếp bài học theo thứ tự tăng dần dựa trên tên
+                lessons.sort((a, b) => {
+                  const numA = parseInt(a.name.match(/\d+/)?.[0] || 0);
+                  const numB = parseInt(b.name.match(/\d+/)?.[0] || 0);
+                  return numA - numB;
+                });
+                console.log('Step 9.1: Lessons sorted:', lessons);
+
                 lessonsContainer.innerHTML = '<ul class="list-group"></ul>';
                 const lessonList = lessonsContainer.querySelector('.list-group');
                 if (!lessons || lessons.length === 0) {
