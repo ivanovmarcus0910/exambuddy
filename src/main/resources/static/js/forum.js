@@ -20,13 +20,25 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 });
 
-document.getElementById('imageInput').addEventListener('change', function(event) {
+document.getElementById('postImageInput').addEventListener('change', function(event) {
     let fileList = event.target.files;
-    let output = document.getElementById('selectedFiles');
-    output.innerHTML = '';
+    let output = document.getElementById('postFiles');
+    output.innerHTML = ''; // Xóa danh sách cũ
 
     if (fileList.length > 0) {
-        output.innerHTML = "<strong>Đã chọn:</strong> " + Array.from(fileList).map(file => file.name).join(', ');
+        output.innerHTML = "<strong>Đã chọn:</strong> " +
+            Array.from(fileList).map(file => file.name).join(', ');
+    }
+});
+
+document.getElementById('commentImageInput').addEventListener('change', function(event) {
+    let fileList = event.target.files;
+    let output = document.getElementById('commentFiles');
+    output.innerHTML = ''; // Xóa danh sách cũ
+
+    if (fileList.length > 0) {
+        output.innerHTML = "<strong>Đã chọn:</strong> " +
+            Array.from(fileList).map(file => file.name).join(', ');
     }
 });
 
@@ -104,23 +116,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
     document.querySelectorAll('.toggle-comments').forEach(button => {
         button.addEventListener('click', function () {
-            const commentsSection = this.closest('.post-actions').nextElementSibling;
+            // Tìm phần tử cha lớn nhất chứa cả post-actions và comments-section
+            const postContainer = this.closest('.post');
 
-            if (commentsSection.style.display === 'none' || commentsSection.style.display === '') {
-                commentsSection.style.display = 'block';
-            } else {
-                commentsSection.style.display = 'none';
+            // Tìm comments-section bên trong post đó
+            const commentsSection = postContainer.querySelector('.comments-section');
+
+            if (commentsSection) {
+                commentsSection.style.display = (commentsSection.style.display === 'none' || commentsSection.style.display === '')
+                    ? 'block'
+                    : 'none';
             }
-        });
-    });
-
-    // Hiển thị menu hành động khi hover vào bình luận
-    document.querySelectorAll('.comment-item').forEach(item => {
-        item.addEventListener('mouseenter', function () {
-            this.querySelector('.comment-actions').style.display = 'block';
-        });
-        item.addEventListener('mouseleave', function () {
-            this.querySelector('.comment-actions').style.display = 'none';
         });
     });
 
@@ -209,27 +215,13 @@ document.querySelectorAll('.share-button').forEach(button => {
     });
 });
 
-function openImage(img) {
-    // Lấy thẻ lightbox và ảnh lớn
-    const lightbox = document.getElementById('lightbox');
-    const lightboxImage = document.getElementById('lightbox-image');
-    const lightboxClose = document.getElementById('lightbox-close');
+function openImageModal(imgElement) {
+    let modalImage = document.getElementById('modalImage');
+    modalImage.src = imgElement.src;
+    let modal = new bootstrap.Modal(document.getElementById('imageModal'));
+    modal.show();
+}
 
-    // Gán ảnh nguồn vào lightbox
-    lightboxImage.src = img.src;
-
-    // Hiển thị lightbox
-    lightbox.classList.add('show');
-
-    // Đóng lightbox khi nhấn nút "X"
-    lightboxClose.onclick = function () {
-        lightbox.classList.remove('show');
-    };
-
-    // Đóng lightbox khi nhấn ra ngoài ảnh
-    lightbox.onclick = function (e) {
-        if (e.target === lightbox) {
-            lightbox.classList.remove('show');
-        }
-    };
+function openPostDetail(postId) {
+    window.location.href = '/post/' + postId;
 }
