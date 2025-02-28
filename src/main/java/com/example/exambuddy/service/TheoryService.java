@@ -22,22 +22,6 @@ public class TheoryService {
         return firebaseConfig.getFirestore();
     }
 
-    // Lấy danh sách lớp
-    public List<Class> getClasses() throws ExecutionException, InterruptedException {
-        return getFirestore().collection("classes").get().get().getDocuments()
-                .stream().map(doc -> doc.toObject(Class.class)).collect(Collectors.toList());
-    }
-
-    // Thêm lớp
-    public void addClass(Class cls) throws ExecutionException, InterruptedException {
-        getFirestore().collection("classes").document(cls.getId()).set(cls).get();
-    }
-
-    // Xóa lớp
-    public void deleteClass(String classId) throws ExecutionException, InterruptedException {
-        getFirestore().collection("classes").document(classId).delete().get();
-    }
-
     // Lấy danh sách môn học
     public List<Subject> getSubjects(String classId) throws ExecutionException, InterruptedException {
         return getFirestore().collection("classes").document(classId)
@@ -106,11 +90,18 @@ public class TheoryService {
 
     // Cập nhật nội dung bài học
     public void updateLessonContent(String classId, String subjectId, String chapterId, String lessonId, String content) throws ExecutionException, InterruptedException {
-        getFirestore().collection("classes").document(classId)
+        DocumentReference lessonRef = getFirestore().collection("classes").document(classId)
                 .collection("subjects").document(subjectId)
                 .collection("chapters").document(chapterId)
-                .collection("lessons").document(lessonId)
-                .update("content", content).get();
+                .collection("lessons").document(lessonId);
+
+        DocumentSnapshot lessonSnapshot = lessonRef.get().get();
+
+        if (!lessonSnapshot.exists()) {
+            throw new RuntimeException("Bài học không tồn tại!");
+        }
+
+        lessonRef.update("content", content).get();
     }
 
     // Lấy bài học theo ID

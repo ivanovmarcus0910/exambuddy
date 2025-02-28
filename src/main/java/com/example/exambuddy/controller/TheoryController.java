@@ -6,6 +6,8 @@ import com.example.exambuddy.model.Subject;
 import com.example.exambuddy.model.Class;
 import com.example.exambuddy.service.TheoryService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,24 +18,6 @@ import java.util.concurrent.ExecutionException;
 public class TheoryController {
     @Autowired
     private TheoryService theoryService;
-
-    // Lấy danh sách lớp
-    @GetMapping("/classes")
-    public List<Class> getClasses() throws ExecutionException, InterruptedException {
-        return theoryService.getClasses();
-    }
-
-    // Thêm lớp
-    @PostMapping("/classes")
-    public void addClass(@RequestBody Class cls) throws ExecutionException, InterruptedException {
-        theoryService.addClass(cls);
-    }
-
-    // Xóa lớp
-    @DeleteMapping("/classes/{classId}")
-    public void deleteClass(@PathVariable String classId) throws ExecutionException, InterruptedException {
-        theoryService.deleteClass(classId);
-    }
 
     // Lấy danh sách môn học
     @GetMapping("/subjects/{classId}")
@@ -91,8 +75,13 @@ public class TheoryController {
 
     // Cập nhật nội dung bài học
     @PutMapping("/lessons/{classId}/{subjectId}/{chapterId}/{lessonId}")
-    public void updateLessonContent(@PathVariable String classId, @PathVariable String subjectId, @PathVariable String chapterId, @PathVariable String lessonId, @RequestBody String content) throws ExecutionException, InterruptedException {
-        theoryService.updateLessonContent(classId, subjectId, chapterId, lessonId, content);
+    public ResponseEntity<String> updateLessonContent(@PathVariable String classId, @PathVariable String subjectId, @PathVariable String chapterId, @PathVariable String lessonId, @RequestBody Lesson lesson) {
+        try {
+            theoryService.updateLessonContent(classId, subjectId, chapterId, lessonId, lesson.getContent());
+            return ResponseEntity.ok("Nội dung bài học đã được cập nhật thành công!");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Lỗi khi cập nhật nội dung bài học: " + e.getMessage());
+        }
     }
 
     // Lấy bài học theo ID

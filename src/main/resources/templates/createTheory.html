@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quản lý lý thuyết</title>
+  <style>
+    .hidden { display: none; }
+    ul { list-style-type: none; padding: 0; }
+    li { cursor: pointer; margin: 5px 0; padding: 5px; border: 1px solid #ccc; }
+    li:hover { background-color: #f0f0f0; }
+    button { margin: 5px; }
+    textarea { width: 100%; height: 150px; }
+    label { margin-right: 10px; }
+  </style>
+</head>
+<body>
+<h1>Quản lý lý thuyết</h1>
+
+<!-- Phần chọn loại sách và lớp học -->
+<div id="select-class">
+  <h2>Bạn hãy chọn loại sách và lớp học muốn quản lý</h2>
+  <label for="book-type">Loại sách:</label>
+  <select id="book-type">
+    <option value="KNTT">Kết Nối Tri Thức</option>
+    <option value="CD">Cánh Diều</option>
+    <option value="CTST">Chân Trời Sáng Tạo</option>
+  </select>
+  <label for="class-grade">Lớp:</label>
+  <select id="class-grade">
+    <option value="10">10</option>
+    <option value="11">11</option>
+    <option value="12">12</option>
+  </select>
+  <button id="select-class-btn">Chọn</button>
+</div>
+
+<!-- Quản lý môn học -->
+<div id="subjects" class="hidden">
+  <h2>Môn học</h2>
+  <ul id="subject-list"></ul>
+  <button id="add-subject">Thêm môn học</button>
+  <form id="subject-form" class="hidden">
+    <input type="text" id="subject-name" placeholder="Tên môn học" required>
+    <button type="submit">Lưu</button>
+  </form>
+</div>
+
+<!-- Quản lý chương -->
+<div id="chapters" class="hidden">
+  <h2>Chương</h2>
+  <ul id="chapter-list"></ul>
+  <button id="add-chapter">Thêm chương</button>
+  <form id="chapter-form" class="hidden">
+    <input type="text" id="chapter-name" placeholder="Tên chương" required>
+    <button type="submit">Lưu</button>
+  </form>
+</div>
+
+<!-- Quản lý bài học -->
+<div id="lessons" class="hidden">
+  <h2>Bài học</h2>
+  <ul id="lesson-list"></ul>
+  <button id="add-lesson">Thêm bài học</button>
+  <form id="lesson-form" class="hidden">
+    <input type="text" id="lesson-name" placeholder="Tên bài học" required>
+    <textarea id="lesson-content" placeholder="Nội dung bài học"></textarea>
+    <button type="submit">Lưu</button>
+  </form>
+  <form id="update-lesson-form" class="hidden">
+    <textarea id="update-lesson-content" placeholder="Nội dung bài học"></textarea>
+    <button type="submit">Cập nhật nội dung</button>
+  </form>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Lấy các phần tử DOM
+    const bookTypeSelect = document.getElementById('book-type');
+    const classGradeSelect = document.getElementById('class-grade');
+    const selectClassBtn = document.getElementById('select-class-btn');
+    const subjectList = document.getElementById('subject-list');
+    const chapterList = document.getElementById('chapter-list');
+    const lessonList = document.getElementById('lesson-list');
+    const addSubjectBtn = document.getElementById('add-subject');
+    const subjectForm = document.getElementById('subject-form');
+    const subjectNameInput = document.getElementById('subject-name');
+    const addChapterBtn = document.getElementById('add-chapter');
+    const chapterForm = document.getElementById('chapter-form');
+    const chapterNameInput = document.getElementById('chapter-name');
+    const addLessonBtn = document.getElementById('add-lesson');
+    const lessonForm = document.getElementById('lesson-form');
+    const lessonNameInput = document.getElementById('lesson-name');
+    const lessonContentInput = document.getElementById('lesson-content');
+    const updateLessonForm = document.getElementById('update-lesson-form');
+    const updateLessonContentInput = document.getElementById('update-lesson-content');
+
+    // Biến lưu trữ giá trị hiện tại
+    let currentClassId = null;
+    let currentSubjectId = null;
+    let currentChapterId = null;
+    let currentLessonId = null;
+
+    // Hàm ẩn tất cả các phần tử con
+    function hideAllChildren() {
+      document.getElementById('subjects').classList.add('hidden');
+      document.getElementById('chapters').classList.add('hidden');
+      document.getElementById('lessons').classList.add('hidden');
+      lessonForm.classList.add('hidden');
+      updateLessonForm.classList.add('hidden');
+    }
+
+    // Xử lý sự kiện chọn loại sách và lớp học
+    selectClassBtn.addEventListener('click', function() {
+      const bookType = bookTypeSelect.value;
+      const classGrade = classGradeSelect.value;
+      currentClassId = `${classGrade}_${bookType}`;
+      hideAllChildren();
+      loadSubjects(currentClassId);
+    });
+
+    // Hàm tải danh sách môn học
+    function loadSubjects(classId) {
+      fetch(`/api/theory/subjects/${classId}`)
+              .then(response => response.json())
+              .then(subjects => {
+                subjectList.innerHTML = '';
+                subjects.forEach(subject => {
+                  const li = document.createElement('li');
+                  li.innerHTML = `
+                <span onclick="toggleChapters('${classId}', '${subject.id}')">${subject.name}</span>
+                <button onclick="deleteSubject('${classId}', '${subject.id}')">Xóa</button>
+              `;
+                  subjectList.appendChild(li);
+                });
+                document.getElementById('subjects').classList.remove('hidden');
+              })
+              .catch(error => console.error('Lỗi tải môn học:', error));
+    }
+
+    // Thêm môn học
+    addSubjectBtn.addEventListener('click', () => subjectForm.classList.remove('hidden'));
+
+    subjectForm.addEventListener('submit', function(event) {
+      event.preventDefault();
+      const subjectName = subjectNameInput.value;
+      const newSubject = { id: Date.now().toString(), name: subjectName };
+      fetch(`/api/theory/subjects/${currentClassId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newSubject),
+      })
+              .then(response => {
+                if (response.ok) {
+                  alert('Môn học đã được thêm thành công!');
+                  loadSubjects(currentClassId);
+                  subjectForm.reset();
+                  subjectForm.classList.add('hidden');
+                }
+              });
+    });
+
+    // Xóa môn học
+    window.deleteSubject = function(classId, subjectId) {
+      if (confirm('Bạn có chắc chắn muốn xóa môn học này không?')) {
+        fetch(`/api/theory/subjects/${classId}/${subjectId}`, { method: 'DELETE' })
+                .then(response => {
+                  if (response.ok) {
+                    alert('Môn học đã được xóa thành công!');
+                    loadSubjects(classId);
+                  }
+                });
+      }
+    };
+
+    // Hiển thị/ẩn danh sách chương
+    window.toggleChapters = function(classId, subjectId) {
+      if (currentSubjectId === subjectId) {
+        hideAllChildren();
+        currentSubjectId = null;
+      } else {
+        hideAllChildren();
+        currentSubjectId = subjectId;
+        loadChapters(classId, subjectId);
+      }
+    };
+
+    // Hàm tải danh sách chương
+    function loadChapters(classId, subjectId) {
+      fetch(`/api/theory/chapters/${classId}/${subjectId}`)
+              .then(response => response.json())
+              .then(chapters => {
+                chapterList.innerHTML = '';
+                chapters.forEach(chapter => {
+                  const li = document.createElement('li');
+                  li.innerHTML = `
+                <span onclick="toggleLessons('${classId}', '${subjectId}', '${chapter.id}')">${chapter.name}</span>
+                <button onclick="deleteChapter('${classId}', '${subjectId}', '${chapter.id}')">Xóa</button>
+              `;
+                  chapterList.appendChild(li);
+                });
+                document.getElementById('chapters').classList.remove('hidden');
+              });
+    }
+
+    // Thêm chương
+    addChapterBtn.addEventListener('click', () => chapterForm.classList.remove('hidden'));
+
+    chapterForm.addEventListener('submit', function(event) {
+      event.preventDefault();
+      const chapterName = chapterNameInput.value;
+      const newChapter = { id: Date.now().toString(), name: chapterName };
+      fetch(`/api/theory/chapters/${currentClassId}/${currentSubjectId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newChapter),
+      })
+              .then(response => {
+                if (response.ok) {
+                  alert('Chương đã được thêm thành công!');
+                  loadChapters(currentClassId, currentSubjectId);
+                  chapterForm.reset();
+                  chapterForm.classList.add('hidden');
+                }
+              });
+    });
+
+    // Xóa chương
+    window.deleteChapter = function(classId, subjectId, chapterId) {
+      if (confirm('Bạn có chắc chắn muốn xóa chương này không?')) {
+        fetch(`/api/theory/chapters/${classId}/${subjectId}/${chapterId}`, { method: 'DELETE' })
+                .then(response => {
+                  if (response.ok) {
+                    alert('Chương đã được xóa thành công!');
+                    loadChapters(classId, subjectId);
+                  }
+                });
+      }
+    };
+
+    // Hiển thị/ẩn danh sách bài học
+    window.toggleLessons = function(classId, subjectId, chapterId) {
+      if (currentChapterId === chapterId) {
+        hideAllChildren();
+        currentChapterId = null;
+      } else {
+        hideAllChildren();
+        currentChapterId = chapterId;
+        loadLessons(classId, subjectId, chapterId);
+      }
+    };
+
+    // Hàm tải danh sách bài học
+    function loadLessons(classId, subjectId, chapterId) {
+      fetch(`/api/theory/lessons/${classId}/${subjectId}/${chapterId}`)
+              .then(response => response.json())
+              .then(lessons => {
+                lessonList.innerHTML = '';
+                lessons.forEach(lesson => {
+                  const li = document.createElement('li');
+                  li.innerHTML = `
+                <span onclick="loadLessonContent('${classId}', '${subjectId}', '${chapterId}', '${lesson.id}', \`${lesson.content.replace(/`/g, '\\`')}\`)">${lesson.name}</span>
+                <button onclick="deleteLesson('${classId}', '${subjectId}', '${chapterId}', '${lesson.id}')">Xóa</button>
+              `;
+                  lessonList.appendChild(li);
+                });
+                document.getElementById('lessons').classList.remove('hidden');
+              });
+    }
+
+    // Thêm bài học
+    addLessonBtn.addEventListener('click', () => lessonForm.classList.remove('hidden'));
+
+    lessonForm.addEventListener('submit', function(event) {
+      event.preventDefault();
+      const lessonName = lessonNameInput.value;
+      const lessonContent = lessonContentInput.value;
+      const newLesson = { id: Date.now().toString(), name: lessonName, content: lessonContent };
+      fetch(`/api/theory/lessons/${currentClassId}/${currentSubjectId}/${currentChapterId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newLesson),
+      })
+              .then(response => {
+                if (response.ok) {
+                  alert('Bài học đã được thêm thành công!');
+                  loadLessons(currentClassId, currentSubjectId, currentChapterId);
+                  lessonForm.reset();
+                  lessonForm.classList.add('hidden');
+                }
+              });
+    });
+
+    // Xóa bài học
+    window.deleteLesson = function(classId, subjectId, chapterId, lessonId) {
+      if (confirm('Bạn có chắc chắn muốn xóa bài học này không?')) {
+        fetch(`/api/theory/lessons/${classId}/${subjectId}/${chapterId}/${lessonId}`, { method: 'DELETE' })
+                .then(response => {
+                  if (response.ok) {
+                    alert('Bài học đã được xóa thành công!');
+                    loadLessons(classId, subjectId, chapterId);
+                  }
+                });
+      }
+    };
+
+    // Hiển thị nội dung bài học để cập nhật
+    window.loadLessonContent = function(classId, subjectId, chapterId, lessonId, content) {
+      currentClassId = classId;
+      currentSubjectId = subjectId;
+      currentChapterId = chapterId;
+      currentLessonId = lessonId;
+      updateLessonContentInput.value = content;
+      updateLessonForm.classList.remove('hidden');
+    };
+
+    // Cập nhật nội dung bài học
+    updateLessonForm.addEventListener('submit', function(event) {
+      event.preventDefault();
+      const updatedContent = updateLessonContentInput.value;
+      const updatedLesson = {
+        id: currentLessonId,
+        name: '', // Giữ nguyên tên bài học nếu không cần thay đổi
+        content: updatedContent
+      };
+      fetch(`/api/theory/lessons/${currentClassId}/${currentSubjectId}/${currentChapterId}/${currentLessonId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedLesson),
+      })
+              .then(response => {
+                if (response.ok) {
+                  alert('Nội dung bài học đã được cập nhật thành công!');
+                  loadLessons(currentClassId, currentSubjectId, currentChapterId);
+                  updateLessonForm.classList.add('hidden');
+                  updateLessonContentInput.value = '';
+                } else {
+                  alert('Lỗi khi cập nhật nội dung bài học!');
+                }
+              })
+              .catch(error => console.error('Lỗi:', error));
+    });
+  });
+</script>
+</body>
+</html>
