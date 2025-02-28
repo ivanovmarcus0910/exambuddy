@@ -3,7 +3,6 @@ package com.example.exambuddy.controller;
 import com.example.exambuddy.model.Chapter;
 import com.example.exambuddy.model.Lesson;
 import com.example.exambuddy.model.Subject;
-import com.example.exambuddy.model.Class;
 import com.example.exambuddy.service.TheoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -76,6 +75,7 @@ public class TheoryController {
     // Cập nhật nội dung bài học
     @PutMapping("/lessons/{classId}/{subjectId}/{chapterId}/{lessonId}")
     public ResponseEntity<String> updateLessonContent(@PathVariable String classId, @PathVariable String subjectId, @PathVariable String chapterId, @PathVariable String lessonId, @RequestBody Lesson lesson) {
+        System.out.println("Received update request for lessonId: " + lessonId + " with content: " + lesson.getContent());
         try {
             theoryService.updateLessonContent(classId, subjectId, chapterId, lessonId, lesson.getContent());
             return ResponseEntity.ok("Nội dung bài học đã được cập nhật thành công!");

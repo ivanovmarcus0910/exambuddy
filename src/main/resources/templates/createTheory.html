@@ -128,9 +128,9 @@
                 subjects.forEach(subject => {
                   const li = document.createElement('li');
                   li.innerHTML = `
-                <span onclick="toggleChapters('${classId}', '${subject.id}')">${subject.name}</span>
-                <button onclick="deleteSubject('${classId}', '${subject.id}')">Xóa</button>
-              `;
+              <span onclick="toggleChapters('${classId}', '${subject.id}')">${subject.name}</span>
+              <button onclick="deleteSubject('${classId}', '${subject.id}')">Xóa</button>
+            `;
                   subjectList.appendChild(li);
                 });
                 document.getElementById('subjects').classList.remove('hidden');
@@ -194,9 +194,9 @@
                 chapters.forEach(chapter => {
                   const li = document.createElement('li');
                   li.innerHTML = `
-                <span onclick="toggleLessons('${classId}', '${subjectId}', '${chapter.id}')">${chapter.name}</span>
-                <button onclick="deleteChapter('${classId}', '${subjectId}', '${chapter.id}')">Xóa</button>
-              `;
+              <span onclick="toggleLessons('${classId}', '${subjectId}', '${chapter.id}')">${chapter.name}</span>
+              <button onclick="deleteChapter('${classId}', '${subjectId}', '${chapter.id}')">Xóa</button>
+            `;
                   chapterList.appendChild(li);
                 });
                 document.getElementById('chapters').classList.remove('hidden');
@@ -259,9 +259,9 @@
                 lessons.forEach(lesson => {
                   const li = document.createElement('li');
                   li.innerHTML = `
-                <span onclick="loadLessonContent('${classId}', '${subjectId}', '${chapterId}', '${lesson.id}', \`${lesson.content.replace(/`/g, '\\`')}\`)">${lesson.name}</span>
-                <button onclick="deleteLesson('${classId}', '${subjectId}', '${chapterId}', '${lesson.id}')">Xóa</button>
-              `;
+              <span onclick="loadLessonContent('${classId}', '${subjectId}', '${chapterId}', '${lesson.id}', \`${lesson.content.replace(/`/g, '\\`')}\`)">${lesson.name}</span>
+              <button onclick="deleteLesson('${classId}', '${subjectId}', '${chapterId}', '${lesson.id}')">Xóa</button>
+            `;
                   lessonList.appendChild(li);
                 });
                 document.getElementById('lessons').classList.remove('hidden');
@@ -306,6 +306,7 @@
 
     // Hiển thị nội dung bài học để cập nhật
     window.loadLessonContent = function(classId, subjectId, chapterId, lessonId, content) {
+      console.log("Loading lesson:", { classId, subjectId, chapterId, lessonId, content });
       currentClassId = classId;
       currentSubjectId = subjectId;
       currentChapterId = chapterId;
@@ -320,9 +321,10 @@
       const updatedContent = updateLessonContentInput.value;
       const updatedLesson = {
         id: currentLessonId,
-        name: '', // Giữ nguyên tên bài học nếu không cần thay đổi
+        name: '', // Giữ nguyên tên bài học
         content: updatedContent
       };
+      console.log("Updating lesson:", { currentClassId, currentSubjectId, currentChapterId, currentLessonId, updatedContent });
       fetch(`/api/theory/lessons/${currentClassId}/${currentSubjectId}/${currentChapterId}/${currentLessonId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -333,7 +335,7 @@
                   alert('Nội dung bài học đã được cập nhật thành công!');
                   loadLessons(currentClassId, currentSubjectId, currentChapterId);
                   updateLessonForm.classList.add('hidden');
-                  updateLessonContentInput.value = '';
+                  updateLessonContentInput.value = ''; // Xóa nội dung sau khi cập nhật
                 } else {
                   alert('Lỗi khi cập nhật nội dung bài học!');
                 }
