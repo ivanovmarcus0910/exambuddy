@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 public class AccountController {
@@ -97,7 +98,7 @@ public class AccountController {
         if (username == null) {
             return "redirect:/login"; // Nếu chưa đăng nhập, chuyển hướng về login
         }
-        return "changePass"; // Trả về trang HTML để đổi mật khẩu
+        return "redirect:/profile"; // Trả về trang HTML để đổi mật khẩu
     }
 
     @PostMapping("/changePass")
@@ -105,32 +106,34 @@ public class AccountController {
                                  @RequestParam String newPassword,
                                  @RequestParam String confirmPassword,
                                  HttpSession session,
-                                 Model model) {
+                                 RedirectAttributes redirectAttributes) {
 
-        // 🔥 Lấy username của người dùng đã đăng nhập từ session
+        // Lấy username của người dùng đã đăng nhập từ session
         String username = (String) session.getAttribute("loggedInUser");
         if (username == null) {
             return "redirect:/login"; // Nếu chưa đăng nhập, chuyển hướng về login
         }
 
-        // 🔍 Kiểm tra xác nhận mật khẩu mới
+        // Kiểm tra xác nhận mật khẩu mới
         if (!newPassword.equals(confirmPassword)) {
-            model.addAttribute("error", "Mật khẩu xác nhận không khớp!");
-            return "changePass";
+            redirectAttributes.addFlashAttribute("error", "Mật khẩu xác nhận không khớp!");
+            return "redirect:/profile";
         }
 
         System.out.println("📌 Đang thực hiện đổi mật khẩu cho username: " + username);
 
-        // ✅ Gọi `updatePasswordForLoggedInUser` để kiểm tra mật khẩu hiện tại & cập nhật mật khẩu mới
+        // Gọi passService để cập nhật mật khẩu
         boolean isUpdated = passService.updatePasswordForUser(username, currentPassword, newPassword);
         if (isUpdated) {
-            model.addAttribute("success", "Mật khẩu đã cập nhật thành công!");
+            redirectAttributes.addFlashAttribute("success", "Mật khẩu đã cập nhật thành công!");
         } else {
-            model.addAttribute("error", "Mật khẩu hiện tại không đúng hoặc có lỗi khi cập nhật!");
+            redirectAttributes.addFlashAttribute("error", "Mật khẩu hiện tại không đúng hoặc có lỗi khi cập nhật!");
         }
 
-        return "changePass";
+        return "redirect:/profile";
     }
+
+
     @GetMapping("/paymentHistory")
     public String listPayments(@RequestParam(defaultValue = "0") int page, HttpServletRequest request, Model model) {
         try {
