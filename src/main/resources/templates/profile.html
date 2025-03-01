@@ -159,7 +159,7 @@
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Ngày tham gia</label>
-                            <input class="form-control" readonly type="text" value="01/01/2025">
+                            <input class="form-control" readonly type="text" th:value="${#dates.format(user.joinTime, 'dd/MM/yyyy')}">
                         </div>
                     </div>
 

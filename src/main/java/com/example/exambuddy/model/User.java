@@ -11,7 +11,7 @@ public class User {
     private String role;
     private String fullName;
     private int coin;
-
+    private long joinTime;
     public enum Role {
         ADMIN, USER, TEACHER, UPGRADED_USER
     }
@@ -30,6 +30,7 @@ public class User {
         this.avatarUrl = "https://res.cloudinary.com/dsuav027e/image/upload/v1739367972/halnqohla5mqr3seve3d.png";
         this.role = role.name();
         this.coin = 0;
+        this.joinTime = System.currentTimeMillis();
     }
 
     public boolean isVerified() {
@@ -110,5 +111,13 @@ public class User {
 
     public void setCoin(int coin) {
         this.coin = coin;
+    }
+
+    public long getJoinTime() {
+        return joinTime;
+    }
+
+    public void setJoinTime(long joinTime) {
+        this.joinTime = joinTime;
     }
 }
