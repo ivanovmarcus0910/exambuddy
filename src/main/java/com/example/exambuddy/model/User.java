@@ -1,5 +1,7 @@
 package com.example.exambuddy.model;
 
+import java.time.LocalDate;
+
 public class User {
     private String id;
     private String email;
@@ -9,9 +11,23 @@ public class User {
     private boolean verified;
     private String avatarUrl;
     private String role;
-    private String fullName;
     private int coin;
-    private long joinTime;
+
+
+    private String firstName;
+    private String lastName;
+    private String birthDate;
+    private String address;
+    private String grade;
+    private String studentId;
+    private String description;
+
+    // Các trường dành cho giáo viên
+    private String teacherCode;
+    private String school;
+    private String speciality;
+    private Integer experience; // Số năm kinh nghiệm
+    private String degreeUrl;   // Link đến bằng cấp/chứng chỉ đã tải lên
     public enum Role {
         ADMIN, USER, TEACHER, UPGRADED_USER
     }
@@ -30,7 +46,6 @@ public class User {
         this.avatarUrl = "https://res.cloudinary.com/dsuav027e/image/upload/v1739367972/halnqohla5mqr3seve3d.png";
         this.role = role.name();
         this.coin = 0;
-        this.joinTime = System.currentTimeMillis();
     }
 
     public boolean isVerified() {
@@ -97,13 +112,6 @@ public class User {
         this.role = role.name();
     }
 
-    public String getFullName() {
-        return fullName;
-    }
-
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
-    }
 
     public int getCoin() {
         return coin;
@@ -113,11 +121,101 @@ public class User {
         this.coin = coin;
     }
 
-    public long getJoinTime() {
-        return joinTime;
+    // Getters và setters cho các trường mới
+    public String getFirstName() {
+        return firstName;
     }
 
-    public void setJoinTime(long joinTime) {
-        this.joinTime = joinTime;
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getBirthDate() {
+        return birthDate;
+    }
+
+    public void setBirthDate(String birthDate) {
+        this.birthDate = birthDate;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public String getGrade() {
+        return grade;
+    }
+
+    public void setGrade(String grade) {
+        this.grade = grade;
+    }
+
+    public String getStudentId() {
+        return studentId;
+    }
+
+    public void setStudentId(String studentId) {
+        this.studentId = studentId;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    // Getters và Setters cho các trường dành cho giáo viên
+    public String getTeacherCode() {
+        return teacherCode;
+    }
+
+    public void setTeacherCode(String teacherCode) {
+        this.teacherCode = teacherCode;
+    }
+
+    public String getSchool() {
+        return school;
+    }
+
+    public void setSchool(String school) {
+        this.school = school;
+    }
+
+    public String getSpeciality() {
+        return speciality;
+    }
+
+    public void setSpeciality(String speciality) {
+        this.speciality = speciality;
+    }
+
+    public Integer getExperience() {
+        return experience;
+    }
+
+    public void setExperience(Integer experience) {
+        this.experience = experience;
+    }
+
+    public String getDegreeUrl() {
+        return degreeUrl;
+    }
+
+    public void setDegreeUrl(String degreeUrl) {
+        this.degreeUrl = degreeUrl;
     }
 }

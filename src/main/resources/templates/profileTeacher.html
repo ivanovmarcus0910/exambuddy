@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Thông tin tài khoản - Giáo viên</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap 5 (CDN) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+
+    <style>
+        /* Placeholder màu nhạt */
+        ::placeholder {
+            color: #ccc;
+            opacity: 1;
+            font-size: small;
+        }
+
+        /* Các ô nhập (input, select, textarea) có border-radius */
+        input.form-control,
+        select.form-select,
+        textarea.form-control {
+            border-radius: 0.75rem;
+        }
+
+        /* Nội dung chính (desktop) */
+        .content-area {
+            margin-top: 70px;   /* tránh header cao 70px */
+            margin-left: 240px; /* chừa chỗ cho sidebar rộng 240px */
+            padding: 20px;      /* form không sát lề */
+            transition: margin-left 0.3s ease; /* hiệu ứng mượt */
+        }
+
+        /* Responsive Mobile */
+        @media (max-width: 768px) {
+            .content-area {
+                margin-left: 70px;
+            }
+        }
+
+        /* Tùy chỉnh input lớn hơn một chút */
+        .custom-input {
+            border-radius: 0.75rem !important;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+        }
+    </style>
+</head>
+<body style="margin:0; padding:0; background-color:#f5f6fa; font-family:'Segoe UI', sans-serif;">
+
+<!-- Header và Sidebar -->
+<div th:insert="~{fragments/headerProfile :: headerSidebar}"></div>
+
+<!-- Nội dung chính -->
+<div class="content-area">
+    <div class="container-fluid p-0">
+        <div class="col-12 p-4">
+            <!-- Tabs -->
+            <ul class="nav nav-tabs mb-3" style="border-bottom:2px solid #dee2e6;">
+                <li class="nav-item">
+                    <!-- Tab Chỉnh sửa hồ sơ -->
+                    <button class="nav-link active border-0"
+                            data-bs-toggle="tab"
+                            data-bs-target="#editProfile"
+                            style="color:#6f42c1;">
+                        Chỉnh sửa hồ sơ
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <!-- Tab Mật khẩu -->
+                    <button class="nav-link border-0"
+                            data-bs-toggle="tab"
+                            data-bs-target="#changePass">
+                        Mật khẩu
+                    </button>
+                </li>
+            </ul>
+
+            <!-- Thông báo sau khi cập nhật thông tin -->
+            <div th:if="${success}" class="alert alert-success" style="font-size:0.9rem;">
+                [[${success}]]
+            </div>
+
+            <!-- Gói các tab-pane trong .tab-content -->
+            <div class="tab-content">
+                <!-- Tab-pane: Chỉnh sửa hồ sơ -->
+                <div class="tab-pane fade show active" id="editProfile">
+                    <div class="card border shadow-sm" style="border-radius:8px;">
+                        <div class="card-body">
+                            <!-- Tiêu đề -->
+                            <h5 class="mb-2" style="font-weight:600; color:#6f42c1;">Sửa hồ sơ của bạn</h5>
+                            <p class="text-muted small mb-4">Điều này sẽ được chia sẻ với các học viên khác</p>
+
+                            <!-- Khu vực Avatar + Thông tin -->
+                            <div class="text-center mb-4">
+                                <!-- Nếu chưa có avatar -->
+                                <div th:if="${#strings.isEmpty(user.avatarUrl)}">
+                                    <div class="d-flex align-items-center justify-content-center bg-light"
+                                         style="width:120px; height:120px; border-radius:50%; margin:0 auto; border:4px solid #007bff;">
+                                        <span class="text-secondary small">No Avatar</span>
+                                    </div>
+                                </div>
+                                <!-- Nếu đã có avatar -->
+                                <div th:if="${not #strings.isEmpty(user.avatarUrl)}" class="mb-3">
+                                    <img th:src="${user.avatarUrl}" alt="Avatar"
+                                         style="width:160px; height:160px; object-fit:cover; border-radius:50%; border:4px solid #007bff;">
+                                </div>
+                                <!-- Nút thay đổi ảnh -->
+                                <form action="/profile/upload" enctype="multipart/form-data" method="post">
+                                    <input type="file" id="imageUpload" class="d-none" name="image" accept="image/*" required onchange="this.form.submit()">
+                                    <input type="hidden" name="username" th:value="${user.username}">
+                                    <label class="btn btn-primary btn-sm mt-2" for="imageUpload">
+                                        <i class="bi bi-camera"></i> Thay đổi ảnh
+                                    </label>
+                                </form>
+
+                                <!-- Badges và EB Coin -->
+                                <div class="mt-3 d-flex flex-column align-items-center gap-1">
+                                    <div>
+                                        <span class="badge bg-info me-1" th:text="${user.role}"></span>
+                                        <span class="badge bg-warning text-dark">
+                                            <i class="bi bi-star-fill"></i> Premium User
+                                        </span>
+                                    </div>
+                                    <div class="px-3 py-2 text-white" style="background-color:#007bff; border-radius:8px;">
+                                        <h6 style="margin:0; font-size:1rem;">EB Coin</h6>
+                                        <h5 style="margin:0; font-size:1.2rem;" th:text="${user.coin != null ? user.coin : 0}">0</h5>
+                                        <small style="font-size:0.75rem;">Hết hạn Premium User: 05/03/2024</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Form thông tin Giáo viên -->
+                            <form id="teacherForm" th:object="${user}" th:action="@{/profile/teacher/update}" method="post" enctype="multipart/form-data" class="mt-3">
+                                <div class="row g-3">
+                                    <!-- Hàng 1: Tên, Họ, Ngày sinh -->
+                                    <div class="col-sm-3">
+                                        <label class="form-label" style="color:#333; font-weight:650;">Tên <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control custom-input"
+                                               th:field="*{firstName}"
+                                               placeholder="Nhập tên" required>
+                                    </div>
+                                    <div class="col-sm-3">
+                                        <label class="form-label" style="color:#333; font-weight:650;">Họ <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control custom-input"
+                                               th:field="*{lastName}"
+                                               placeholder="Nhập họ" required>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <label class="form-label" style="color:#333; font-weight:650;">Ngày sinh</label>
+                                        <input type="date" class="form-control custom-input"
+                                               th:field="*{birthDate}">
+                                    </div>
+                                </div>
+
+                                <!-- Hàng 2: Email, Số điện thoại, Tỉnh/Thành phố -->
+                                <div class="row g-3 mt-3">
+                                    <div class="col-sm-4">
+                                        <label class="form-label" style="color:#333; font-weight:650;">Email</label>
+                                        <input type="email" class="form-control custom-input"
+                                               th:field="*{email}"
+                                               placeholder="Email" readonly>
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <label class="form-label" style="color:#333; font-weight:650;">Số điện thoại</label>
+                                        <input type="text" class="form-control custom-input"
+                                               th:field="*{phone}"
+                                               placeholder="VD: 0123456789">
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <label class="form-label" style="color:#333; font-weight:650;">Tỉnh/Thành phố</label>
+                                        <select class="form-select custom-input" th:field="*{address}">
+                                            <option value="">-- Chọn Tỉnh/Thành phố --</option>
+                                            <option value="Hà Nội">Hà Nội</option>
+                                            <option value="Hồ Chí Minh">Hồ Chí Minh</option>
+                                            <option value="Đà Nẵng">Đà Nẵng</option>
+                                            <option value="Hải Phòng">Hải Phòng</option>
+                                            <option value="Cần Thơ">Cần Thơ</option>
+                                            <option value="An Giang">An Giang</option>
+                                            <option value="Bà Rịa - Vũng Tàu">Bà Rịa - Vũng Tàu</option>
+                                            <option value="Bắc Giang">Bắc Giang</option>
+                                            <option value="Bắc Kạn">Bắc Kạn</option>
+                                            <option value="Bạc Liêu">Bạc Liêu</option>
+                                            <option value="Bắc Ninh">Bắc Ninh</option>
+                                            <option value="Bến Tre">Bến Tre</option>
+                                            <option value="Bình Định">Bình Định</option>
+                                            <option value="Bình Dương">Bình Dương</option>
+                                            <option value="Bình Phước">Bình Phước</option>
+                                            <option value="Bình Thuận">Bình Thuận</option>
+                                            <option value="Cà Mau">Cà Mau</option>
+                                            <option value="Cao Bằng">Cao Bằng</option>
+                                            <option value="Đắk Lắk">Đắk Lắk</option>
+                                            <option value="Đắk Nông">Đắk Nông</option>
+                                            <option value="Điện Biên">Điện Biên</option>
+                                            <option value="Đồng Nai">Đồng Nai</option>
+                                            <option value="Đồng Tháp">Đồng Tháp</option>
+                                            <option value="Gia Lai">Gia Lai</option>
+                                            <option value="Hà Giang">Hà Giang</option>
+                                            <option value="Hà Nam">Hà Nam</option>
+                                            <option value="Hà Tĩnh">Hà Tĩnh</option>
+                                            <option value="Hải Dương">Hải Dương</option>
+                                            <option value="Hậu Giang">Hậu Giang</option>
+                                            <option value="Hòa Bình">Hòa Bình</option>
+                                            <option value="Hưng Yên">Hưng Yên</option>
+                                            <option value="Khánh Hòa">Khánh Hòa</option>
+                                            <option value="Kiên Giang">Kiên Giang</option>
+                                            <option value="Kon Tum">Kon Tum</option>
+                                            <option value="Lai Châu">Lai Châu</option>
+                                            <option value="Lâm Đồng">Lâm Đồng</option>
+                                            <option value="Lạng Sơn">Lạng Sơn</option>
+                                            <option value="Lào Cai">Lào Cai</option>
+                                            <option value="Long An">Long An</option>
+                                            <option value="Nam Định">Nam Định</option>
+                                            <option value="Nghệ An">Nghệ An</option>
+                                            <option value="Ninh Bình">Ninh Bình</option>
+                                            <option value="Ninh Thuận">Ninh Thuận</option>
+                                            <option value="Phú Thọ">Phú Thọ</option>
+                                            <option value="Phú Yên">Phú Yên</option>
+                                            <option value="Quảng Bình">Quảng Bình</option>
+                                            <option value="Quảng Nam">Quảng Nam</option>
+                                            <option value="Quảng Ngãi">Quảng Ngãi</option>
+                                            <option value="Quảng Ninh">Quảng Ninh</option>
+                                            <option value="Quảng Trị">Quảng Trị</option>
+                                            <option value="Sóc Trăng">Sóc Trăng</option>
+                                            <option value="Sơn La">Sơn La</option>
+                                            <option value="Tây Ninh">Tây Ninh</option>
+                                            <option value="Thái Bình">Thái Bình</option>
+                                            <option value="Thái Nguyên">Thái Nguyên</option>
+                                            <option value="Thanh Hóa">Thanh Hóa</option>
+                                            <option value="Thừa Thiên Huế">Thừa Thiên Huế</option>
+                                            <option value="Tiền Giang">Tiền Giang</option>
+                                            <option value="Trà Vinh">Trà Vinh</option>
+                                            <option value="Tuyên Quang">Tuyên Quang</option>
+                                            <option value="Vĩnh Long">Vĩnh Long</option>
+                                            <option value="Vĩnh Phúc">Vĩnh Phúc</option>
+                                            <option value="Yên Bái">Yên Bái</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- Hàng 3: Mã giáo viên, Nơi làm việc -->
+                                <div class="row g-3 mt-3">
+                                    <div class="col-sm-6">
+                                        <label class="form-label" style="color:#333; font-weight:650;">Mã giáo viên (Nếu có)</label>
+                                        <input type="text" class="form-control custom-input"
+                                               th:field="*{teacherCode}"
+                                               placeholder="VD: GV123">
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <label class="form-label" style="color:#333; font-weight:650;">Nơi làm việc</label>
+                                        <input type="text" class="form-control custom-input"
+                                               th:field="*{school}"
+                                               placeholder="VD: Trường THPT FPT">
+                                    </div>
+                                </div>
+
+                                <!-- Hàng 4: Môn giảng dạy, Kinh nghiệm -->
+                                <div class="row g-3 mt-3">
+                                    <div class="col-sm-6">
+                                        <label class="form-label" style="color:#333; font-weight:650;">Môn giảng dạy</label>
+                                        <input type="text" class="form-control custom-input"
+                                               th:field="*{speciality}"
+                                               placeholder="VD: Toán, Lý, Hóa">
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <label class="form-label" style="color:#333; font-weight:650;">Kinh nghiệm (năm)</label>
+                                        <input type="number" class="form-control custom-input"
+                                               th:field="*{experience}"
+                                               placeholder="VD: 1">
+                                    </div>
+                                </div>
+
+                                <!-- Hàng 5: Tải lên bằng cấp -->
+                                <div class="row g-3 mt-3">
+                                    <div class="col-sm-12">
+                                        <label class="form-label" style="color:#333; font-weight:650;">Tải lên bằng cấp, chứng chỉ (Nếu có)</label>
+                                        <input type="file" name="degreeFile" class="form-control">
+                                        <small class="text-muted">Admin sẽ kiểm duyệt tệp này</small>
+                                    </div>
+                                </div>
+
+                                <!-- Hàng 6: Mô tả -->
+                                <div class="row g-3 mt-3">
+                                    <div class="col-sm-12">
+                                        <label class="form-label" style="color:#333; font-weight:650;">Mô tả</label>
+                                        <textarea class="form-control custom-input" rows="3"
+                                                  th:field="*{description}"
+                                                  placeholder="Bạn có thể tóm tắt ngắn gọn về kinh nghiệm, triết lý giảng dạy..."></textarea>
+                                    </div>
+                                </div>
+
+                                <!-- Nút Lưu -->
+                                <div class="text-end mt-3">
+                                    <button type="submit" class="btn btn-primary px-4" style="border-radius:8px;">Lưu</button>
+                                </div>
+                            </form>
+                            <!-- /Form thông tin Giáo viên -->
+                        </div><!-- /card-body -->
+                    </div><!-- /card -->
+                </div><!-- /tab-pane #editProfile -->
+
+                <!-- Tab-pane: Mật khẩu (Form thay đổi mật khẩu) -->
+                <div class="tab-pane fade" id="changePass">
+                    <div class="card border shadow-sm" style="border-radius: 8px;">
+                        <div class="card-body">
+                            <div class="text-center mb-4">
+                                <img src="/img/logo.png" class="img-fluid mb-3 rounded-circle"
+                                     style="width: 100px; height: 100px;">
+                                <h3 class="fw-bold">THAY ĐỔI MẬT KHẨU</h3>
+                                <p class="text-muted">Nhập thông tin để thay đổi mật khẩu</p>
+                            </div>
+
+                            <!-- Hiển thị thông báo lỗi hoặc thành công -->
+                            <p class="text-danger text-center small" th:if="${error}" th:text="${error}"></p>
+                            <p class="text-success text-center small" th:if="${success}" th:text="${success}"></p>
+
+                            <!-- Form đổi mật khẩu -->
+                            <form action="/changePass" method="post" class="mt-3" onsubmit="return validateForm()">
+                                <!-- Mật khẩu hiện tại -->
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Mật khẩu hiện tại</label>
+                                    <div class="position-relative">
+                                        <input type="password" id="currentPassword" name="currentPassword"
+                                               class="form-control custom-input px-4 pe-5" placeholder="Nhập mật khẩu hiện tại" required>
+                                        <i id="currentPasswordIcon" class="bi bi-eye position-absolute top-50 end-0 translate-middle-y me-3"
+                                           style="cursor: pointer; font-size: 1.2rem; color: #6c757d;"></i>
+                                    </div>
+                                </div>
+
+                                <!-- Mật khẩu mới -->
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Mật khẩu mới</label>
+                                    <div class="position-relative">
+                                        <input type="password" id="newPassword" name="newPassword"
+                                               class="form-control custom-input px-4 pe-5" placeholder="Nhập mật khẩu mới" required>
+                                        <i id="newPasswordIcon" class="bi bi-eye position-absolute top-50 end-0 translate-middle-y me-3"
+                                           style="cursor: pointer; font-size: 1.2rem; color: #6c757d;"></i>
+                                    </div>
+                                    <p class="text-danger small mt-1" id="passwordError" style="display: none;"></p>
+                                </div>
+
+                                <!-- Xác nhận mật khẩu mới -->
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Xác nhận mật khẩu</label>
+                                    <div class="position-relative">
+                                        <input type="password" id="confirmPassword" name="confirmPassword"
+                                               class="form-control custom-input px-4 pe-5" placeholder="Xác nhận mật khẩu" required>
+                                        <i id="confirmPasswordIcon" class="bi bi-eye position-absolute top-50 end-0 translate-middle-y me-3"
+                                           style="cursor: pointer; font-size: 1.2rem; color: #6c757d;"></i>
+                                    </div>
+                                    <p class="text-danger small mt-1" id="confirmPasswordError" style="display: none;"></p>
+                                </div>
+
+                                <!-- Nút cập nhật mật khẩu -->
+                                <button type="submit"
+                                        class="btn btn-primary d-block mx-auto px-4 py-2"
+                                        style="
+                                            border-radius: 0.75rem;
+                                            font-size: 1rem;
+                                            font-weight: bold;
+                                            white-space: nowrap;
+                                        ">
+                                    Lưu mật khẩu
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div><!-- /tab-pane #changePass -->
+
+            </div><!-- /.tab-content -->
+        </div><!-- /.col-12 p-4 -->
+    </div><!-- /.container-fluid -->
+</div><!-- /.content-area -->
+
+<!-- Bootstrap Bundle JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Script: Toggle mật khẩu & Validate form -->
+<script>
+    function togglePassword(fieldId, iconId) {
+        const passwordField = document.getElementById(fieldId);
+        const icon = document.getElementById(iconId);
+        if (passwordField.type === "password") {
+            passwordField.type = "text";
+            icon.classList.remove("bi-eye");
+            icon.classList.add("bi-eye-slash");
+        } else {
+            passwordField.type = "password";
+            icon.classList.remove("bi-eye-slash");
+            icon.classList.add("bi-eye");
+        }
+    }
+
+    // Gán sự kiện toggle cho form đổi mật khẩu
+    document.getElementById("currentPasswordIcon").addEventListener("click", function () {
+        togglePassword("currentPassword", "currentPasswordIcon");
+    });
+    document.getElementById("newPasswordIcon").addEventListener("click", function () {
+        togglePassword("newPassword", "newPasswordIcon");
+    });
+    document.getElementById("confirmPasswordIcon").addEventListener("click", function () {
+        togglePassword("confirmPassword", "confirmPasswordIcon");
+    });
+
+    function validateForm() {
+        let isValid = true;
+        const password = document.getElementById("newPassword").value;
+        const confirmPassword = document.getElementById("confirmPassword").value;
+        clearAllErrors();
+        // Yêu cầu: Ít nhất 8 ký tự, có chữ hoa, chữ thường, số, ký tự đặc biệt
+        const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+        if (!regex.test(password)) {
+            showError("passwordError", "Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt!");
+            isValid = false;
+        }
+        if (password !== confirmPassword) {
+            showError("confirmPasswordError", "Mật khẩu xác nhận không khớp!");
+            isValid = false;
+        }
+        return isValid;
+    }
+
+    function showError(id, message) {
+        const errorEl = document.getElementById(id);
+        errorEl.textContent = message;
+        errorEl.style.display = "block";
+    }
+
+    function clearAllErrors() {
+        document.querySelectorAll(".text-danger").forEach(e => e.style.display = "none");
+    }
+</script>
+</body>
+</html>
