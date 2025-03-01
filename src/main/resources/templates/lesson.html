@@ -18,6 +18,14 @@
         .error {
             color: red;
         }
+
+        .lesson-content {
+            white-space: pre-wrap; /* Giữ nguyên xuống dòng và khoảng trắng */
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
     </style>
 </head>
 <body>
@@ -25,7 +33,7 @@
     <h1 th:text="${lesson != null ? lesson.name : 'Bài học'}"></h1>
 
     <div th:if="${lesson != null}">
-        <div th:utext="${lesson.content}"></div>
+        <div class="lesson-content" th:text="${lesson.content}"></div>
     </div>
 
     <div th:if="${lesson == null}" class="error">
