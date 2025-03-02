@@ -139,6 +139,8 @@ public class AccountController {
         try {
             String username = cookieService.getCookie(request, "noname");
             System.out.println("username=" + username);
+            User user = userService.getUserByUsername(username);
+            model.addAttribute("user", user);
             int pageSize = 10; // Số bản ghi trên mỗi trang
             Long lastTimestamp = page > 0 ? getLastTimestamp(page - 1, pageSize, username) : null;
             System.out.println(lastTimestamp);

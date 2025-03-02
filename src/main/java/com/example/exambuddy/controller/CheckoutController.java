@@ -5,11 +5,14 @@ import com.example.exambuddy.service.CookieService;
 import com.example.exambuddy.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import vn.payos.PayOS;
 import vn.payos.type.CheckoutResponseData;
 import vn.payos.type.ItemData;
@@ -40,7 +43,14 @@ public class CheckoutController {
     }
 
     @RequestMapping(value = "/payment-coin")
-    public String Index() {
+    public String Index(HttpServletRequest request, HttpSession session, Model model) {
+        if (session.getAttribute("loggedInUser") == null) {
+            return "redirect:/home"; // Nếu chưa đăng nhập, chuyển hướng về home
+        }
+        String username = cookieService.getCookie(request, "noname");
+        User user =userService.getUserByUsername(username);
+        model.addAttribute("user", user);
+
         return "createPayment";
     }
 
