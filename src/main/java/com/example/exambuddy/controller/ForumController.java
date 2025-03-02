@@ -41,6 +41,7 @@ public class ForumController {
         if (username == null) {
             return "redirect:/login";
         }
+        String avatarUrl = UserService.getAvatarUrlByUsername(username);
 
         List<String> imageUrls = new ArrayList<>();
         for (MultipartFile file : files) {
@@ -55,7 +56,7 @@ public class ForumController {
         String date = formatter.format(new Date());
 
         // Lưu bài viết
-        Post post = PostService.savePost(username, content, subject, grade, date, imageUrls);
+        Post post = PostService.savePost(username, avatarUrl, content, subject, grade, date, imageUrls);
         model.addAttribute("post", post);
 
         return "redirect:/forum?subject=" + subject;

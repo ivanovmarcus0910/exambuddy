@@ -1,0 +1,45 @@
+body {
+    font-family: Arial, sans-serif;
+    color: black;
+}
+
+.list-group-item.active {
+    background-color: #007bff !important;
+    color: white !important;
+    font-weight: bold;
+}
+
+.list-group-item {
+    transition: 0.3s;
+}
+
+.post-image {
+    object-fit: cover;
+    cursor: pointer;
+}
+
+.hidden-comment {
+    display: none;
+}
+
+.comment-content {
+    white-space: pre-line;
+    word-wrap: break-word;
+    font-size: 14px
+}
+
+.comment-actions {
+    display: none;
+}
+
+.comment-item:hover .comment-actions {
+    display: flex;
+}
+
+.comment-image {
+    width: auto;
+    max-width: 100px;
+    height: auto;
+    border-radius: 8px;
+    cursor: pointer;
+}

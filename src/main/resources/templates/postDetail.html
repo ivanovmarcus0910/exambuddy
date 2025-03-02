@@ -6,6 +6,7 @@
     <title>E-Learning - Học Online</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="/css/forum.css">
 </head>
 <body>
 <div th:insert="~{fragments/header :: header}"></div>
@@ -17,7 +18,7 @@
                     <h2 class="h5 mb-0">📚 Chủ đề môn học</h2>
                 </div>
                 <div class="list-group list-group-flush">
-                    <a href="/forum" class="list-group-item list-group-item-action active">📌 Tất cả</a>
+                    <a href="/forum" class="list-group-item list-group-item-action">📌 Tất cả</a>
                     <a href="/forum?subject=toan" class="list-group-item list-group-item-action">📐 Toán học</a>
                     <a href="/forum?subject=van" class="list-group-item list-group-item-action">📖 Ngữ văn</a>
                     <a href="/forum?subject=su" class="list-group-item list-group-item-action">🏛️ Lịch sử</a>
@@ -32,7 +33,8 @@
         </aside>
 
         <main class="col-md-6 mx-auto">
-            <div class="post card mb-3">
+            <div class="post card mb-3" th:if="${username}">
+                <input type="hidden" name="username" th:value="${username}">
                 <div class="card-body">
                     <div class="d-flex justify-content-between mb-2">
                         <div class="d-flex align-items-center">
@@ -66,7 +68,6 @@
                     <p style="text-align: left !important;" th:text="${post.content}"></p>
                     <div class="post-images">
                         <div class="row g-1">
-                            <!-- Hiển thị 2 ảnh đầu tiên -->
                             <div th:each="imageUrl, iterStat : ${post.imageUrls}"
                                  th:if="${iterStat.index < 2}"
                                  class="col-6">
@@ -75,13 +76,25 @@
                                          onclick="openImageModal(this)">
                                 </div>
                             </div>
-
-                            <!-- Nếu có nhiều hơn 2 ảnh, hiển thị nút "+X ảnh nữa" -->
-                            <div th:if="${#lists.size(post.imageUrls) > 2}" class="mt-2">
-                                <a th:href="@{/forum/{id}(id=${post.postId})}"
-                                   class="text-primary fw-bold text-decoration-none">
-                                    +[[${#lists.size(post.imageUrls) - 2}]] ảnh nữa
-                                </a>
+                            <div th:if="${#lists.size(post.imageUrls) > 2}"
+                                 class="more-images mt-2 fw-bold text-primary"
+                                 th:text="'+' + (${#lists.size(post.imageUrls)} - 2) + ' ảnh nữa'"
+                                 style="cursor: pointer;"
+                                 onclick="showAllImages(this)">
+                            </div>
+                            <div class="row g-1 hidden-images" style="display: none;">
+                                <div th:each="imageUrl, iterStat : ${post.imageUrls}"
+                                     th:if="${iterStat.index >= 2}"
+                                     class="col-6">
+                                    <div class="ratio ratio-1x1 position-relative">
+                                        <img th:src="${imageUrl}" class="img-fluid rounded post-image"
+                                             onclick="openImageModal(this)">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="collapse-images fw-bold text-primary mt-2" style="display: none; cursor: pointer"
+                                 onclick="collapseImages(this)">
+                                Thu gọn
                             </div>
                         </div>
                     </div>
@@ -121,11 +134,32 @@
                                         <!-- Hiển thị ảnh trong bình luận -->
                                         <div th:if="${comment.imageUrls != null and !comment.imageUrls.isEmpty()}"
                                              class="comment-images mt-2">
-                                            <img th:each="imageUrl : ${comment.imageUrls}"
-                                                 th:src="${imageUrl}"
-                                                 class="comment-image"
-                                                 onclick="openImageModal(this)">
+                                            <!-- Hiển thị 6 ảnh đầu tiên -->
+                                            <span th:each="imageUrl, iterStat : ${comment.imageUrls}"
+                                                  th:if="${iterStat.index < 6}">
+                                                <img th:src="${imageUrl}" class="comment-image" onclick="openImageModal(this)">
+                                            </span><br>
+                                            <!-- Nếu có nhiều hơn 6 ảnh, hiển thị nút "+X ảnh nữa" -->
+                                            <span th:if="${#lists.size(comment.imageUrls) > 6}"
+                                                  class="more-images text-primary fw-bold"
+                                                  th:text="'+' + (${#lists.size(comment.imageUrls)} - 6) + ' ảnh nữa'"
+                                                  style="cursor: pointer;"
+                                                  onclick="showAllImages(this)">
+                                            </span>
+                                            <!-- Ảnh ẩn (sẽ hiển thị khi nhấn vào "+X ảnh nữa") -->
+                                            <div class="hidden-comment-images" style="display: none;">
+                                                <span th:each="imageUrl, iterStat : ${comment.imageUrls}" th:if="${iterStat.index >= 6}">
+                                                    <img th:src="${imageUrl}" class="comment-image" onclick="openImageModal(this)">
+                                                </span>
+                                            </div>
+                                            <!-- Nút "Thu gọn" -->
+                                            <span class="collapse-comment-images text-primary fw-bold"
+                                                  style="display: none; cursor: pointer;"
+                                                  onclick="collapseImages(this)">
+                                                Thu gọn
+                                            </span>
                                         </div>
+
                                         <span style="font-size: 11px; color: gray"
                                               th:text="${comment.timeAgo}"></span>
                                         <div class="comment-actions">
@@ -183,5 +217,18 @@
         </main>
     </div>
 </div>
+<div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen">  <!-- Full màn hình -->
+        <div class="modal-content">
+            <button type="button" class="btn-close position-absolute" style="top: 10px; right: 10px; z-index: 10;"
+                    data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-body text-center d-flex justify-content-center align-items-center">
+                <img id="modalImage" src="" class="img-fluid" style="max-width: 90vw; max-height: 90vh;">
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/js/forum.js"></script>
 </body>
 </html>

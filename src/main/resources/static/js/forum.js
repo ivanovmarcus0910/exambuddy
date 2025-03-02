@@ -20,50 +20,44 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 });
 
-document.getElementById('postImageInput').addEventListener('change', function(event) {
-    let fileList = event.target.files;
-    let output = document.getElementById('postFiles');
-    output.innerHTML = ''; // Xóa danh sách cũ
-
-    if (fileList.length > 0) {
-        output.innerHTML = "<strong>Đã chọn:</strong> " +
-            Array.from(fileList).map(file => file.name).join(', ');
-    }
-});
-
-document.getElementById('commentImageInput').addEventListener('change', function(event) {
-    let fileList = event.target.files;
-    let output = document.getElementById('commentFiles');
-    output.innerHTML = ''; // Xóa danh sách cũ
-
-    if (fileList.length > 0) {
-        output.innerHTML = "<strong>Đã chọn:</strong> " +
-            Array.from(fileList).map(file => file.name).join(', ');
-    }
-});
+// document.getElementById('commentImageInput').addEventListener('change', function(event) {
+//     let fileList = event.target.files;
+//     let output = document.getElementById('commentFiles');
+//     output.innerHTML = ''; // Xóa danh sách cũ
+//
+//     if (fileList.length > 0) {
+//         output.innerHTML = "<strong>Đã chọn:</strong> " +
+//             Array.from(fileList).map(file => file.name).join(', ');
+//     }
+// });
 
 function showAllImages(element) {
     const hiddenImages = element.nextElementSibling;
     const collapseButton = hiddenImages.nextElementSibling;
 
-    hiddenImages.style.display = "flex";
-    collapseButton.style.display = "block";
+    if (hiddenImages) {
+        hiddenImages.style.display = "flex";
+    }
+    if (collapseButton) {
+        collapseButton.style.display = "block";
+    }
+
     element.style.display = "none";
 }
 
 function collapseImages(element) {
-    // Tìm phần tử chứa các ảnh ẩn
     const hiddenImages = element.previousElementSibling;
-    // Tìm phần "+x ảnh"
     const moreImagesButton = hiddenImages.previousElementSibling;
 
-    // Ẩn các ảnh thừa
-    hiddenImages.style.display = "none";
-    // Ẩn nút "Thu gọn"
-    element.style.display = "none";
-
-    // Hiển thị lại phần "+x ảnh"
-    moreImagesButton.style.display = "flex";
+    if (hiddenImages) {
+        hiddenImages.style.display = "none";
+    }
+    if (element) {
+        element.style.display = "none";
+    }
+    if (moreImagesButton) {
+        moreImagesButton.style.display = "inline";
+    }
 }
 
 function toggleLike(btn) {
@@ -218,10 +212,34 @@ document.querySelectorAll('.share-button').forEach(button => {
 function openImageModal(imgElement) {
     let modalImage = document.getElementById('modalImage');
     modalImage.src = imgElement.src;
+
     let modal = new bootstrap.Modal(document.getElementById('imageModal'));
     modal.show();
 }
 
-function openPostDetail(postId) {
-    window.location.href = '/post/' + postId;
+function openPostModal(event, postId) {
+    event.preventDefault(); // Ngăn chặn điều hướng trang
+    console.log("Đã nhấn vào bài viết có ID:", postId); // Kiểm tra log trong Console
+
+    let modal = new bootstrap.Modal(document.getElementById('postModal'));
+    modal.show();
+
+    let postContent = document.getElementById('postContent');
+    postContent.innerHTML = "<p>Đang tải bài viết...</p>";
+
+    // Kiểm tra đường dẫn có đúng không
+    let url = `/postDetail/${encodeURIComponent(postId)}`;
+    console.log("Đang tải bài viết từ:", url);
+
+    fetch(url)
+        .then(response => response.text())
+        .then(html => {
+            postContent.innerHTML = html;
+        })
+        .catch(error => {
+            console.error("Lỗi tải bài viết:", error);
+            postContent.innerHTML = "<p class='text-danger'>Không thể tải bài viết.</p>";
+        });
 }
+
+
