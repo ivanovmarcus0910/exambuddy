@@ -1,36 +1,110 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bài Học</title>
+    <link rel="icon" type="image/x-icon" href="https://res.cloudinary.com/dsuav027e/image/upload/v1740393796/favicon_llcueu.ico">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
+            background: linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
         }
-
-        .container {
-            max-width: 800px;
-            margin: auto;
+        .container-custom {
+            max-width: 900px;
+            margin: 40px auto;
+            background: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            transition: transform 0.3s ease;
         }
-
+        .container-custom:hover {
+            transform: translateY(-5px);
+        }
+        .breadcrumb-custom {
+            background: #e9ecef;
+            border-radius: 10px;
+            padding: 12px 20px;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+        .breadcrumb-custom span {
+            color: #495057;
+            font-weight: 500;
+        }
+        .btn-back {
+            background-color: #6c757d;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 18px;
+            color: #ffffff;
+            text-decoration: none;
+            font-weight: 500;
+            transition: background-color 0.2s ease;
+        }
+        .btn-back:hover {
+            background-color: #5a6268;
+            color: #ffffff;
+        }
+        h1 {
+            color: #1a73e8;
+            font-weight: 700;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            font-size: 2rem;
+        }
+        .lesson-content {
+            white-space: pre-wrap;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border: 1px solid #e9ecef;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: #343a40;
+            box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.05);
+        }
         .error {
-            color: red;
+            color: #dc3545;
+            font-weight: 500;
+            background: #f8d7da;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #f5c6cb;
+            text-align: center;
         }
     </style>
 </head>
 <body>
-<div class="container">
-    <h1 th:text="${lesson != null ? lesson.name : 'Bài học'}"></h1>
+<div th:insert="fragments/header :: header"></div>
+
+<div class="container-custom">
+    <!-- Breadcrumb với nút Back -->
+    <div class="breadcrumb-custom">
+        <a class="btn-back me-3" href="/viewTheory" style="box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);"><<</a>
+        <span th:text="${param.breadcrumb != null ? param.breadcrumb : 'Không có breadcrumb'}" style="letter-spacing: 0.5px;"></span>
+    </div>
+
+    <h1 th:text="${lesson != null ? lesson.name : 'Bài học'}" style="text-align: center; padding-bottom: 10px; border-bottom: 2px solid #1a73e8;"></h1>
 
     <div th:if="${lesson != null}">
-        <div th:utext="${lesson.content}"></div>
+        <div class="lesson-content" th:text="${lesson.content}" style="transition: all 0.3s ease;"></div>
     </div>
 
     <div th:if="${lesson == null}" class="error">
-        <p th:text="${error}"></p>
+        <p th:text="${error}" style="margin: 0;"></p>
     </div>
 </div>
+
+<div th:replace="fragments/footer :: footer"></div>
 </body>
 </html>
