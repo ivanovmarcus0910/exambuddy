@@ -20,16 +20,27 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 });
 
-// document.getElementById('commentImageInput').addEventListener('change', function(event) {
-//     let fileList = event.target.files;
-//     let output = document.getElementById('commentFiles');
-//     output.innerHTML = ''; // Xóa danh sách cũ
-//
-//     if (fileList.length > 0) {
-//         output.innerHTML = "<strong>Đã chọn:</strong> " +
-//             Array.from(fileList).map(file => file.name).join(', ');
-//     }
-// });
+document.getElementById('postImageInput').addEventListener('change', function(event) {
+    let fileList = event.target.files;
+    let output = document.getElementById('postFiles');
+    output.innerHTML = ''; // Xóa danh sách cũ
+
+    if (fileList.length > 0) {
+        output.innerHTML = "<strong>Đã chọn:</strong> " +
+            Array.from(fileList).map(file => file.name).join(', ');
+    }
+});
+
+document.getElementById('commentImageInput').addEventListener('change', function(event) {
+    let fileList = event.target.files;
+    let output = document.getElementById('commentFiles');
+    output.innerHTML = ''; // Xóa danh sách cũ
+
+    if (fileList.length > 0) {
+        output.innerHTML = "<strong>Đã chọn:</strong> " +
+            Array.from(fileList).map(file => file.name).join(', ');
+    }
+});
 
 function showAllImages(element) {
     const hiddenImages = element.nextElementSibling;
@@ -106,35 +117,17 @@ function toggleLike(btn) {
         });
 }
 
-document.addEventListener('DOMContentLoaded', function () {
-
-    document.querySelectorAll('.toggle-comments').forEach(button => {
-        button.addEventListener('click', function () {
-            // Tìm phần tử cha lớn nhất chứa cả post-actions và comments-section
-            const postContainer = this.closest('.post');
-
-            // Tìm comments-section bên trong post đó
-            const commentsSection = postContainer.querySelector('.comments-section');
-
-            if (commentsSection) {
-                commentsSection.style.display = (commentsSection.style.display === 'none' || commentsSection.style.display === '')
-                    ? 'block'
-                    : 'none';
-            }
-        });
-    });
-
-    // Kiểm tra đăng nhập trước khi bình luận
-    document.querySelectorAll('#comment-form').forEach(form => {
-        form.addEventListener('submit', function (event) {
-            const username = document.querySelector('input[name="username"]').value;
-            if (!username) {
-                alert("Bạn cần đăng nhập để bình luận!");
-                event.preventDefault(); // Ngăn form gửi đi
-            }
-        });
+// Kiểm tra đăng nhập trước khi bình luận
+document.querySelectorAll('#comment-form').forEach(form => {
+    form.addEventListener('submit', function (event) {
+        const username = document.querySelector('input[name="username"]').value;
+        if (!username) {
+            alert("Bạn cần đăng nhập để bình luận!");
+            event.preventDefault(); // Ngăn form gửi đi
+        }
     });
 });
+
 
 function showMoreComments(button) {
     const commentsSection = button.parentElement;
@@ -149,11 +142,6 @@ function showMoreComments(button) {
     if (commentsSection.querySelectorAll('.hidden-comment').length === 0) {
         button.style.display = 'none';
     }
-}
-
-function togglePostSettingsMenu(element) {
-    const menu = element.nextElementSibling;
-    menu.classList.toggle('hidden');
 }
 
 function editPost(button) {
@@ -218,8 +206,7 @@ function openImageModal(imgElement) {
 }
 
 function openPostModal(event, postId) {
-    event.preventDefault(); // Ngăn chặn điều hướng trang
-    console.log("Đã nhấn vào bài viết có ID:", postId); // Kiểm tra log trong Console
+    event.preventDefault();
 
     let modal = new bootstrap.Modal(document.getElementById('postModal'));
     modal.show();
@@ -227,14 +214,13 @@ function openPostModal(event, postId) {
     let postContent = document.getElementById('postContent');
     postContent.innerHTML = "<p>Đang tải bài viết...</p>";
 
-    // Kiểm tra đường dẫn có đúng không
-    let url = `/postDetail/${encodeURIComponent(postId)}`;
-    console.log("Đang tải bài viết từ:", url);
+    // Cập nhật link cho nút phóng to
+    document.getElementById('viewFullPost').href = `/postDetail/${encodeURIComponent(postId)}`;
 
-    fetch(url)
+    fetch(`/postDetail/${encodeURIComponent(postId)}?modal=true`)
         .then(response => response.text())
-        .then(html => {
-            postContent.innerHTML = html;
+        .then(data => {
+            postContent.innerHTML = data;
         })
         .catch(error => {
             console.error("Lỗi tải bài viết:", error);

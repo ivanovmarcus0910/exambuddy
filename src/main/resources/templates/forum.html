@@ -12,27 +12,11 @@
 <div th:insert="~{fragments/header :: header}"></div>
 <div class="container-fluid mt-4">
     <div class="row">
-        <aside class="col-md-3">
-            <div class="card border-primary shadow">
-                <div class="card-header bg-warning text-white">
-                    <h2 class="h5 mb-0">📚 Chủ đề môn học</h2>
-                </div>
-                <div class="list-group list-group-flush">
-                    <a href="/forum" class="list-group-item list-group-item-action active">📌 Tất cả</a>
-                    <a href="/forum?subject=toan" class="list-group-item list-group-item-action">📐 Toán học</a>
-                    <a href="/forum?subject=van" class="list-group-item list-group-item-action">📖 Ngữ văn</a>
-                    <a href="/forum?subject=su" class="list-group-item list-group-item-action">🏛️ Lịch sử</a>
-                    <a href="/forum?subject=sinh" class="list-group-item list-group-item-action">🌱 Sinh học</a>
-                    <a href="/forum?subject=dia" class="list-group-item list-group-item-action">🗺️ Địa lý</a>
-                    <a href="/forum?subject=ly" class="list-group-item list-group-item-action">⚡ Vật lý</a>
-                    <a href="/forum?subject=hoa" class="list-group-item list-group-item-action">🧪 Hóa học</a>
-                    <a href="/forum?subject=ngoaingu" class="list-group-item list-group-item-action">🌍 Ngoại ngữ</a>
-                    <a href="/forum?subject=khac" class="list-group-item list-group-item-action">📎 Khác</a>
-                </div>
-            </div>
+        <aside class="col-md-3 d-none d-md-block sidebar">
+            <div th:insert="~{fragments/postFilter :: postFilter}"></div>
         </aside>
 
-        <main class="col-md-6">
+        <main class="col-md-6 overflow-auto p-3" id="scrollableMain">
             <div class="card mb-3" th:if="${username}">
                 <div class="card-body">
                     <form action="/forum/create" method="post" enctype="multipart/form-data" class="mb-2">
@@ -114,7 +98,8 @@
                                         <i class="bi bi-three-dots"></i>
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="postMenu">
-                                        <li><a class="dropdown-item" th:href="@{/postDetail/{id}(id=${post.postId})}"><i class="bi bi-file-text me-2"></i>Chi tiết bài viết</a></li>
+                                        <li><a class="dropdown-item" th:attr="onclick='openPostModal(event, \'' + ${post.postId} + '\')'" style="cursor: pointer">
+                                            <i class="bi bi-file-text me-2"></i>Chi tiết bài viết</a></li>
                                         <li><a class="dropdown-item" href="#"><i class="bi bi-eye-slash me-2"></i>Ẩn bài viết</a></li>
                                         <li><a class="dropdown-item" href="#"><i class="bi bi-flag me-2"></i>Báo cáo bài viết</a></li>
                                     </ul>
@@ -135,8 +120,9 @@
                                 </div>
 
                                 <!-- Nếu có nhiều hơn 2 ảnh, hiển thị nút "+X ảnh nữa" -->
-                                <div th:if="${#lists.size(post.imageUrls) > 2}" class="mt-2">
-                                    <a th:href="@{/postDetail/{id}(id=${post.postId})}" class="text-primary fw-bold text-decoration-none">
+                                <div th:if="${#lists.size(post.imageUrls) >= 2}" class="mt-2">
+                                    <a th:attr="onclick='openPostModal(event, \'' + ${post.postId} + '\')'"
+                                       class="text-primary fw-bold text-decoration-none" style="cursor: pointer">
                                         +[[${#lists.size(post.imageUrls) - 2}]] ảnh nữa
                                     </a>
                                 </div>
@@ -148,7 +134,8 @@
                                 <i class="bi" th:classappend="${post.liked} ? 'bi-heart-fill' : 'bi-heart'"></i>
                                 <span class="heart-count" th:text="${post.likeCount}">0</span>
                             </button>
-                            <button class="btn btn-outline-secondary toggle-comments">
+                            <button class="btn btn-outline-secondary"
+                                    th:attr="onclick='openPostModal(event, \'' + ${post.postId} + '\')'">
                                 <i class="bi bi-chat"></i>
                                 <span class="comment-count" th:text="${#lists.size(post.comments)}">0</span>
                             </button>
@@ -157,105 +144,11 @@
                             </button>
                         </div>
                         <hr class="mt-2 mb-0">
-                        <div class="comments-section mt-3" style="display: none;">
-                            <div class="comment-list">
-                                <div th:each="comment, iterStat : ${post.comments}"
-                                     class="comment-item border-bottom py-2"
-                                     th:classappend="${iterStat.index >= 2} ? 'hidden-comment' : ''">
-                                    <div class="d-flex">
-                                        <img th:src="${comment.avatarUrl}" class="rounded-circle me-3 mt-1" width="35"
-                                             height="35" alt="User">
-
-                                        <div class="flex-grow-1">
-                                            <div class="card bg-light border-0 p-2" style="display: inline-block;">
-                                                <div class="d-flex align-item-center justify-content-between">
-                                                    <h6 class="fw-bold mb-0" th:text="${comment.username}"></h6>
-                                                </div>
-                                                <span class="comment-content"
-                                                      th:text="${comment.content}"></span>
-                                            </div>
-                                            <br>
-                                            <!-- Hiển thị ảnh trong bình luận -->
-                                            <div th:if="${comment.imageUrls != null and !comment.imageUrls.isEmpty()}"
-                                                 class="comment-images mt-2">
-                                                <!-- Hiển thị 6 ảnh đầu tiên -->
-                                                <span th:each="imageUrl, iterStat : ${comment.imageUrls}"
-                                                      th:if="${iterStat.index < 6}">
-                                                <img th:src="${imageUrl}" class="comment-image" onclick="openImageModal(this)">
-                                                </span><br>
-                                                <!-- Nếu có nhiều hơn 6 ảnh, hiển thị nút "+X ảnh nữa" -->
-                                                <div th:if="${#lists.size(comment.imageUrls) > 6}">
-                                                    <a th:href="@{/postDetail/{id}(id=${post.postId})}"
-                                                       class="text-primary fw-bold text-decoration-none">
-                                                        +[[${#lists.size(comment.imageUrls) - 6}]] ảnh nữa
-                                                    </a>
-                                                </div>
-                                            </div>
-                                            <span style="font-size: 11px; color: gray"
-                                                  th:text="${comment.timeAgo}"></span>
-                                            <div class="comment-actions">
-                                                <button class="btn btn-sm btn-link text-primary"><i
-                                                        class="bi bi-pencil"></i></button>
-                                                <button class="btn btn-sm btn-link text-danger"><i
-                                                        class="bi bi-trash"></i></button>
-                                                <button class="btn btn-sm btn-link text-secondary"><i
-                                                        class="bi bi-flag"></i></button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Nút Hiển thị thêm bình luận -->
-<!--                            <div th:if="${#lists.size(post.comments) > 2}" class="mt-2">-->
-<!--                                <a th:href="@{/postDetail/{id}(id=${post.postId})}" class="text-primary fw-bold text-decoration-none">-->
-<!--                                    Hiển thị thêm bình luận-->
-<!--                                </a>-->
-<!--                            </div>-->
-                            <div th:if="${#lists.size(post.comments) > 2}" class="mt-2">
-                                <a href="#" class="text-primary fw-bold text-decoration-none"
-                                   th:attr="onclick='openPostModal(event, \'' + ${post.postId} + '\')'">
-                                    Hiển thị thêm bình luận
-                                </a>
-                            </div>
-
-                            <!-- Form bình luận -->
-                            <div class="add-comment mt-3">
-                                <form id="comment-form" action="/forum/comment" method="post" enctype="multipart/form-data">
-                                    <div class="d-flex">
-                                        <input type="hidden" name="postId" th:value="${post.postId}">
-                                        <input type="hidden" name="username" th:value="${username}">
-
-                                        <img th:src="${avatarUrl}" class="rounded-circle me-2" width="35" height="35" alt="User">
-
-                                        <div class="flex-grow-1 formComment">
-                                            <textarea name="content" class="form-control"
-                                                      placeholder="Viết bình luận..." rows="1"></textarea>
-<!--                                            <div class="d-flex justify-content-between align-items-center">-->
-<!--                                                <input type="file" id="commentImageInput" name="commentImages"-->
-<!--                                                       class="d-none" accept="image/*" multiple>-->
-
-<!--                                                <button type="button" class="btn btn-success mt-2"-->
-<!--                                                        onclick="document.getElementById('commentImageInput').click();">-->
-<!--                                                    <i class="bi bi-image"></i> Thêm ảnh-->
-<!--                                                </button>-->
-<!--                                                <button type="submit" class="btn btn-primary mt-2">Bình luận</button>-->
-<!--                                            </div>-->
-<!--                                            <div id="commentFiles" class="mt-2 text-muted"></div>-->
-                                            <div class="d-flex justify-content-between align-items-center">
-                                                <input type="file" name="commentImages" class="form-control w-auto mt-2" multiple>
-                                                <button type="submit" class="btn btn-primary mt-2">Bình luận</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
         </main>
-        <aside class="col-md-3">
+        <aside class="col-md-3 d-none d-md-block sidebar">
             <div class="card">
                 <div class="card-header">
                     <h2>Ranking</h2>
@@ -269,7 +162,7 @@
     </div>
 </div>
 <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-fullscreen">  <!-- Full màn hình -->
+    <div class="modal-dialog modal-fullscreen">
         <div class="modal-content">
             <button type="button" class="btn-close position-absolute" style="top: 10px; right: 10px; z-index: 10;"
                     data-bs-dismiss="modal" aria-label="Close"></button>
@@ -280,12 +173,27 @@
     </div>
 </div>
 <div class="modal fade" id="postModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered"> <!-- Cỡ modal 6 cột -->
+    <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
+
+            <div class="modal-header bg-dark text-white d-flex justify-content-between align-items-center">
+                <h5 class="modal-title m-0">Chi tiết bài viết</h5>
+
+                <div class="d-flex gap-2">
+
+                    <a id="viewFullPost" href="#" class="btn btn-outline-light btn-sm d-flex align-items-center" title="Xem toàn màn hình">
+                        <i class="bi bi-arrows-angle-expand"></i>
+                    </a>
+
+                    <button type="button" class="btn btn-outline-light btn-sm d-flex align-items-center"
+                            data-bs-dismiss="modal" aria-label="Close">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+            </div>
+
             <div class="modal-body">
-                <button type="button" class="btn-close position-absolute" style="top: 10px; right: 10px;"
-                        data-bs-dismiss="modal" aria-label="Close"></button>
-                <div id="postContent"> <!-- Nơi load trang postDetail.html vào -->
+                <div id="postContent">
                     <p>Đang tải bài viết...</p>
                 </div>
             </div>
@@ -295,16 +203,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="/js/forum.js"></script>
 <script>
-    document.getElementById('postImageInput').addEventListener('change', function(event) {
-        let fileList = event.target.files;
-        let output = document.getElementById('postFiles');
-        output.innerHTML = ''; // Xóa danh sách cũ
 
-        if (fileList.length > 0) {
-            output.innerHTML = "<strong>Đã chọn:</strong> " +
-                Array.from(fileList).map(file => file.name).join(', ');
-        }
-    });
 </script>
 </body>
 </html>

@@ -1,6 +1,12 @@
 body {
     font-family: Arial, sans-serif;
     color: black;
+    height: 100%;
+    overflow: hidden;
+}
+
+#scrollableMain {
+    max-height: calc(100vh - 80px); /* Đảm bảo chỉ cuộn phần main */
 }
 
 .list-group-item.active {
