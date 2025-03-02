@@ -212,6 +212,8 @@ public class ManageExamController {
             return "redirect:/home"; // Nếu chưa đăng nhập, chuyển hướng về home
         }
         String username = cookieService.getCookie(request, "noname");
+        User user =userService.getUserByUsername(username);
+        model.addAttribute("user", user);
         List<ExamResult> results = username != null ? examService.getExamResultByUsername(username) : new ArrayList<>();
         model.addAttribute("results", results);
         model.addAttribute("username", username);
@@ -276,7 +278,10 @@ public class ManageExamController {
         if (session.getAttribute("loggedInUser") == null) {
             return "redirect:/login"; // Nếu chưa đăng nhập, chuyển hướng về home
         }
+
         String username = cookieService.getCookie(request, "noname");
+        User user = userService.getUserByUsername(username);
+        model.addAttribute("user", user);
         List<Exam> createdExams = examService.getHtoryCreateExamsByUsername(username);
         model.addAttribute("createdExams", createdExams);
         return "createdExams"; // Tên file HTML để hiển thị các bài thi đã tạo
