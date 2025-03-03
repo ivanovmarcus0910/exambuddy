@@ -137,10 +137,10 @@ public class AuthController {
             }
 
             // Nếu là admin thi chuyển trang
-            if (authService.isAdmin(username)) {
-                System.out.println("✅ Gọi isAdmin() thành công.");
-                return "redirect:/adminDashboard/dashboard";
-            }
+//            if (authService.isAdmin(username)) {
+//                System.out.println("✅ Gọi isAdmin() thành công.");
+//                return "redirect:/adminDashboard/dashboard";
+//            }
             if (rememberMe) {
                 cookieService.setCookie(response, "rememberedUsername", URLEncoder.encode(username, "UTF-8"));
                 cookieService.setCookie(response, "rememberedPassword", URLEncoder.encode(password, "UTF-8"));

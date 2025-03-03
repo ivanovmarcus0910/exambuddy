@@ -21,11 +21,13 @@ import org.springframework.stereotype.Controller;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.ui.Model;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import java.util.concurrent.ExecutionException;
+
 
 @Slf4j
 @Controller
@@ -59,6 +61,10 @@ public class ManageExamController {
     public String getExamDetail(@PathVariable String examId, Model model) {
         try {
             Exam exam = examService.getExam(examId);
+            if (exam == null) {
+                model.addAttribute("error", "Không tìm thấy đề thi với ID: " + examId);
+                return "error";
+            }
             model.addAttribute("exam", exam);
             model.addAttribute("questions", exam.getQuestions());
             return "examDetail"; // Trả về trang HTML hiển thị đề thi
@@ -343,6 +349,99 @@ public class ManageExamController {
         return "resultSearchExam";
     }
 
+    @PostMapping("/exams/importExcel")
+    public ResponseEntity<?> importExamFromExcel(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("examName") String examName,
+            @RequestParam("grade") String grade,
+            @RequestParam("subject") String subject,
+            @RequestParam("examType") String examType,
+            @RequestParam("city") String city,
+            @RequestParam("tags") String tags,
+            HttpSession session,
+            HttpServletRequest request) {
+        // Check if user is logged in
+        if (session.getAttribute("loggedInUser") == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("message", "Bạn cần đăng nhập để import."));
+        }
 
+        // Get username from cookie
+        String username = cookieService.getCookie(request, "noname");
+        if (username == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("message", "Không tìm thấy thông tin người dùng."));
+        }
+
+        // Prepare exam data
+        Map<String, Object> examData = new HashMap<>();
+        examData.put("examName", examName);
+        examData.put("grade", grade);
+        examData.put("subject", subject);
+        examData.put("examType", examType);
+        examData.put("city", city);
+        examData.put("tags", Arrays.asList(tags.split(","))); // Convert tags to List
+        examData.put("username", username);
+
+        try {
+            // Call the service method to import from Excel
+            boolean success = examService.importExamFromExcel(file.getInputStream(), examData);
+            if (success) {
+                return ResponseEntity.ok(Map.of("message", "Đã import đề thi từ file Excel thành công!"));
+            } else {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(Map.of("message", "Lỗi khi import file Excel."));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "Lỗi khi xử lý file: " + e.getMessage()));
+        }
+    }
+    @PostMapping("/exams/importDocx")
+    public ResponseEntity<?> importExamFromDocx(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("examName") String examName,
+            @RequestParam("grade") String grade,
+            @RequestParam("subject") String subject,
+            @RequestParam("examType") String examType,
+            @RequestParam("city") String city,
+            @RequestParam("tags") String tags,
+            HttpSession session,
+            HttpServletRequest request) {
+        if (session.getAttribute("loggedInUser") == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("message", "Bạn cần đăng nhập để import."));
+        }
+
+        String username = cookieService.getCookie(request, "noname");
+        if (username == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("message", "Không tìm thấy thông tin người dùng."));
+        }
+
+        Map<String, Object> examData = new HashMap<>();
+        examData.put("examName", examName);
+        examData.put("grade", grade);
+        examData.put("subject", subject);
+        examData.put("examType", examType);
+        examData.put("city", city);
+        examData.put("tags", Arrays.asList(tags.split(","))); // Chuyển String[] thành List<String>
+        examData.put("username", username);
+
+        try {
+            boolean success = examService.importExamFromDocx(file.getInputStream(), examData);
+            if (success) {
+                return ResponseEntity.ok(Map.of("message", "Đã import đề thi từ file DOCX thành công!"));
+            } else {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(Map.of("message", "Lỗi khi import file DOCX."));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "Lỗi khi xử lý file: " + e.getMessage()));
+        }
+    }
 }
 

@@ -1,21 +1,32 @@
 package com.example.exambuddy.service;
 
+
 import com.example.exambuddy.model.Exam;
 import com.example.exambuddy.model.ExamResult;
 import com.example.exambuddy.model.Question;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.*;
+import com.google.common.collect.Table;
 import com.google.firebase.cloud.FirestoreClient;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xwpf.usermodel.*;
+
 
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
-
+import java.io.InputStream;
 import java.text.Normalizer;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.Date;
 import java.util.TimeZone;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.concurrent.ExecutionException;
 
 @Service
@@ -57,6 +68,7 @@ public class ExamService {
         }
         return exams;
     }
+
 
 
     // Phương thức đếm số câu hỏi trong subcollection "questions"
@@ -119,6 +131,11 @@ public class ExamService {
     public boolean addExam(Map<String, Object> examData) {
         try {
             String examId = UUID.randomUUID().toString();
+            System.out.println("Creating exam with ID: " + examId);
+            Object tags = examData.get("tags");
+            if (tags instanceof String[]) {
+                examData.put("tags", Arrays.asList((String[]) tags));
+            }
             // Thêm dữ liệu đề thi vào collection "exams"
             db.collection("exams").document(examId).set(Map.of(
                     "examName", examData.get("examName"),
@@ -130,8 +147,10 @@ public class ExamService {
                     "username", examData.get("username"),
                     "date", examData.get("date")
             )).get();
+            System.out.println("Exam document set");
 
 
+            // Thêm danh sách câu hỏi vào subcollection "questions"
             // Thêm danh sách câu hỏi vào subcollection "questions"
             List<Map<String, Object>> questions = (List<Map<String, Object>>) examData.get("questions");
             WriteBatch batch = db.batch();
@@ -140,11 +159,196 @@ public class ExamService {
                 batch.set(db.collection("exams").document(examId).collection("questions").document(questionId), question);
             }
             batch.commit().get();
+            System.out.println("Questions batch committed");
             return true;
         } catch (Exception e) {
+            System.out.println("Error in addExam: " + e.getMessage());
+            e.printStackTrace();
             return false;
         }
     }
+
+
+    public boolean importExamFromExcel(InputStream inputStream, Map<String, Object> examData) {
+        try {
+            Workbook workbook = WorkbookFactory.create(inputStream);
+            Sheet sheet = workbook.getSheetAt(0); // Lấy sheet đầu tiên
+
+
+            // Tạo danh sách câu hỏi từ các dòng trong Excel
+            List<Map<String, Object>> questions = new ArrayList<>();
+            for (int i = 0; i <= sheet.getLastRowNum(); i++) {
+                Row row = sheet.getRow(i);
+                if (row == null) continue;
+
+
+                Map<String, Object> questionData = new HashMap<>();
+                questionData.put("questionText", row.getCell(0).getStringCellValue());
+
+
+                // Lấy các lựa chọn (cột 1-4: A, B, C, D)
+                List<String> options = new ArrayList<>();
+                for (int j = 1; j <= 4; j++) {
+                    Cell cell = row.getCell(j);
+                    options.add(cell != null ? cell.getStringCellValue() : "");
+                }
+                questionData.put("options", options);
+
+
+                // Lấy đáp án đúng (cột 5, dạng chuỗi: "A", "B", "C", "D" hoặc nhiều đáp án cách nhau bởi dấu phẩy)
+                List<Integer> correctAnswers = new ArrayList<>();
+                String correctAnswerStr = row.getCell(5).getStringCellValue().toUpperCase(); // Chuyển thành chữ in hoa
+                for (String answer : correctAnswerStr.split(",")) {
+                    switch (answer.trim()) {
+                        case "A":
+                            correctAnswers.add(0);
+                            break;
+                        case "B":
+                            correctAnswers.add(1);
+                            break;
+                        case "C":
+                            correctAnswers.add(2);
+                            break;
+                        case "D":
+                            correctAnswers.add(3);
+                            break;
+                        default:
+                            throw new IllegalArgumentException("Đáp án không hợp lệ: " + answer);
+                    }
+                }
+                questionData.put("correctAnswers", correctAnswers);
+
+
+                questions.add(questionData);
+            }
+
+
+            // Thêm danh sách câu hỏi vào examData
+            examData.put("questions", questions);
+            examData.put("date", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+                    .format(new Date()));
+
+
+            // Lưu dữ liệu vào Firestore
+            return addExam(examData);
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    public boolean importExamFromDocx(InputStream inputStream, Map<String, Object> examData) {
+        try {
+            XWPFDocument doc = new XWPFDocument(inputStream);
+            List<Map<String, Object>> questions = new ArrayList<>();
+
+
+            // Trích xuất câu hỏi
+            StringBuilder text = new StringBuilder();
+            for (XWPFParagraph para : doc.getParagraphs()) {
+                String line = para.getText().trim();
+                if (!line.isEmpty()) {
+                    text.append(line).append("\n");
+                }
+            }
+
+
+            String questionsText = text.toString().split("-----------HẾT----------")[0].trim();
+
+
+            // Trích xuất câu hỏi và đáp án
+            Pattern questionPattern = Pattern.compile(
+                    "Câu \\d+:(.+?)\\s*A\\.(.+?)\\s*B\\.(.+?)\\s*C\\.(.+?)\\s*D\\.(.+?)\\s*(?=Câu|$)",
+                    Pattern.DOTALL
+            );
+            Matcher questionMatcher = questionPattern.matcher(questionsText);
+            while (questionMatcher.find()) {
+                Map<String, Object> questionData = new HashMap<>();
+                questionData.put("questionText", questionMatcher.group(1).trim());
+                List<String> options = Arrays.asList(
+                        questionMatcher.group(2).trim(),
+                        questionMatcher.group(3).trim(),
+                        questionMatcher.group(4).trim(),
+                        questionMatcher.group(5).trim()
+                );
+                questionData.put("options", options);
+                questionData.put("correctAnswers", new ArrayList<>());
+                questions.add(questionData);
+            }
+
+
+            // Tìm bảng đáp án dựa trên nội dung (không phụ thuộc vào "HẾT")
+            XWPFTable answerTable = null;
+            for (XWPFTable table : doc.getTables()) {
+                boolean isAnswerTable = false;
+                for (XWPFTableRow row : table.getRows()) {
+                    for (XWPFTableCell cell : row.getTableCells()) {
+                        String cellText = cell.getText().trim();
+                        // Kiểm tra nếu ô chứa "ĐÁP ÁN" hoặc định dạng câu trả lời (ví dụ: 1.C, 2.A)
+                        if (cellText.contains("ĐÁP ÁN") || cellText.matches(".*\\d+\\s*[.\\s]\\s*[A-D].*")) {
+                            isAnswerTable = true;
+                            break;
+                        }
+                    }
+                    if (isAnswerTable) break;
+                }
+                if (isAnswerTable) {
+                    answerTable = table;
+                    break;
+                }
+            }
+
+
+            if (answerTable == null) {
+                throw new Exception("Không tìm thấy bảng đáp án trong file.");
+            }
+
+
+            // Trích xuất đáp án từ bảng
+            Map<Integer, String> answerMap = new HashMap<>();
+            for (XWPFTableRow row : answerTable.getRows()) {
+                for (XWPFTableCell cell : row.getTableCells()) {
+                    String cellText = cell.getText().trim();
+                    Pattern answerPattern = Pattern.compile("(\\d+)[.\\s]*([A-D])");
+                    Matcher answerMatcher = answerPattern.matcher(cellText);
+                    while (answerMatcher.find()) {
+                        int qIndex = Integer.parseInt(answerMatcher.group(1).trim()) - 1;
+                        String correctAnswer = answerMatcher.group(2).trim();
+                        answerMap.put(qIndex, correctAnswer);
+                    }
+                }
+            }
+
+
+            // Gán đáp án cho câu hỏi
+            for (int i = 0; i < questions.size(); i++) {
+                if (answerMap.containsKey(i)) {
+                    String correctAnswer = answerMap.get(i);
+                    List<Integer> correctAnswers = (List<Integer>) questions.get(i).get("correctAnswers");
+                    correctAnswers.clear();
+                    switch (correctAnswer) {
+                        case "A": correctAnswers.add(0); break;
+                        case "B": correctAnswers.add(1); break;
+                        case "C": correctAnswers.add(2); break;
+                        case "D": correctAnswers.add(3); break;
+                    }
+                    questions.get(i).put("correctAnswers", correctAnswers);
+                }
+            }
+
+
+            examData.put("questions", questions);
+            examData.put("date", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(new Date()));
+            return addExam(examData);
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
 
     public boolean addExamSession(String examID, String username, long duration) {
         try {
