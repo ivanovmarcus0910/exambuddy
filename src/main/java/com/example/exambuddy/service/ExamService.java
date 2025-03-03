@@ -437,21 +437,27 @@ public class ExamService {
 
         try {
             CollectionReference collectionReference = db.collection("examResults");
-            ApiFuture<QuerySnapshot> future = collectionReference
+
+            // Tạo truy vấn với điều kiện lọc và sắp xếp theo ngày giảm dần
+            Query query = collectionReference
                     .whereGreaterThanOrEqualTo(FieldPath.documentId(), userId + "_")
                     .whereLessThan(FieldPath.documentId(), userId + "_\uf8ff")
-                    .get();
+                    .orderBy("submittedAt", Query.Direction.DESCENDING); // Sắp xếp theo submittedAt giảm dần (mới nhất trước)
 
+            ApiFuture<QuerySnapshot> future = query.get();
             List<QueryDocumentSnapshot> documents = future.get().getDocuments();
 
-            for (DocumentSnapshot doc : documents) {
+            for (QueryDocumentSnapshot doc : documents) {
                 ExamResult examResult = doc.toObject(ExamResult.class);
                 results.add(examResult);
             }
         } catch (Exception e) {
+            // Thêm log chi tiết để debug nếu cần
+            System.err.println("Lỗi khi lấy kết quả bài thi cho userId: " + userId + " - " + e.getMessage());
         }
         return results;
     }
+
 
     public void likeExam(String userId, String examId) {
         DocumentReference docRef = db.collection("likedExams").document(userId + "_" + examId);
