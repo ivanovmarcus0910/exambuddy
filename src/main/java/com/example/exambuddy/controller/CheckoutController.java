@@ -70,8 +70,8 @@ public class CheckoutController {
         try {
             String username = URLDecoder.decode(cookieService.getCookie(request, "noname"));
             final String baseUrl = getBaseUrl(request);
-            final String productName = "Upgrade Account";
-            final String description = "Donate Point";
+            final String productName = "Coin";
+            final String description = "Deposit Coin";
             final String returnUrl = baseUrl + "/success";
             final String cancelUrl = baseUrl + "/cancel";
             final int price = amount;
