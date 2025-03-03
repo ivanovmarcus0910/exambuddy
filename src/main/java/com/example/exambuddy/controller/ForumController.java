@@ -46,7 +46,7 @@ public class ForumController {
         List<String> imageUrls = new ArrayList<>();
         for (MultipartFile file : files) {
             if (!file.isEmpty()) {
-                String imageUrl = this.cloudinaryService.upLoadImg(file, "imgForum");
+                String imageUrl = this.cloudinaryService.upLoadImg(file, "imgForum/imgPosts");
                 imageUrls.add(imageUrl);
             }
         }
@@ -127,7 +127,7 @@ public class ForumController {
         if (files != null) { // Kiểm tra nếu có file mới xử lý
             for (MultipartFile file : files) {
                 if (!file.isEmpty()) {
-                    String imageUrl = this.cloudinaryService.upLoadImg(file, "imgForum");
+                    String imageUrl = this.cloudinaryService.upLoadImg(file, "imgForum/imgComments");
                     imageUrls.add(imageUrl);
                     System.out.println("URL = " + imageUrl);
                 }
