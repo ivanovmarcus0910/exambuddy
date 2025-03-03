@@ -475,4 +475,16 @@ public class ExamService {
             e.printStackTrace();
         }
     }
+
+    // --- Phương thức mới: cập nhật trạng thái active của Exam ---
+    public void updateExamStatus(String examId, boolean newStatus) {
+        DocumentReference examRef = db.collection("exams").document(examId);
+        try {
+            examRef.update("active", newStatus).get();
+            System.out.println("Cập nhật trạng thái active của exam " + examId + " thành " + newStatus);
+        } catch (InterruptedException | ExecutionException e) {
+            System.out.println("Lỗi cập nhật trạng thái của exam " + examId);
+            e.printStackTrace();
+        }
+    }
 }

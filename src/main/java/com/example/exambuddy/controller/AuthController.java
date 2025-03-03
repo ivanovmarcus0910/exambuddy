@@ -112,15 +112,25 @@ public class AuthController {
         }
 
         // Xác thực tài khoản
-
         if (authService.authenticate(username, password)) {
+            // Lấy đối tượng người dùng
+            User user = userService.getUserByUsername(username);
+            if (user == null) {
+                model.addAttribute("error", "Không tìm thấy người dùng!");
+                return "login";
+            }
+            // Kiểm tra trạng thái active của tài khoản
+            if (!user.isActive()) {
+                model.addAttribute("error", "Tài khoản của bạn đã bị vô hiệu hóa!");
+                return "login";
+            }
+
             // Lưu thông tin đăng nhập vào session
             session.setAttribute("loggedInUser", username);
             session.setAttribute("urlimg", UserService.getAvatarUrlByUsername(username));
             System.out.println("Người dùng đăng nhập: " + username);
 
             // 🔥 Thêm role vào session
-            User user = userService.getUserByUsername(username);
             if (user != null) {
                 session.setAttribute("role", user.getRole().toString()); // 🔥 Lưu role vào session
                 System.out.println("Đã lưu role vào session: " + user.getRole());
