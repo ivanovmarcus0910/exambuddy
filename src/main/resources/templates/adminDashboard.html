@@ -93,15 +93,15 @@
         <div id="stats" class="d-flex flex-wrap gap-3 mb-4">
           <div class="border rounded p-3 flex-fill text-center" style="min-width: 200px;">
             <h3>👤 Tổng tài khoản</h3>
-            <p class="display-6 fw-bold" th:text="${totalUsers}">0</p>
+            <p class="display-6 fw-bold" th:text="${totalUser}">0</p>
           </div>
           <div class="border rounded p-3 flex-fill text-center" style="min-width: 200px;">
             <h3>📄 Tổng bài viết</h3>
-            <p class="display-6 fw-bold" th:text="${totalPosts}">0</p>
+            <p class="display-6 fw-bold" th:text="${totalPost}">0</p>
           </div>
           <div class="border rounded p-3 flex-fill text-center" style="min-width: 200px;">
             <h3>📝 Tổng đề thi</h3>
-            <p class="display-6 fw-bold" th:text="${totalExams}">0</p>
+            <p class="display-6 fw-bold" th:text="${totalExam}">0</p>
           </div>
         </div>
 
@@ -151,7 +151,7 @@
                 <td class="fw-bold text-primary" th:text="${user.role}"></td>
                 <td class="text-center">
                   <!-- Form cập nhật vai trò -->
-                  <form action="/adminDashboard/changeRole" method="post" class="d-inline-block">
+                  <form action="/admin/changeRole" method="post" class="d-inline-block">
                     <input type="hidden" name="username" th:value="${user.username}">
                     <select name="newRole" class="form-select d-inline-block w-auto">
                       <option value="USER" th:selected="${user.role == 'USER'}">USER</option>
@@ -162,7 +162,7 @@
                     <button type="submit" class="btn btn-success btn-sm ms-2">💾 Lưu</button>
                   </form>
                   <!-- Nút cập nhật trạng thái: nếu user.active là true thì hiện "🚫 Vô hiệu hóa", ngược lại "✅ Kích hoạt lại" -->
-                  <form action="/adminDashboard/updateUserStatus" method="post" class="d-inline-block">
+                  <form action="/admin/updateUserStatus" method="post" class="d-inline-block">
                     <input type="hidden" name="username" th:value="${user.username}">
                     <button type="submit" class="btn"
                             th:classappend="${user.active} ? ' btn-danger btn-sm ms-2' : ' btn-success btn-sm ms-2'"
@@ -204,7 +204,7 @@
                      class="btn btn-primary btn-sm">🔍 Xem</a>
                   <a th:href="@{/exams/{examId}/edit(examId=${exam.examID})}"
                      class="btn btn-warning btn-sm text-white">✏️ Sửa</a>
-                  <form action="/adminDashboard/updateExamStatus" method="post" class="d-inline-block">
+                  <form action="/admin/updateExamStatus" method="post" class="d-inline-block">
                     <input type="hidden" name="examId" th:value="${exam.examID}">
                     <button type="submit" class="btn"
                             th:classappend="${exam.active} ? ' btn-danger btn-sm' : ' btn-success btn-sm'"
@@ -241,7 +241,7 @@
                 <td class="text-center">
                   <a th:href="@{/forum/{postId}(postId=${post.postId})}"
                      class="btn btn-primary btn-sm">🔍 Xem</a>
-                  <form action="/adminDashboard/updatePostStatus" method="post" class="d-inline-block">
+                  <form action="/admin/updatePostStatus" method="post" class="d-inline-block">
                     <input type="hidden" name="postId" th:value="${post.postId}">
                     <button type="submit" class="btn"
                             th:classappend="${post.active} ? ' btn-danger btn-sm' : ' btn-success btn-sm'"
