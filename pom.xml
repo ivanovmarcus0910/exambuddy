@@ -106,5 +106,19 @@
         </dependency>
 
 
+            <!-- Apache POI core -->
+            <dependency>
+                <groupId>org.apache.poi</groupId>
+                <artifactId>poi</artifactId>
+                <version>5.2.5</version>
+            </dependency>
+
+            <!-- Apache POI cho định dạng OOXML (xlsx) -->
+            <dependency>
+                <groupId>org.apache.poi</groupId>
+                <artifactId>poi-ooxml</artifactId>
+                <version>5.2.5</version>
+            </dependency>
+
     </dependencies>
 </project>
