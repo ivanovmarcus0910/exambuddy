@@ -163,4 +163,16 @@ public class PostService {
             e.printStackTrace();
         }
     }
+
+    // Phương thức cập nhật trạng thái active của Post (toggle active)
+    public static void updatePostStatus(String postId, boolean newStatus) {
+        DocumentReference postRef = db.collection(COLLECTION_NAME).document(postId);
+        try {
+            postRef.update("active", newStatus).get();
+            System.out.println("Cập nhật trạng thái active của post " + postId + " thành " + newStatus);
+        } catch (InterruptedException | ExecutionException e) {
+            System.out.println("Lỗi cập nhật trạng thái của post " + postId);
+            e.printStackTrace();
+        }
+    }
 }

@@ -30,6 +30,8 @@ public class AdminController {
     @Autowired
     private ExamService examService;
 
+    @Autowired
+    private PostService postService;
 
     // ✅ Chỉ Admin mới có thể truy cập trang này
     @GetMapping("/dashboard")
@@ -78,34 +80,50 @@ public class AdminController {
         return "redirect:/adminDashboard/dashboard";
     }
 
-    @PostMapping("/deleteUser")
-    public String deleteUser(@RequestParam String username, HttpSession session) {
+    // Endpoint cập nhật trạng thái của User (toggle active)
+    @PostMapping("/updateUserStatus")
+    public String updateUserStatus(@RequestParam String username, HttpSession session) {
         String loggedInUser = (String) session.getAttribute("loggedInUser");
         if (loggedInUser == null || !authService.isAdmin(loggedInUser)) {
             return "redirect:/login";
         }
-
-        userService.deleteUser(username);
+        User user = userService.getUserByUsername(username);
+        if (user != null) {
+            boolean newStatus = !user.isActive();
+            user.setActive(newStatus);
+            userService.updateUserStatus(username, newStatus);  // Phương thức này cần được triển khai trong UserService
+        }
         return "redirect:/adminDashboard/dashboard";
     }
 
-    @PostMapping("/deleteExam")
-    public String deleteExam(@RequestParam String examId, HttpSession session) {
+    // Endpoint cập nhật trạng thái của Exam (toggle active)
+    @PostMapping("/updateExamStatus")
+    public String updateExamStatus(@RequestParam String examId, HttpSession session) {
         String loggedInUser = (String) session.getAttribute("loggedInUser");
         if (loggedInUser == null || !authService.isAdmin(loggedInUser)) {
             return "redirect:/login";
         }
-        examService.deleteExam(examId);
+        Exam exam = examService.getExam(examId);
+        if (exam != null) {
+            boolean newStatus = !exam.isActive();
+            exam.setActive(newStatus);
+            examService.updateExamStatus(examId, newStatus);  // Phương thức cần được triển khai trong ExamService
+        }
         return "redirect:/adminDashboard/dashboard";
     }
 
-    @PostMapping("/deletePost")
-    public String deletePost(@RequestParam String postId, HttpSession session) {
+    @PostMapping("/updatePostStatus")
+    public String updatePostStatus(@RequestParam String postId, HttpSession session) {
         String loggedInUser = (String) session.getAttribute("loggedInUser");
         if (loggedInUser == null || !authService.isAdmin(loggedInUser)) {
             return "redirect:/login";
         }
-        PostService.deletePost(postId);
+        Post post = postService.getPostById(postId); // Giả sử có phương thức này trong PostService
+        if (post != null) {
+            boolean newStatus = !post.isActive();
+            post.setActive(newStatus);
+            postService.updatePostStatus(postId, newStatus); // Phương thức cần được triển khai trong PostService
+        }
         return "redirect:/adminDashboard/dashboard";
     }
 

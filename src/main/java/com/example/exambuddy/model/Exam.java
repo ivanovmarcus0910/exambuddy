@@ -14,6 +14,7 @@ public class Exam {
     private String date;
     private int questionCount; // Số lượng câu hỏi
     private List<Question> questions; // Danh sách câu hỏi
+    private boolean active = true;
 
     // Constructors
     public Exam() {
@@ -32,6 +33,15 @@ public class Exam {
         this.date = date;
         this.questionCount = questionCount;
         this.questions = questions;
+        this.active = true; // Người dùng mới mặc định hoạt động
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
     }
 
     public String getExamID() {

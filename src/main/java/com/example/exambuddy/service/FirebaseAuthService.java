@@ -24,7 +24,7 @@ public class FirebaseAuthService {
 
     // Danh sách email là admin
     private static final List<String> ADMIN_Email = Arrays.asList(
-            "trinhquoctrung10504@gmail.com"
+            "trungtqde180411@fpt.edu.vn"
     );
 
     // Đăng ký người dùng mới và gửi email xác thực

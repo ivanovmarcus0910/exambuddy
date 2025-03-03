@@ -18,6 +18,7 @@ public class Post {
     private List<Comment> comments;
     private List<String> likedUsernames;
     private boolean liked;
+    private boolean active = true;
 
     public Post() {
     }
@@ -31,6 +32,15 @@ public class Post {
         this.likeCount = likeCount;
         this.comments = comments;
         this.likedUsernames = likedUsernames;
+        this.active = true; // Người dùng mới mặc định hoạt động
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
     }
 
     public String getPostId() {

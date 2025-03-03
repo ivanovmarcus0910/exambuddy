@@ -14,6 +14,9 @@ public class User {
     private int coin;
 
 
+    // Thuộc tính mới: trạng thái hoạt động
+    private boolean active = true;
+
     private String firstName;
     private String lastName;
     private String birthDate;
@@ -46,6 +49,15 @@ public class User {
         this.avatarUrl = "https://res.cloudinary.com/dsuav027e/image/upload/v1739367972/halnqohla5mqr3seve3d.png";
         this.role = role.name();
         this.coin = 0;
+        this.active = true; // Người dùng mới mặc định hoạt động
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
     }
 
     public boolean isVerified() {
