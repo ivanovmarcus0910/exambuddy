@@ -1,25 +1,74 @@
+document.addEventListener("DOMContentLoaded", function () {
+    const links = document.querySelectorAll('.list-group-item');
+    const urlParams = new URLSearchParams(window.location.search);
+    const subject = urlParams.get("subject"); // Lấy giá trị subject từ URL
+
+    let activeSet = false;
+
+    links.forEach(link => {
+        if (subject && link.href.includes("subject=" + subject)) {
+            link.classList.add("active");
+            activeSet = true;
+        } else {
+            link.classList.remove("active");
+        }
+    });
+
+    // Nếu không có subject nào trong URL, mặc định chọn "Tất cả"
+    if (!activeSet) {
+        document.querySelector('.list-group-item[href="/forum"]').classList.add("active");
+    }
+});
+
+document.getElementById('postImageInput').addEventListener('change', function(event) {
+    let fileList = event.target.files;
+    let output = document.getElementById('postFiles');
+    output.innerHTML = ''; // Xóa danh sách cũ
+
+    if (fileList.length > 0) {
+        output.innerHTML = "<strong>Đã chọn:</strong> " +
+            Array.from(fileList).map(file => file.name).join(', ');
+    }
+});
+
+// document.getElementById('commentImageInput').addEventListener('change', function(event) {
+//     let fileList = event.target.files;
+//     let output = document.getElementById('commentFiles');
+//     output.innerHTML = ''; // Xóa danh sách cũ
+//
+//     if (fileList.length > 0) {
+//         output.innerHTML = "<strong>Đã chọn:</strong> " +
+//             Array.from(fileList).map(file => file.name).join(', ');
+//     }
+// });
+
 function showAllImages(element) {
     const hiddenImages = element.nextElementSibling;
     const collapseButton = hiddenImages.nextElementSibling;
 
-    hiddenImages.style.display = "flex";
-    collapseButton.style.display = "block";
+    if (hiddenImages) {
+        hiddenImages.style.display = "flex";
+    }
+    if (collapseButton) {
+        collapseButton.style.display = "block";
+    }
+
     element.style.display = "none";
 }
 
 function collapseImages(element) {
-    // Tìm phần tử chứa các ảnh ẩn
     const hiddenImages = element.previousElementSibling;
-    // Tìm phần "+x ảnh"
     const moreImagesButton = hiddenImages.previousElementSibling;
 
-    // Ẩn các ảnh thừa
-    hiddenImages.style.display = "none";
-    // Ẩn nút "Thu gọn"
-    element.style.display = "none";
-
-    // Hiển thị lại phần "+x ảnh"
-    moreImagesButton.style.display = "flex";
+    if (hiddenImages) {
+        hiddenImages.style.display = "none";
+    }
+    if (element) {
+        element.style.display = "none";
+    }
+    if (moreImagesButton) {
+        moreImagesButton.style.display = "inline";
+    }
 }
 
 function toggleLike(btn) {
@@ -68,41 +117,17 @@ function toggleLike(btn) {
         });
 }
 
-document.addEventListener('DOMContentLoaded', function () {
-
-    document.querySelectorAll('.toggle-comments').forEach(button => {
-        button.addEventListener('click', function () {
-            const commentsSection = this.closest('.post-actions').nextElementSibling;
-
-            if (commentsSection.style.display === 'none' || commentsSection.style.display === '') {
-                commentsSection.style.display = 'block';
-            } else {
-                commentsSection.style.display = 'none';
-            }
-        });
-    });
-
-    // Hiển thị menu hành động khi hover vào bình luận
-    document.querySelectorAll('.comment-item').forEach(item => {
-        item.addEventListener('mouseenter', function () {
-            this.querySelector('.comment-actions').style.display = 'block';
-        });
-        item.addEventListener('mouseleave', function () {
-            this.querySelector('.comment-actions').style.display = 'none';
-        });
-    });
-
-    // Kiểm tra đăng nhập trước khi bình luận
-    document.querySelectorAll('#comment-form').forEach(form => {
-        form.addEventListener('submit', function (event) {
-            const username = document.querySelector('input[name="username"]').value;
-            if (!username) {
-                alert("Bạn cần đăng nhập để bình luận!");
-                event.preventDefault(); // Ngăn form gửi đi
-            }
-        });
+// Kiểm tra đăng nhập trước khi bình luận
+document.querySelectorAll('#comment-form').forEach(form => {
+    form.addEventListener('submit', function (event) {
+        const username = document.querySelector('input[name="username"]').value;
+        if (!username) {
+            alert("Bạn cần đăng nhập để bình luận!");
+            event.preventDefault(); // Ngăn form gửi đi
+        }
     });
 });
+
 
 function showMoreComments(button) {
     const commentsSection = button.parentElement;
@@ -117,11 +142,6 @@ function showMoreComments(button) {
     if (commentsSection.querySelectorAll('.hidden-comment').length === 0) {
         button.style.display = 'none';
     }
-}
-
-function togglePostSettingsMenu(element) {
-    const menu = element.nextElementSibling;
-    menu.classList.toggle('hidden');
 }
 
 function editPost(button) {
@@ -177,27 +197,35 @@ document.querySelectorAll('.share-button').forEach(button => {
     });
 });
 
-function openImage(img) {
-    // Lấy thẻ lightbox và ảnh lớn
-    const lightbox = document.getElementById('lightbox');
-    const lightboxImage = document.getElementById('lightbox-image');
-    const lightboxClose = document.getElementById('lightbox-close');
+function openImageModal(imgElement) {
+    let modalImage = document.getElementById('modalImage');
+    modalImage.src = imgElement.src;
 
-    // Gán ảnh nguồn vào lightbox
-    lightboxImage.src = img.src;
-
-    // Hiển thị lightbox
-    lightbox.classList.add('show');
-
-    // Đóng lightbox khi nhấn nút "X"
-    lightboxClose.onclick = function () {
-        lightbox.classList.remove('show');
-    };
-
-    // Đóng lightbox khi nhấn ra ngoài ảnh
-    lightbox.onclick = function (e) {
-        if (e.target === lightbox) {
-            lightbox.classList.remove('show');
-        }
-    };
+    let modal = new bootstrap.Modal(document.getElementById('imageModal'));
+    modal.show();
 }
+
+function openPostModal(event, postId) {
+    event.preventDefault();
+
+    let modal = new bootstrap.Modal(document.getElementById('postModal'));
+    modal.show();
+
+    let postContent = document.getElementById('postContent');
+    postContent.innerHTML = "<p>Đang tải bài viết...</p>";
+
+    // Cập nhật link cho nút phóng to
+    document.getElementById('viewFullPost').href = `/postDetail/${encodeURIComponent(postId)}`;
+
+    fetch(`/postDetail/${encodeURIComponent(postId)}?modal=true`)
+        .then(response => response.text())
+        .then(data => {
+            postContent.innerHTML = data;
+        })
+        .catch(error => {
+            console.error("Lỗi tải bài viết:", error);
+            postContent.innerHTML = "<p class='text-danger'>Không thể tải bài viết.</p>";
+        });
+}
+
+

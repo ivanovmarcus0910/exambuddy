@@ -12,11 +12,6 @@
       background-color: #f0f4f8;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
-    .header-title {
-      color: #1a73e8;
-      font-weight: bold;
-      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
-    }
     .select-class-container {
       background: white;
       border-radius: 15px;
@@ -72,10 +67,35 @@
     .btn-primary:hover {
       background-color: #1557b0;
     }
+    .breadcrumb-custom {
+      background: #e9ecef;
+      border-radius: 8px;
+      padding: 10px 15px;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .breadcrumb-custom a {
+      color: #1a73e8;
+      text-decoration: none;
+    }
+    .breadcrumb-custom a:hover {
+      text-decoration: underline;
+    }
+    .breadcrumb-custom span {
+      color: #666;
+    }
+    .header-title {
+      color: #1a73e8;
+      font-weight: bold;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+    }
   </style>
 </head>
 <body>
 <div th:insert="fragments/header :: header"></div>
+
 <div class="container mt-5">
   <h1 class="text-center header-title mb-4">Lý Thuyết</h1>
   <div class="row">
@@ -99,167 +119,169 @@
     </div>
     <div class="col-md-9">
       <div id="details-container" class="details-container">
+        <div id="breadcrumb" class="breadcrumb-custom hidden">
+          <span id="breadcrumb-text"></span>
+        </div>
         <div id="subjects" class="accordion"></div>
       </div>
     </div>
   </div>
 </div>
+
+<div th:replace="fragments/footer :: footer"></div>
+
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-    const bookTypeSelect = document.getElementById('book-type');
-    const classGradeSelect = document.getElementById('class-grade');
-    const selectClassBtn = document.getElementById('select-class-btn');
-    const subjectsContainer = document.getElementById('subjects');
-    let currentClassId = null;
+    const elements = {
+      bookTypeSelect: document.getElementById('book-type'),
+      classGradeSelect: document.getElementById('class-grade'),
+      selectClassBtn: document.getElementById('select-class-btn'),
+      subjectsContainer: document.getElementById('subjects'),
+      breadcrumb: document.getElementById('breadcrumb'),
+      breadcrumbText: document.getElementById('breadcrumb-text')
+    };
 
-    // Xử lý sự kiện chọn loại sách và lớp học
-    selectClassBtn.addEventListener('click', function() {
-      const bookType = bookTypeSelect.value;
-      const classGrade = classGradeSelect.value;
-      currentClassId = ${classGrade}_${bookType};
-      console.log('Step 1: Selected classId:', currentClassId);
-      loadSubjects(currentClassId);
+    const state = {
+      classId: null,
+      subjectName: null,
+      chapterName: null
+    };
+
+    // Hàm tạo accordion item
+    function createAccordionItem(id, title, targetId, parentId, contentId) {
+      const item = document.createElement('div');
+      item.classList.add('accordion-item');
+      item.innerHTML = `
+        <h2 class="accordion-header" id="heading-${id}">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#${targetId}" aria-expanded="false" aria-controls="${targetId}">
+            ${title}
+          </button>
+        </h2>
+        <div id="${targetId}" class="accordion-collapse collapse" aria-labelledby="heading-${id}" data-bs-parent="#${parentId}">
+          <div class="accordion-body" id="${contentId}"></div>
+        </div>
+      `;
+      return item;
+    }
+
+    // Hàm cập nhật breadcrumb
+    function updateBreadcrumb() {
+      const classGrade = state.classId?.split('_')[0] || '';
+      const bookType = state.classId?.split('_')[1] || '';
+      let breadcrumbStr = state.classId ? `Lớp ${classGrade} / ${bookType}` : '';
+      if (state.subjectName) breadcrumbStr += ` / ${state.subjectName}`;
+      if (state.chapterName) breadcrumbStr += ` / ${state.chapterName}`;
+      elements.breadcrumbText.textContent = breadcrumbStr;
+      elements.breadcrumb.classList.toggle('hidden', !breadcrumbStr);
+    }
+
+    // Xử lý sự kiện chọn lớp/sách
+    elements.selectClassBtn.addEventListener('click', function() {
+      state.classId = `${elements.classGradeSelect.value}_${elements.bookTypeSelect.value}`;
+      state.subjectName = null;
+      state.chapterName = null;
+      loadSubjects(state.classId);
+      updateBreadcrumb();
     });
 
     // Hàm tải danh sách môn học
-    function loadSubjects(classId) {
-      console.log('Step 2: Fetching subjects for classId:', classId);
-      fetch(/api/theory/subjects/${classId})
-    .then(response => {
-        if (!response.ok) throw new Error(HTTP error! Status: ${response.status});
-        return response.json();
-      })
-              .then(subjects => {
-                console.log('Step 3: Subjects loaded:', subjects);
-                subjectsContainer.innerHTML = '';
-                subjects.forEach(subject => {
-                  const accordionItem = document.createElement('div');
-                  accordionItem.classList.add('accordion-item');
-                  accordionItem.innerHTML = `
-              <h2 class="accordion-header" id="subject-heading-${subject.id}">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#subject-collapse-${subject.id}" aria-expanded="false" aria-controls="subject-collapse-${subject.id}">
-                  ${subject.name}
-                </button>
-              </h2>
-              <div id="subject-collapse-${subject.id}" class="accordion-collapse collapse" aria-labelledby="subject-heading-${subject.id}" data-bs-parent="#subjects">
-                <div class="accordion-body" id="chapters-${subject.id}"></div>
-              </div>
-            `;
-                  subjectsContainer.appendChild(accordionItem);
+    async function loadSubjects(classId) {
+      try {
+        const response = await fetch(`/api/theory/subjects/${classId}`);
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+        const subjects = await response.json();
+        elements.subjectsContainer.innerHTML = '';
+        subjects.forEach(subject => {
+          const item = createAccordionItem(subject.id, subject.name, `subject-collapse-${subject.id}`, 'subjects', `chapters-${subject.id}`);
+          elements.subjectsContainer.appendChild(item);
 
-                  // Tải chương khi accordion môn học được mở
-                  const subjectCollapse = document.getElementById(subject-collapse-${subject.id});
-                  subjectCollapse.addEventListener('shown.bs.collapse', function() {
-                    console.log('Step 4: Subject accordion opened for subjectId:', subject.id);
-                    const chaptersContainer = document.getElementById(chapters-${subject.id});
-                    if (chaptersContainer && !chaptersContainer.hasChildNodes()) {
-                      loadChapters(classId, subject.id, chaptersContainer);
-                    }
-                  });
-                });
-              })
-              .catch(err => {
-                console.error('Lỗi khi tải danh sách môn học:', err);
-                subjectsContainer.innerHTML = '<p class="text-danger">Lỗi tải danh sách môn học.</p>';
-              });
+          const collapse = document.getElementById(`subject-collapse-${subject.id}`);
+          collapse.addEventListener('shown.bs.collapse', () => {
+            const chaptersContainer = document.getElementById(`chapters-${subject.id}`);
+            if (chaptersContainer && !chaptersContainer.hasChildNodes()) {
+              state.subjectName = subject.name;
+              loadChapters(classId, subject.id, chaptersContainer);
+              updateBreadcrumb();
+            }
+          });
+          collapse.addEventListener('hidden.bs.collapse', () => {
+            state.subjectName = null;
+            state.chapterName = null;
+            updateBreadcrumb();
+          });
+        });
+      } catch (err) {
+        elements.subjectsContainer.innerHTML = '<p class="text-danger">Lỗi tải danh sách môn học.</p>';
+      }
     }
 
     // Hàm tải danh sách chương
-    function loadChapters(classId, subjectId, chaptersContainer) {
-      console.log('Step 5: Fetching chapters for classId:', classId, 'subjectId:', subjectId);
-      fetch(/api/theory/chapters/${classId}/${subjectId})
-              .then(response => {
-                if (!response.ok) throw new Error(HTTP error! Status: ${response.status});
-                return response.json();
-              })
-              .then(chapters => {
-                console.log('Step 6: Chapters loaded:', chapters);
-                // Sắp xếp chương theo thứ tự tăng dần dựa trên tên
-                chapters.sort((a, b) => {
-                  const numA = parseInt(a.name.match(/\d+/)?.[0] || 0);
-                  const numB = parseInt(b.name.match(/\d+/)?.[0] || 0);
-                  return numA - numB;
-                });
-                console.log('Step 6.1: Chapters sorted:', chapters);
+    async function loadChapters(classId, subjectId, chaptersContainer) {
+      try {
+        const response = await fetch(`/api/theory/chapters/${classId}/${subjectId}`);
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+        const chapters = await response.json();
+        chapters.sort((a, b) => {
+          const numA = parseInt(a.name.match(/\d+/)?.[0] || 0);
+          const numB = parseInt(b.name.match(/\d+/)?.[0] || 0);
+          return numA - numB;
+        });
 
-                chaptersContainer.innerHTML = '<div class="accordion" id="chapters-accordion-' + subjectId + '"></div>';
-                const chaptersAccordion = chaptersContainer.querySelector(#chapters-accordion-${subjectId});
-                chapters.forEach(chapter => {
-                  const chapterItem = document.createElement('div');
-                  chapterItem.classList.add('accordion-item');
-                  chapterItem.innerHTML = `
-              <h2 class="accordion-header" id="chapter-heading-${chapter.id}">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#chapter-collapse-${chapter.id}" aria-expanded="false" aria-controls="chapter-collapse-${chapter.id}">
-                  ${chapter.name}
-                </button>
-              </h2>
-              <div id="chapter-collapse-${chapter.id}" class="accordion-collapse collapse" aria-labelledby="chapter-heading-${chapter.id}" data-bs-parent="#chapters-accordion-${subjectId}">
-                <div class="accordion-body" id="lessons-${chapter.id}"></div>
-              </div>
-            `;
-                  chaptersAccordion.appendChild(chapterItem);
+        chaptersContainer.innerHTML = `<div class="accordion" id="chapters-accordion-${subjectId}"></div>`;
+        const accordion = chaptersContainer.querySelector(`#chapters-accordion-${subjectId}`);
+        chapters.forEach(chapter => {
+          const item = createAccordionItem(chapter.id, chapter.name, `chapter-collapse-${chapter.id}`, `chapters-accordion-${subjectId}`, `lessons-${chapter.id}`);
+          accordion.appendChild(item);
 
-                  // Tải bài học khi accordion chương được mở
-                  const chapterCollapse = document.getElementById(chapter-collapse-${chapter.id});
-                  chapterCollapse.addEventListener('shown.bs.collapse', function() {
-                    console.log('Step 7: Chapter accordion opened for chapterId:', chapter.id);
-                    const lessonsContainer = document.getElementById(lessons-${chapter.id});
-                    if (lessonsContainer && !lessonsContainer.hasChildNodes()) {
-                      loadLessons(classId, subjectId, chapter.id, lessonsContainer);
-                    }
-                  });
-                });
-              })
-              .catch(err => {
-                console.error('Lỗi khi tải danh sách chương:', err);
-                chaptersContainer.innerHTML = '<p class="text-danger">Lỗi tải danh sách chương.</p>';
-              });
+          const collapse = document.getElementById(`chapter-collapse-${chapter.id}`);
+          collapse.addEventListener('shown.bs.collapse', () => {
+            const lessonsContainer = document.getElementById(`lessons-${chapter.id}`);
+            if (lessonsContainer && !lessonsContainer.hasChildNodes()) {
+              state.chapterName = chapter.name;
+              loadLessons(classId, subjectId, chapter.id, lessonsContainer);
+              updateBreadcrumb();
+            }
+          });
+          collapse.addEventListener('hidden.bs.collapse', () => {
+            state.chapterName = null;
+            updateBreadcrumb();
+          });
+        });
+      } catch (err) {
+        chaptersContainer.innerHTML = '<p class="text-danger">Lỗi tải danh sách chương.</p>';
+      }
     }
 
     // Hàm tải danh sách bài học
-    function loadLessons(classId, subjectId, chapterId, lessonsContainer) {
-      const url = /api/theory/lessons/${classId}/${subjectId}/${chapterId};
-      console.log('Step 8: Fetching lessons from:', url);
-      fetch(url)
-              .then(response => {
-                if (!response.ok) {
-                  console.error(HTTP error! Status: ${response.status} - ${response.statusText});
-                  throw new Error('Không thể tải danh sách bài học');
-                }
-                return response.json();
-              })
-              .then(lessons => {
-                console.log('Step 9: Lessons loaded:', lessons);
-                // Sắp xếp bài học theo thứ tự tăng dần dựa trên tên
-                lessons.sort((a, b) => {
-                  const numA = parseInt(a.name.match(/\d+/)?.[0] || 0);
-                  const numB = parseInt(b.name.match(/\d+/)?.[0] || 0);
-                  return numA - numB;
-                });
-                console.log('Step 9.1: Lessons sorted:', lessons);
+    async function loadLessons(classId, subjectId, chapterId, lessonsContainer) {
+      try {
+        const response = await fetch(`/api/theory/lessons/${classId}/${subjectId}/${chapterId}`);
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+        const lessons = await response.json();
+        lessons.sort((a, b) => {
+          const numA = parseInt(a.name.match(/\d+/)?.[0] || 0);
+          const numB = parseInt(b.name.match(/\d+/)?.[0] || 0);
+          return numA - numB;
+        });
 
-                lessonsContainer.innerHTML = '<ul class="list-group"></ul>';
-                const lessonList = lessonsContainer.querySelector('.list-group');
-                if (!lessons || lessons.length === 0) {
-                  lessonList.innerHTML = '<li class="list-group-item text-muted">Không có bài học nào.</li>';
-                } else {
-                  lessons.forEach(lesson => {
-                    const lessonItem = document.createElement('li');
-                    lessonItem.classList.add('list-group-item');
-                    lessonItem.innerHTML = `
-                <a href="/lesson?classId=${classId}&subjectId=${subjectId}&chapterId=${chapterId}&lessonId=${lesson.id}" class="text-decoration-none text-dark">${lesson.name}</a>
-              `;
-                    lessonList.appendChild(lessonItem);
-                  });
-                }
-              })
-              .catch(error => {
-                console.error('Lỗi khi tải danh sách bài học:', error);
-                lessonsContainer.innerHTML = '<p class="text-danger">Lỗi tải danh sách bài học.</p>';
-              });
+        lessonsContainer.innerHTML = '<ul class="list-group"></ul>';
+        const lessonList = lessonsContainer.querySelector('.list-group');
+        if (!lessons?.length) {
+          lessonList.innerHTML = '<li class="list-group-item text-muted">Không có bài học nào.</li>';
+        } else {
+          lessons.forEach(lesson => {
+            const breadcrumbStr = encodeURIComponent(elements.breadcrumbText.textContent + ` / ${lesson.name || 'Bài học không tên'}`);
+            const li = document.createElement('li');
+            li.classList.add('list-group-item');
+            li.innerHTML = `<a href="/lesson?classId=${classId}&subjectId=${subjectId}&chapterId=${chapterId}&lessonId=${lesson.id}&breadcrumb=${breadcrumbStr}" class="text-decoration-none text-dark">${lesson.name || 'Bài học không tên'}</a>`;
+            lessonList.appendChild(li);
+          });
+        }
+      } catch (err) {
+        lessonsContainer.innerHTML = '<p class="text-danger">Lỗi tải danh sách bài học.</p>';
+      }
     }
   });
 </script>
-<div th:replace="fragments/footer :: footer"></div>
 </body>
 </html>

@@ -16,11 +16,12 @@ public class PostService {
     private static final Firestore db = FirestoreClient.getFirestore();
     private static final String COLLECTION_NAME = "posts";
 
-    public static Post savePost(String username, String content, String subject, String grade, String date, List<String> imageUrls) {
+    public static Post savePost(String username, String avatarUrl, String content, String subject, String grade, String date, List<String> imageUrls) {
         CollectionReference posts = db.collection(COLLECTION_NAME);
 
         Post post = new Post();
         post.setUsername(username);
+        post.setAvatarUrl(avatarUrl);
         post.setContent(content);
         post.setSubject(subject);
         post.setGrade(grade);
@@ -82,9 +83,6 @@ public class PostService {
             for (DocumentSnapshot document : documents) {
                 Post post = document.toObject(Post.class);
                 post.setPostId(document.getId());
-
-                String avatarUrl = UserService.getAvatarUrlByUsername(post.getUsername());
-                post.setAvatarUrl(avatarUrl);
 
                 postList.add(post);
             }

@@ -1,0 +1,184 @@
+<div th:fragment="post">
+    <div class="post card mb-3" th:if="${username}">
+        <input type="hidden" name="username" th:value="${username}">
+        <div class="card-body">
+            <div class="d-flex justify-content-between mb-2">
+                <div class="d-flex align-items-center">
+                    <img th:src="${post.avatarUrl}" class="rounded-circle me-2" width="40" height="40"
+                         alt="User">
+                    <div class="d-flex flex-column justify-content-center h-100">
+                        <h5 th:text="${post.username}" class="mb-1 fw-bold"></h5>
+                        <span class="text-muted" style="font-size: 12px" th:text="${post.timeAgo}"></span>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center">
+                    <span th:text="${post.subject}" class="badge bg-success me-2"></span>
+                    <span th:text="${post.grade}" class="badge bg-warning me-1"></span>
+
+                    <div class="dropdown">
+                        <button class="btn btn-link text-dark" type="button" id="postMenu"
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-three-dots"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="postMenu">
+                            <li><a class="dropdown-item" href="#"><i class="bi bi-pencil me-2"></i>Chỉnh sửa
+                                bài viết</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="bi bi-trash me-2"></i>Xoá bài
+                                viết</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="bi bi-flag me-2"></i>Báo cáo bài
+                                viết</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <p style="text-align: left !important;" th:text="${post.content}"></p>
+            <div class="post-images">
+                <div class="row g-1">
+                    <div th:each="imageUrl, iterStat : ${post.imageUrls}"
+                         th:if="${iterStat.index < 2}"
+                         class="col-6">
+                        <div class="ratio ratio-1x1 position-relative">
+                            <img th:src="${imageUrl}" class="img-fluid rounded post-image"
+                                 onclick="openImageModal(this)">
+                        </div>
+                    </div>
+                    <div th:if="${#lists.size(post.imageUrls) > 2}"
+                         class="more-images mt-2 fw-bold text-primary"
+                         th:text="'+' + (${#lists.size(post.imageUrls)} - 2) + ' ảnh nữa'"
+                         style="cursor: pointer;"
+                         onclick="showAllImages(this)">
+                    </div>
+                    <div class="row g-1 hidden-images" style="display: none;">
+                        <div th:each="imageUrl, iterStat : ${post.imageUrls}"
+                             th:if="${iterStat.index >= 2}"
+                             class="col-6">
+                            <div class="ratio ratio-1x1 position-relative">
+                                <img th:src="${imageUrl}" class="img-fluid rounded post-image"
+                                     onclick="openImageModal(this)">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="collapse-images fw-bold text-primary mt-2" style="display: none; cursor: pointer"
+                         onclick="collapseImages(this)">
+                        Thu gọn
+                    </div>
+                </div>
+            </div>
+            <div class="post-actions d-flex gap-2 align-items-center">
+                <button class="btn btn-outline-secondary heart-btn" th:attr="data-post-id=${post.postId}"
+                        th:classappend="${post.liked} ? 'text-danger' : ''" onclick="toggleLike(this)">
+                    <i class="bi" th:classappend="${post.liked} ? 'bi-heart-fill' : 'bi-heart'"></i>
+                    <span class="heart-count" th:text="${post.likeCount}">0</span>
+                </button>
+                <button class="btn btn-outline-secondary">
+                    <i class="bi bi-chat"></i>
+                    <span class="comment-count" th:text="${#lists.size(post.comments)}">0</span>
+                </button>
+                <button class="btn btn-outline-secondary share-button ms-auto">
+                    <i class="bi bi-share"></i>
+                </button>
+            </div>
+            <hr class="mt-2 mb-0">
+            <div class="comments-section mt-3">
+                <div class="comment-list">
+                    <div th:each="comment, iterStat : ${post.comments}"
+                         class="comment-item border-bottom py-2"
+                         th:classappend="${iterStat.index >= 2} ? 'hidden-comment' : ''">
+                        <div class="d-flex">
+                            <img th:src="${comment.avatarUrl}" class="rounded-circle me-3 mt-1" width="35"
+                                 height="35" alt="User">
+
+                            <div class="flex-grow-1">
+                                <div class="card bg-light border-0 p-2" style="display: inline-block;">
+                                    <div class="d-flex align-item-center justify-content-between">
+                                        <h6 class="fw-bold mb-0" th:text="${comment.username}"></h6>
+                                    </div>
+                                    <span class="comment-content"
+                                          th:text="${comment.content}"></span>
+                                </div>
+                                <br>
+                                <!-- Hiển thị ảnh trong bình luận -->
+                                <div th:if="${comment.imageUrls != null and !comment.imageUrls.isEmpty()}"
+                                     class="comment-images mt-2">
+                                    <!-- Hiển thị 6 ảnh đầu tiên -->
+                                    <span th:each="imageUrl, iterStat : ${comment.imageUrls}"
+                                          th:if="${iterStat.index < 6}">
+                                                <img th:src="${imageUrl}" class="comment-image"
+                                                     onclick="openImageModal(this)">
+                                            </span><br>
+                                    <!-- Nếu có nhiều hơn 6 ảnh, hiển thị nút "+X ảnh nữa" -->
+                                    <span th:if="${#lists.size(comment.imageUrls) > 6}"
+                                          class="more-images text-primary fw-bold"
+                                          th:text="'+' + (${#lists.size(comment.imageUrls)} - 6) + ' ảnh nữa'"
+                                          style="cursor: pointer;"
+                                          onclick="showAllImages(this)">
+                                            </span>
+                                    <!-- Ảnh ẩn (sẽ hiển thị khi nhấn vào "+X ảnh nữa") -->
+                                    <div class="hidden-comment-images" style="display: none;">
+                                                <span th:each="imageUrl, iterStat : ${comment.imageUrls}"
+                                                      th:if="${iterStat.index >= 6}">
+                                                    <img th:src="${imageUrl}" class="comment-image"
+                                                         onclick="openImageModal(this)">
+                                                </span>
+                                    </div>
+                                    <!-- Nút "Thu gọn" -->
+                                    <span class="collapse-comment-images text-primary fw-bold"
+                                          style="display: none; cursor: pointer;"
+                                          onclick="collapseImages(this)">
+                                                Thu gọn
+                                            </span>
+                                </div>
+
+                                <span style="font-size: 11px; color: gray"
+                                      th:text="${comment.timeAgo}"></span>
+                                <div class="comment-actions">
+                                    <button class="btn btn-sm btn-link text-primary"><i
+                                            class="bi bi-pencil"></i></button>
+                                    <button class="btn btn-sm btn-link text-danger"><i
+                                            class="bi bi-trash"></i></button>
+                                    <button class="btn btn-sm btn-link text-secondary"><i
+                                            class="bi bi-flag"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Nút Hiển thị thêm bình luận -->
+                <div th:if="${#lists.size(post.comments) > 2}" class="show-more-comments text-primary mt-2"
+                     onclick="showMoreComments(this)" style="cursor: pointer;">
+                    Hiển thị thêm bình luận
+                </div>
+
+                <!-- Form bình luận -->
+                <div class="add-comment mt-3">
+                    <form id="comment-form" action="/forum/comment" method="post" enctype="multipart/form-data">
+                        <div class="d-flex">
+                            <input type="hidden" name="postId" th:value="${post.postId}">
+                            <img th:src="${avatarUrl}" class="rounded-circle me-2" width="35" height="35" alt="User">
+                            <div class="flex-grow-1">
+                                <textarea name="content" class="form-control" placeholder="Viết bình luận..." rows="1"></textarea>
+                                <div class="d-flex justify-content-between align-items-center">
+<!--                                    <input type="file" id="commentImageInput" name="commentImages"-->
+<!--                                           class="d-none" multiple accept="image/*">-->
+
+<!--                                    <button type="button" class="btn btn-success mt-2"-->
+<!--                                            onclick="document.getElementById('commentImageInput').click();"-->
+<!--                                            data-target="commentFiles">-->
+<!--                                        <i class="bi bi-image"></i> Thêm ảnh-->
+<!--                                    </button>-->
+
+<!--                                    <div id="commentFiles" class="mt-2 text-muted"></div>-->
+                                    <div class="col-auto">
+                                        <input type="file" name="commentImages" class="form-control mt-2" multiple>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary mt-2">Bình luận</button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
