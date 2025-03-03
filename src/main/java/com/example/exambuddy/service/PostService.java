@@ -151,7 +151,6 @@ public class PostService {
         return comments;
     }
 
-    // Xoá đề thi
     public static void deletePost(String postId) {
         Firestore firestore = FirestoreClient.getFirestore();
         try {

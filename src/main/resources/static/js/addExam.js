@@ -231,3 +231,95 @@ cities.forEach(city => {
     option.textContent = city;
     citySelect.appendChild(option);
 });
+
+function importFromExcel() {
+    const fileInput = document.getElementById('excelFile');
+    const file = fileInput.files[0];
+    if (!file) {
+        alert('Vui lòng chọn file Excel!');
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+        console.log('Rows from Excel:', rows); // Debug log
+
+        rows.forEach(row => {
+            if (row.length >= 6) {
+                const questionText = row[0];
+                const rawOptions = [row[1], row[2], row[3], row[4]]; // Giá trị thô từ Excel
+                const correctAnswerStr = row[5].toString().toUpperCase();
+                const correctAnswers = [];
+
+                // Chuyển đổi các option thành chuỗi
+                const options = rawOptions.map(option => String(option));
+
+                correctAnswerStr.split(',').forEach(answer => {
+                    switch (answer.trim()) {
+                        case 'A': correctAnswers.push(0); break;
+                        case 'B': correctAnswers.push(1); break;
+                        case 'C': correctAnswers.push(2); break;
+                        case 'D': correctAnswers.push(3); break;
+                        default: console.warn(`Đáp án không hợp lệ: ${answer}`);
+                    }
+                });
+
+                if (questionText && options.every(opt => opt) && correctAnswers.length > 0) {
+                    questions.push({ questionText, options, correctAnswers });
+                    console.log('Added question:', { questionText, options, correctAnswers });
+                } else {
+                    console.warn('Skipped row due to invalid data:', { questionText, options, correctAnswers });
+                }
+            } else {
+                console.warn('Row skipped, not enough columns:', row);
+            }
+        });
+
+        displayQuestions();
+        fileInput.value = ''; // Reset input
+        alert(`Đã import ${questions.length} câu hỏi từ file Excel.`);
+    };
+    reader.readAsArrayBuffer(file);
+}
+
+function importFromDocx() {
+    const fileInput = document.getElementById('docxFile');
+    const file = fileInput.files[0];
+    if (!file) {
+        alert('Vui lòng chọn file DOCX!');
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('examName', document.getElementById('examName').value);
+    formData.append('grade', document.getElementById('grade').value);
+    formData.append('subject', document.getElementById('subject').value);
+    formData.append('examType', document.getElementById('examType').value);
+    formData.append('city', document.getElementById('city').value);
+    formData.append('tags', document.getElementById('tags').value);
+
+    fetch('/exams/importDocx', {
+        method: 'POST',
+        body: formData
+    })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message);
+            if (data.message.includes('thành công')) {
+                // Reset danh sách câu hỏi tạm thời nếu cần
+                questions = [];
+                displayQuestions();
+                fileInput.value = ''; // Reset input file
+            }
+        })
+        .catch(error => {
+            console.error('Lỗi:', error);
+            alert('Lỗi khi import file DOCX!');
+        });
+}
