@@ -56,6 +56,11 @@ public class AdminController {
         List<Post> posts = PostService.getPostsFromFirestore();
         model.addAttribute("posts", posts);
 
+        // Tính tổng số lượng
+        model.addAttribute("totalUser", users.size());
+        model.addAttribute("totalExam", exams.size());
+        model.addAttribute("totalPost", posts.size());
+
         // ✅ Lấy thông tin admin để hiển thị avatar & username
         User adminUser = userService.getUserByUsername(loggedInUser);
         if (adminUser != null) {
