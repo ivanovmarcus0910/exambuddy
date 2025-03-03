@@ -10,9 +10,11 @@
   <!-- Bootstrap CSS -->
   <link rel="stylesheet"
         href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
   <!-- Bootstrap JS (Bundle) -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -21,16 +23,16 @@
     .sidebar-sticky {
       position: sticky;
       top: 0;
-      height: 100vh;       /* Để sidebar phủ toàn chiều cao */
-      overflow-y: auto;    /* Có thanh cuộn riêng nếu sidebar dài */
+      height: 100vh;
+      overflow-y: auto;
       z-index: 10;
     }
     /* Header sticky */
     .header-sticky {
       position: sticky;
       top: 0;
-      z-index: 999;        /* Đảm bảo header nổi trên các phần khác */
-      background: #fff;    /* Màu nền để che nội dung khi cuộn */
+      z-index: 999;
+      background: #fff;
     }
   </style>
 </head>
@@ -39,21 +41,20 @@
 <div class="container-fluid">
   <div class="row">
     <!-- Sidebar -->
-    <!-- Thêm class sidebar-sticky để nó "dính" khi cuộn -->
     <div class="col-2 bg-light px-3 py-4 sidebar-sticky">
       <div class="text-center mb-4">
         <img src="/img/logo.png" alt="Logo" class="img-fluid mb-3">
       </div>
-      <h2 class="h5 fw-bold text-center">🎩Dashboard</h2>
+      <h2 class="h5 fw-bold text-center">🎩 Dashboard</h2>
       <ul class="nav flex-column mt-4">
         <li class="nav-item mb-2">
-          <a href="#users" class="nav-link">👥Quản lí Người dùng</a>
+          <a href="#users" class="nav-link">👥 Quản lí Người dùng</a>
         </li>
         <li class="nav-item mb-2">
-          <a href="#exams" class="nav-link">📝Qua lí Đề thi</a>
+          <a href="#exams" class="nav-link">📝 Quản lí Đề thi</a>
         </li>
         <li class="nav-item mb-2">
-          <a href="#posts" class="nav-link">📄Quản lí Bài viết</a>
+          <a href="#posts" class="nav-link">📄 Quản lí Bài viết</a>
         </li>
         <li class="nav-item mb-2">
           <a href="#stats" class="nav-link">📊 Thống kê</a>
@@ -67,9 +68,7 @@
 
     <!-- Main Content -->
     <div class="col-10 px-0">
-
-      <!-- Header sticky nằm trong main content -->
-      <!-- Thêm class header-sticky để nó "dính" lúc cuộn -->
+      <!-- Header sticky -->
       <div class="header-sticky shadow-sm p-4 mb-4">
         <div class="d-flex justify-content-between align-items-center">
           <h1 class="h3 fw-bold m-0">Dashboard</h1>
@@ -151,24 +150,24 @@
                 <td th:text="${user.username}"></td>
                 <td class="fw-bold text-primary" th:text="${user.role}"></td>
                 <td class="text-center">
+                  <!-- Form cập nhật vai trò -->
                   <form action="/adminDashboard/changeRole" method="post" class="d-inline-block">
                     <input type="hidden" name="username" th:value="${user.username}">
                     <select name="newRole" class="form-select d-inline-block w-auto">
                       <option value="USER" th:selected="${user.role == 'USER'}">USER</option>
                       <option value="TEACHER" th:selected="${user.role == 'TEACHER'}">TEACHER</option>
                       <option value="ADMIN" th:selected="${user.role == 'ADMIN'}">ADMIN</option>
-                      <option value="UPGRADED_USER"
-                              th:selected="${user.role == 'UPGRADED_USER'}">
-                        UPGRADED_USER
-                      </option>
+                      <option value="UPGRADED_USER" th:selected="${user.role == 'UPGRADED_USER'}">UPGRADED_USER</option>
                     </select>
-                    <button type="submit"
-                            class="btn btn-success btn-sm ms-2">💾 Lưu</button>
+                    <button type="submit" class="btn btn-success btn-sm ms-2">💾 Lưu</button>
                   </form>
-                  <form action="/adminDashboard/deleteUser" method="post" class="d-inline-block">
+                  <!-- Nút cập nhật trạng thái: nếu user.active là true thì hiện "🚫 Vô hiệu hóa", ngược lại "✅ Kích hoạt lại" -->
+                  <form action="/adminDashboard/updateUserStatus" method="post" class="d-inline-block">
                     <input type="hidden" name="username" th:value="${user.username}">
-                    <button type="submit"
-                            class="btn btn-danger btn-sm ms-2">🗑 Xóa</button>
+                    <button type="submit" class="btn"
+                            th:classappend="${user.active} ? ' btn-danger btn-sm ms-2' : ' btn-success btn-sm ms-2'"
+                            th:text="${user.active} ? '🚫 Vô hiệu hóa' : '✅ Kích hoạt lại'">
+                    </button>
                   </form>
                 </td>
               </tr>
@@ -205,11 +204,12 @@
                      class="btn btn-primary btn-sm">🔍 Xem</a>
                   <a th:href="@{/exams/{examId}/edit(examId=${exam.examID})}"
                      class="btn btn-warning btn-sm text-white">✏️ Sửa</a>
-                  <form action="/adminDashboard/deleteExam"
-                        method="post" class="d-inline-block">
+                  <form action="/adminDashboard/updateExamStatus" method="post" class="d-inline-block">
                     <input type="hidden" name="examId" th:value="${exam.examID}">
-                    <button type="submit"
-                            class="btn btn-danger btn-sm">🗑 Xóa</button>
+                    <button type="submit" class="btn"
+                            th:classappend="${exam.active} ? ' btn-danger btn-sm' : ' btn-success btn-sm'"
+                            th:text="${exam.active} ? '🚫 Vô hiệu hóa' : '✅ Kích hoạt lại'">
+                    </button>
                   </form>
                 </td>
               </tr>
@@ -235,18 +235,18 @@
               <tbody>
               <tr th:each="post : ${posts}">
                 <td class="fw-semibold text-primary" th:text="${post.username}"></td>
-                <td class="text-truncate" style="max-width: 300px;"
-                    th:text="${post.content}"></td>
+                <td class="text-truncate" style="max-width: 300px;" th:text="${post.content}"></td>
                 <td th:text="${post.date}"></td>
                 <td class="fw-semibold text-center" th:text="${post.likeCount}"></td>
                 <td class="text-center">
                   <a th:href="@{/forum/{postId}(postId=${post.postId})}"
                      class="btn btn-primary btn-sm">🔍 Xem</a>
-                  <form action="/adminDashboard/deletePost"
-                        method="post" class="d-inline-block">
+                  <form action="/adminDashboard/updatePostStatus" method="post" class="d-inline-block">
                     <input type="hidden" name="postId" th:value="${post.postId}">
-                    <button type="submit"
-                            class="btn btn-danger btn-sm">🗑 Xóa</button>
+                    <button type="submit" class="btn"
+                            th:classappend="${post.active} ? ' btn-danger btn-sm' : ' btn-success btn-sm'"
+                            th:text="${post.active} ? '🚫 Vô hiệu hóa' : '✅ Kích hoạt lại'">
+                    </button>
                   </form>
                 </td>
               </tr>
@@ -254,8 +254,8 @@
             </table>
           </div>
         </div>
-      </div> <!-- /px-4 -->
 
+      </div> <!-- /px-4 -->
     </div> <!-- /col-10 -->
   </div> <!-- /row -->
 </div> <!-- /container-fluid -->

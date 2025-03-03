@@ -273,4 +273,17 @@ public class UserService {
         return false;
     }
 
+    // --- Phương thức mới: cập nhật trạng thái active cho User ---
+    public void updateUserStatus(String username, boolean newStatus) {
+        Firestore firestore = FirestoreClient.getFirestore();
+        DocumentReference userRef = firestore.collection(COLLECTION_NAME).document(username);
+        try {
+            userRef.update("active", newStatus).get();
+            System.out.println("Cập nhật trạng thái active của user " + username + " thành " + newStatus);
+        } catch (InterruptedException | ExecutionException e) {
+            System.out.println("Lỗi khi cập nhật trạng thái cho user " + username);
+            e.printStackTrace();
+        }
+    }
+
 }

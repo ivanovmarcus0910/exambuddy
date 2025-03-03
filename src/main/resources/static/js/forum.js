@@ -31,16 +31,16 @@ document.getElementById('postImageInput').addEventListener('change', function(ev
     }
 });
 
-document.getElementById('commentImageInput').addEventListener('change', function(event) {
-    let fileList = event.target.files;
-    let output = document.getElementById('commentFiles');
-    output.innerHTML = ''; // Xóa danh sách cũ
-
-    if (fileList.length > 0) {
-        output.innerHTML = "<strong>Đã chọn:</strong> " +
-            Array.from(fileList).map(file => file.name).join(', ');
-    }
-});
+// document.getElementById('commentImageInput').addEventListener('change', function(event) {
+//     let fileList = event.target.files;
+//     let output = document.getElementById('commentFiles');
+//     output.innerHTML = ''; // Xóa danh sách cũ
+//
+//     if (fileList.length > 0) {
+//         output.innerHTML = "<strong>Đã chọn:</strong> " +
+//             Array.from(fileList).map(file => file.name).join(', ');
+//     }
+// });
 
 function showAllImages(element) {
     const hiddenImages = element.nextElementSibling;
