@@ -1,42 +1,79 @@
-<div th:fragment="footer">
-    <footer class="bg-primary text-white py-4">
-        <div class="container">
-            <div class="row">
-                <!-- Cột 1: Về chúng tôi -->
-                <div class="col-md-4">
-                    <h3 class="h5">Về chúng tôi</h3>
-                    <p>Website cung cấp tài liệu, bài giảng và kỳ thi trực tuyến để giúp bạn nâng cao kỹ năng và phát
-                        triển sự nghiệp.</p>
-                </div>
+<!-- Remove the container if you want to extend the Footer to full width. -->
+<div class="container my-5">
 
-                <!-- Cột 2: Liên kết nhanh -->
-                <div class="col-md-4">
-                    <h3 class="h5">Liên kết nhanh</h3>
-                    <ul class="list-unstyled">
-                        <li><a href="/home" class="text-white text-decoration-none">Trang chủ</a></li>
-                        <li><a href="/forum" class="text-white text-decoration-none">Diễn đàn</a></li>
-                        <li><a href="/courses" class="text-white text-decoration-none">Khoá học</a></li>
-                        <li><a href="/contact" class="text-white text-decoration-none">Liên hệ</a></li>
-                    </ul>
-                </div>
+    <!-- Footer -->
+    <footer class="text-center text-lg-start text-white" style="background-color: #1c2331">
 
-                <!-- Cột 3: Theo dõi chúng tôi -->
-                <div class="col-md-4">
-                    <h3 class="h5">Theo dõi chúng tôi</h3>
-                    <div class="d-flex gap-3">
-                        <a href="#"><img
-                                src="https://res.cloudinary.com/dsuav027e/image/upload/v1740394499/fblogo_bjzpil.png"
-                                alt="Facebook" class="img-fluid" width="30"></a>
-                        <a href="#"><img src="/img/twitter-icon.png" alt="Twitter" class="img-fluid" width="30"></a>
-                        <a href="#"><img src="/img/youtube-icon.png" alt="YouTube" class="img-fluid" width="30"></a>
+        <!-- Section: Social media -->
+        <section class="d-flex justify-content-between px-4" style="background: linear-gradient(to right, #2d50ff, #6f42c1);">
+            <!-- Left -->
+            <div class="me-5">
+                <span>Kết nối với chúng tôi qua mạng xã hội:</span>
+            </div>
+            <!-- Left -->
+
+            <!-- Right -->
+            <div class="d-flex gap-9">
+                <a href="#" class="text-white text-decoration-none d-flex align-items-center gap-2 me-4">
+                    <i class="fab fa-facebook-f"></i> Facebook
+                </a>
+                <a href="#" class="text-white text-decoration-none d-flex align-items-center gap-2 px-4">
+                    <i class="fab fa-x-twitter"></i> X
+                </a>
+                <a href="#" class="text-white text-decoration-none d-flex align-items-center gap-2">
+                    <i class="fab fa-youtube"></i> YouTube
+                </a>
+            </div>
+            <!-- Right -->
+        </section>
+        <!-- Section: Social media -->
+
+        <!-- Section: Links  -->
+        <section class="">
+            <div class="container text-center text-md-start mt-5">
+                <div class="row mt-3">
+
+                    <!-- Cột 1: Giới thiệu -->
+                    <div class="col-md-3 col-lg-4 col-xl-3 mx-auto mb-4">
+                        <h6 class="text-uppercase fw-bold">Exam Buddy</h6>
+                        <hr class="mb-4 mt-0 d-inline-block mx-auto" style="width: 60px; background-color: #7c4dff; height: 2px"/>
+                        <p>
+                            Exam Buddy là nền tảng giúp bạn ôn luyện và thi thử trực tuyến, với hệ thống bài giảng và đề thi đa dạng từ cơ bản đến nâng cao.
+                        </p>
                     </div>
+
+                    <!-- Cột 2: Liên kết nhanh -->
+                    <div class="col-md-3 col-lg-2 col-xl-2 mx-auto mb-4">
+                        <h6 class="text-uppercase fw-bold">Liên kết nhanh</h6>
+                        <hr class="mb-4 mt-0 d-inline-block mx-auto" style="width: 60px; background-color: #7c4dff; height: 2px"/>
+                        <p><a href="/home" class="text-white text-decoration-none">Trang chủ</a></p>
+                        <p><a href="/exam" class="text-white text-decoration-none">Đề thi thử</a></p>
+                        <p><a href="/forum" class="text-white text-decoration-none">Diễn đàn học tập</a></p>
+                        <p><a href="/support" class="text-white text-decoration-none">Hỗ trợ</a></p>
+                    </div>
+
+                    <!-- Cột 3: Liên hệ -->
+                    <div class="col-md-4 col-lg-3 col-xl-3 mx-auto mb-md-0 mb-4">
+                        <h6 class="text-uppercase fw-bold">Liên hệ</h6>
+                        <hr class="mb-4 mt-0 d-inline-block mx-auto" style="width: 60px; background-color: #7c4dff; height: 2px"/>
+                        <p><i class="fas fa-home me-2"></i> Khu đô thị FPT, Hòa Hải, Đà Nẵng</p>
+                        <p><i class="fas fa-envelope me-2"></i> support@exambuddy.com</p>
+                        <p><i class="fas fa-phone me-2"></i> +84 839 860 910</p>
+                        <p><i class="fas fa-print me-2"></i> +84 92 43 09175</p>
+                    </div>
+
                 </div>
             </div>
-        </div>
+        </section>
+        <!-- Section: Links  -->
 
-        <!-- Dòng bản quyền -->
-        <div class="text-center bg-dark text-white py-2 mt-3">
-            <p class="mb-0">&copy; 2025 5AETeam. All Rights Reserved.</p>
+        <!-- Copyright -->
+        <div class="text-center p-3" style="background-color: rgba(0, 0, 0, 0.2)">
+            © 2025 Exam Buddy. All Rights Reserved.
         </div>
+        <!-- Copyright -->
     </footer>
+    <!-- Footer -->
+
 </div>
+<!-- End of .container -->
