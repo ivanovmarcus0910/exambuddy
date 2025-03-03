@@ -140,7 +140,7 @@ public class ForumController {
         Comment comment = PostService.saveComment(postId, username, content, date, imageUrls);
         model.addAttribute("comment", comment);
 
-        return "redirect:/forum";
+        return "redirect:/postDetail/" + postId;
     }
 
 

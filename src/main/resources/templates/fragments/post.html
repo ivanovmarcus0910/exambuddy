@@ -152,28 +152,26 @@
 
                 <!-- Form bình luận -->
                 <div class="add-comment mt-3">
-                    <form id="comment-form" action="/forum/comment" method="post"
-                          enctype="multipart/form-data">
+                    <form id="comment-form" action="/forum/comment" method="post" enctype="multipart/form-data">
                         <div class="d-flex">
                             <input type="hidden" name="postId" th:value="${post.postId}">
-
-                            <img th:src="${avatarUrl}" class="rounded-circle me-2" width="35" height="35"
-                                 alt="User">
-
+                            <img th:src="${avatarUrl}" class="rounded-circle me-2" width="35" height="35" alt="User">
                             <div class="flex-grow-1">
-                                            <textarea name="content" class="form-control"
-                                                      placeholder="Viết bình luận..." rows="1"></textarea>
+                                <textarea name="content" class="form-control" placeholder="Viết bình luận..." rows="1"></textarea>
                                 <div class="d-flex justify-content-between align-items-center">
-                                    <input type="file" id="commentImageInput" name="commentImages"
-                                           class="d-none" multiple accept="image/*">
+<!--                                    <input type="file" id="commentImageInput" name="commentImages"-->
+<!--                                           class="d-none" multiple accept="image/*">-->
 
-                                    <button type="button" class="btn btn-success mt-2"
-                                            onclick="document.getElementById('commentImageInput').click();"
-                                            data-target="commentFiles">
-                                        <i class="bi bi-image"></i> Thêm ảnh
-                                    </button>
+<!--                                    <button type="button" class="btn btn-success mt-2"-->
+<!--                                            onclick="document.getElementById('commentImageInput').click();"-->
+<!--                                            data-target="commentFiles">-->
+<!--                                        <i class="bi bi-image"></i> Thêm ảnh-->
+<!--                                    </button>-->
 
-                                    <div id="commentFiles" class="mt-2 text-muted"></div>
+<!--                                    <div id="commentFiles" class="mt-2 text-muted"></div>-->
+                                    <div class="col-auto">
+                                        <input type="file" name="commentImages" class="form-control mt-2" multiple>
+                                    </div>
                                     <button type="submit" class="btn btn-primary mt-2">Bình luận</button>
                                 </div>
                             </div>
