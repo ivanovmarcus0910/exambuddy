@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 @Controller
-@RequestMapping("/adminDashboard")
+@RequestMapping("/admin")
 public class AdminController {
     @Autowired
     private FirebaseAuthService authService;
@@ -34,7 +34,7 @@ public class AdminController {
     private PostService postService;
 
     // ✅ Chỉ Admin mới có thể truy cập trang này
-    @GetMapping("/dashboard")
+    @GetMapping("")
     public String adminDashboard(Model model, HttpSession session) throws ExecutionException, InterruptedException {
         String loggedInUser = (String) session.getAttribute("loggedInUser");
         System.out.println("📌 Session hiện tại: " + loggedInUser);
@@ -77,7 +77,7 @@ public class AdminController {
         }
 
         userService.updateUserRole(username, newRole);
-        return "redirect:/adminDashboard/dashboard";
+        return "redirect:/admin";
     }
 
     // Endpoint cập nhật trạng thái của User (toggle active)
@@ -93,7 +93,7 @@ public class AdminController {
             user.setActive(newStatus);
             userService.updateUserStatus(username, newStatus);  // Phương thức này cần được triển khai trong UserService
         }
-        return "redirect:/adminDashboard/dashboard";
+        return "redirect:/admin";
     }
 
     // Endpoint cập nhật trạng thái của Exam (toggle active)
@@ -109,7 +109,7 @@ public class AdminController {
             exam.setActive(newStatus);
             examService.updateExamStatus(examId, newStatus);  // Phương thức cần được triển khai trong ExamService
         }
-        return "redirect:/adminDashboard/dashboard";
+        return "redirect:/admin";
     }
 
     @PostMapping("/updatePostStatus")
@@ -124,7 +124,7 @@ public class AdminController {
             post.setActive(newStatus);
             postService.updatePostStatus(postId, newStatus); // Phương thức cần được triển khai trong PostService
         }
-        return "redirect:/adminDashboard/dashboard";
+        return "redirect:/admin";
     }
 
 
