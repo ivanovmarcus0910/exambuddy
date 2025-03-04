@@ -13,8 +13,8 @@ import java.util.*;
 
 @Service
 public class CloudinaryService {
-    private CloudinaryConfig x;
-    private Cloudinary cloudinary;
+    private final CloudinaryConfig x;
+    private final Cloudinary cloudinary;
 
     public CloudinaryService() {
         x = new CloudinaryConfig();
@@ -32,6 +32,41 @@ public class CloudinaryService {
             return null;
         }
     }
+    public boolean deleteImageByUrl(String imageUrl) {
+        String publicId = extractPublicIdFromUrl(imageUrl);
+        if (publicId == null) return false;
+
+        try {
+            Map result = this.cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
+            return "ok".equals(result.get("result"));
+        } catch (Exception e) {
+            System.out.println("Image delete failed: " + e.getMessage());
+            return false;
+        }
+    }
+
+
+    private String extractPublicIdFromUrl(String imageUrl) {
+        try {
+            // Lấy phần sau `/upload/`
+            String path = imageUrl.split("/upload/")[1];
+
+            // Loại bỏ timestamp nếu có (bắt đầu bằng "v" + số)
+            String[] parts = path.split("/");
+            if (parts[0].matches("v\\d+")) {
+                path = path.substring(parts[0].length() + 1);
+            }
+
+            // Loại bỏ phần mở rộng (.jpg, .png, ...)
+            return path.substring(0, path.lastIndexOf("."));
+        } catch (Exception e) {
+            System.out.println("Failed to extract public ID: " + e.getMessage());
+            return null;
+        }
+    }
+
+
+
 
     // Phương thức để upload từ byte[]
     public String uploadImgFromBytes(byte[] imageData, String folderName) {

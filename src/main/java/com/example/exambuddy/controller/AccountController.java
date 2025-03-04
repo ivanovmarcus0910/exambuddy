@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.net.URLDecoder;
 import java.net.http.HttpRequest;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 import org.springframework.web.bind.annotation.GetMapping;
@@ -163,5 +164,20 @@ public class AccountController {
         }
         return null;
     }
+
+    @GetMapping("/upgrade")
+    public String upgrage(HttpSession session, Model model) {
+        String username = (String) session.getAttribute("loggedInUser");
+        if (username == null) {
+            return "redirect:/login";
+        }
+        User user = userService.getUserByUsername(username);
+        if (user != null &&( (user.getRole() == User.Role.USER) || (user.getRole() == User.Role.UPGRADED_USER))) {
+            return "upgrade";
+        }
+        else
+            return "error";
+    }
+
 
 }

@@ -94,7 +94,7 @@
   </style>
 </head>
 <body>
-<div th:insert="fragments/header :: header"></div>
+<div th:insert="~{fragments/header :: header}"></div>
 
 <div class="container mt-5">
   <h1 class="text-center header-title mb-4">Lý Thuyết</h1>
@@ -128,7 +128,7 @@
   </div>
 </div>
 
-<div th:replace="fragments/footer :: footer"></div>
+<div th:replace="~{fragments/footer :: footer}"></div>
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
