@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Quản lý Lý Thuyết</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <script src="https://cdn.ckeditor.com/4.16.2/full/ckeditor.js"></script> <!-- Giữ nguyên phiên bản 4.16.2 vì bạn đang dùng nó -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <style>
     body {
@@ -76,10 +77,11 @@
       border-radius: 8px;
       margin-bottom: 10px;
     }
-    textarea.form-control {
-      height: 150px;
-      white-space: pre-wrap;
-      resize: vertical;
+    #lesson-content, #update-lesson-content {
+      min-height: 150px;
+      border: 1px solid #ced4da;
+      border-radius: 8px;
+      padding: 10px;
     }
     h2 {
       color: #333;
@@ -109,15 +111,28 @@
       font-weight: bold;
       text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
     }
+    .cke_contents table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+    .cke_contents td, .cke_contents th {
+      border: 1px solid #000;
+      padding: 5px;
+    }
+    .cke_contents img {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin: 10px 0;
+    }
   </style>
 </head>
 <body>
-<div th:insert="fragments/header :: header"></div>
+<div th:insert="~{fragments/header :: header}"></div>
 
 <div class="container-custom">
   <h1 class="text-center header-title mb-4">Quản lý Lý Thuyết</h1>
 
-  <!-- Phần chọn loại sách và lớp học -->
   <div id="select-class" class="section">
     <h2 class="text-center">Bạn hãy chọn loại sách và lớp học muốn quản lý</h2>
     <div class="row">
@@ -143,7 +158,6 @@
     </div>
   </div>
 
-  <!-- Quản lý môn học -->
   <div id="subjects" class="section hidden">
     <div class="breadcrumb-custom">
       <button id="back-to-select-class" class="btn btn-secondary me-2"><<</button>
@@ -158,7 +172,6 @@
     </form>
   </div>
 
-  <!-- Quản lý chương -->
   <div id="chapters" class="section hidden">
     <div class="breadcrumb-custom">
       <button id="back-to-subjects" class="btn btn-secondary me-2"><<</button>
@@ -173,7 +186,6 @@
     </form>
   </div>
 
-  <!-- Quản lý bài học -->
   <div id="lessons" class="section hidden">
     <div class="breadcrumb-custom">
       <button id="back-to-chapters" class="btn btn-secondary me-2"><<</button>
@@ -184,7 +196,12 @@
     <button id="add-lesson" class="btn btn-primary mt-3">Thêm bài học</button>
     <form id="lesson-form" class="hidden mt-3">
       <input type="text" id="lesson-name" class="form-control" placeholder="Tên bài học" required>
-      <textarea id="lesson-content" class="form-control" placeholder="Nội dung bài học"></textarea>
+      <div class="mb-3">
+        <label for="lesson-file" class="form-label">Tải lên file Word/PDF</label>
+        <input type="file" id="lesson-file" class="form-control" accept=".doc,.docx,.pdf" onchange="handleFileUpload(event)">
+        <button type="button" id="import-file-btn" class="btn btn-secondary mt-2" onclick="importFileContent()" disabled>Import nội dung</button>
+      </div>
+      <textarea id="lesson-content" class="form-control" style="min-height: 150px;"></textarea>
       <button type="submit" class="btn btn-primary mt-2">Lưu</button>
     </form>
   </div>
@@ -192,6 +209,17 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', function () {
+    try {
+      CKEDITOR.replace('lesson-content', {
+        allowedContent: true,
+        entities: false,
+        htmlEncodeOutput: false,
+        versionCheck: false // Tắt thông báo cập nhật phiên bản
+      });
+    } catch (error) {
+      console.error('Error initializing CKEditor:', error);
+    }
+
     const elements = {
       bookTypeSelect: document.getElementById('book-type'),
       classGradeSelect: document.getElementById('class-grade'),
@@ -209,6 +237,8 @@
       lessonForm: document.getElementById('lesson-form'),
       lessonNameInput: document.getElementById('lesson-name'),
       lessonContentInput: document.getElementById('lesson-content'),
+      lessonFileInput: document.getElementById('lesson-file'),
+      importFileBtn: document.getElementById('import-file-btn'),
       subjectBreadcrumb: document.getElementById('subject-breadcrumb'),
       chapterBreadcrumb: document.getElementById('chapter-breadcrumb'),
       lessonBreadcrumb: document.getElementById('lesson-breadcrumb'),
@@ -267,14 +297,21 @@
         subjects.forEach(subject => {
           const li = document.createElement('li');
           li.classList.add('list-group-item');
-          li.innerHTML = `
-            <span onclick="toggleChapters('${classId}', '${subject.id}', '${subject.name}')">${subject.name}</span>
-            <button class="btn btn-danger btn-sm" onclick="deleteSubject('${classId}', '${subject.id}')">Xóa</button>
-          `;
+          const span = document.createElement('span');
+          span.textContent = subject.name;
+          span.style.cursor = 'pointer';
+          span.addEventListener('click', () => toggleChapters(classId, subject.id, subject.name));
+          const button = document.createElement('button');
+          button.classList.add('btn', 'btn-danger', 'btn-sm');
+          button.textContent = 'Xóa';
+          button.addEventListener('click', () => deleteSubject(classId, subject.id));
+          li.appendChild(span);
+          li.appendChild(button);
           elements.subjectList.appendChild(li);
         });
         updateBreadcrumb();
       } catch (error) {
+        console.error('Error loading subjects:', error);
         elements.subjectList.innerHTML = '<li class="list-group-item">Có lỗi khi tải danh sách môn học</li>';
       }
     }
@@ -297,6 +334,8 @@
         elements.subjectForm.reset();
         elements.subjectForm.classList.add('hidden');
       } catch (error) {
+        console.error('Error adding subject:', error);
+        alert('Có lỗi xảy ra khi thêm môn học. Vui lòng thử lại.');
       }
     });
 
@@ -308,6 +347,8 @@
           alert('Môn học đã được xóa thành công!');
           loadSubjects(classId);
         } catch (error) {
+          console.error('Error deleting subject:', error);
+          alert('Có lỗi xảy ra khi xóa môn học. Vui lòng thử lại.');
         }
       }
     };
@@ -339,6 +380,7 @@
         });
         updateBreadcrumb();
       } catch (error) {
+        console.error('Error loading chapters:', error);
         elements.chapterList.innerHTML = '<li class="list-group-item">Có lỗi khi tải danh sách chương</li>';
       }
     }
@@ -361,6 +403,8 @@
         elements.chapterForm.reset();
         elements.chapterForm.classList.add('hidden');
       } catch (error) {
+        console.error('Error adding chapter:', error);
+        alert('Có lỗi xảy ra khi thêm chương. Vui lòng thử lại.');
       }
     });
 
@@ -372,6 +416,8 @@
           alert('Chương đã được xóa thành công!');
           loadChapters(classId, subjectId);
         } catch (error) {
+          console.error('Error deleting chapter:', error);
+          alert('Có lỗi xảy ra khi xóa chương. Vui lòng thử lại.');
         }
       }
     };
@@ -391,29 +437,53 @@
         const response = await fetch(`/api/theory/lessons/${classId}/${subjectId}/${chapterId}`);
         if (!response.ok) throw new Error(`Lỗi tải bài học: ${response.status}`);
         const lessons = await response.json();
+        console.log('Dữ liệu bài học từ server:', lessons);
+
         elements.lessonList.innerHTML = '';
-        lessons.forEach(lesson => {
-          const li = document.createElement('li');
-          li.classList.add('list-group-item');
-          li.setAttribute('data-lesson-id', lesson.id);
-          li.innerHTML = `
-            <span onclick="loadLessonContent('${classId}', '${subjectId}', '${chapterId}', '${lesson.id}', \`${lesson.content || ''}\`, '${lesson.name || 'Bài học không tên'}')">${lesson.name || 'Bài học không tên'}</span>
-            <button class="btn btn-danger btn-sm" onclick="deleteLesson('${classId}', '${subjectId}', '${chapterId}', '${lesson.id}')">Xóa</button>
-          `;
-          elements.lessonList.appendChild(li);
-        });
+        if (Array.isArray(lessons) && lessons.length > 0) {
+          lessons.forEach(lesson => {
+            const li = document.createElement('li');
+            li.classList.add('list-group-item');
+            li.setAttribute('data-lesson-id', lesson.id || Date.now().toString());
+            const span = document.createElement('span');
+            span.textContent = (lesson.name || 'Bài học không tên').trim();
+            span.style.cursor = 'pointer';
+            span.addEventListener('click', () => loadLessonContent(classId, subjectId, chapterId, lesson.id, lesson.content || '', lesson.name || 'Bài học không tên'));
+            const button = document.createElement('button');
+            button.classList.add('btn', 'btn-danger', 'btn-sm');
+            button.textContent = 'Xóa';
+            button.addEventListener('click', () => deleteLesson(classId, subjectId, chapterId, lesson.id));
+            li.appendChild(span);
+            li.appendChild(button);
+            elements.lessonList.appendChild(li);
+          });
+        } else {
+          elements.lessonList.innerHTML = '<li class="list-group-item">Không có bài học nào</li>';
+        }
         updateBreadcrumb();
+        if (CKEDITOR.instances['lesson-content']) {
+          CKEDITOR.instances['lesson-content'].setData('');
+        }
       } catch (error) {
-        elements.lessonList.innerHTML = '<li class="list-group-item">Có lỗi khi tải danh sách bài học</li>';
+        console.error('Error loading lessons:', error);
+        elements.lessonList.innerHTML = '<li class="list-group-item text-danger">Không thể tải danh sách bài học. Vui lòng thử lại sau.</li>';
       }
     }
 
-    elements.addLessonBtn.addEventListener('click', () => elements.lessonForm.classList.remove('hidden'));
+    elements.addLessonBtn.addEventListener('click', () => {
+      elements.lessonForm.classList.remove('hidden');
+      if (CKEDITOR.instances['lesson-content']) {
+        CKEDITOR.instances['lesson-content'].setData('');
+      }
+    });
 
     elements.lessonForm.addEventListener('submit', async (event) => {
       event.preventDefault();
       const lessonName = elements.lessonNameInput.value;
-      const lessonContent = elements.lessonContentInput.value;
+      let lessonContent = '';
+      if (CKEDITOR.instances['lesson-content']) {
+        lessonContent = CKEDITOR.instances['lesson-content'].getData();
+      }
       const newLesson = { id: Date.now().toString(), name: lessonName, content: lessonContent };
       try {
         const response = await fetch(`/api/theory/lessons/${state.classId}/${state.subjectId}/${state.chapterId}`, {
@@ -425,8 +495,13 @@
         alert('Bài học đã được thêm thành công!');
         loadLessons(state.classId, state.subjectId, state.chapterId);
         elements.lessonForm.reset();
+        if (CKEDITOR.instances['lesson-content']) {
+          CKEDITOR.instances['lesson-content'].setData('');
+        }
         elements.lessonForm.classList.add('hidden');
       } catch (error) {
+        console.error('Error adding lesson:', error);
+        alert('Có lỗi xảy ra khi thêm bài học. Vui lòng thử lại.');
       }
     });
 
@@ -438,6 +513,8 @@
           alert('Bài học đã được xóa thành công!');
           loadLessons(classId, subjectId, chapterId);
         } catch (error) {
+          console.error('Error deleting lesson:', error);
+          alert('Có lỗi xảy ra khi xóa bài học. Vui lòng thử lại.');
         }
       }
     };
@@ -458,14 +535,31 @@
       const updateForm = document.createElement('form');
       updateForm.classList.add('update-lesson-form', 'mt-3');
       updateForm.innerHTML = `
-        <textarea class="form-control update-lesson-content" placeholder="Nội dung bài học">${content || ''}</textarea>
+        <textarea id="update-lesson-content" class="form-control" style="min-height: 150px;"></textarea>
         <button type="submit" class="btn btn-primary mt-2">Cập nhật nội dung</button>
       `;
       lessonItem.insertAdjacentElement('afterend', updateForm);
 
+      try {
+        CKEDITOR.replace('update-lesson-content', {
+          allowedContent: true,
+          entities: false,
+          htmlEncodeOutput: false,
+          versionCheck: false // Tắt thông báo cập nhật cho update-lesson-content
+        });
+        if (CKEDITOR.instances['update-lesson-content']) {
+          CKEDITOR.instances['update-lesson-content'].setData(content);
+        }
+      } catch (error) {
+        console.error('Error initializing update CKEditor:', error);
+      }
+
       updateForm.addEventListener('submit', async (event) => {
         event.preventDefault();
-        const updatedContent = updateForm.querySelector('.update-lesson-content').value.trim();
+        let updatedContent = '';
+        if (CKEDITOR.instances['update-lesson-content']) {
+          updatedContent = CKEDITOR.instances['update-lesson-content'].getData().trim();
+        }
         if (!updatedContent) {
           alert("Nội dung không được để trống!");
           return;
@@ -483,6 +577,7 @@
           loadLessons(state.classId, state.subjectId, state.chapterId);
           updateForm.remove();
         } catch (error) {
+          console.error('Error updating lesson:', error);
           alert('Có lỗi xảy ra khi cập nhật bài học. Vui lòng thử lại.');
         }
       });
@@ -512,8 +607,45 @@
       loadChapters(state.classId, state.subjectId);
       updateBreadcrumb();
     });
+
+    window.handleFileUpload = function(event) {
+      const file = event.target.files[0];
+      if (file) {
+        elements.importFileBtn.disabled = false;
+      } else {
+        elements.importFileBtn.disabled = true;
+      }
+    };
+
+    window.importFileContent = async function() {
+      const file = elements.lessonFileInput.files[0];
+      if (!file) {
+        alert('Vui lòng chọn một file Word hoặc PDF!');
+        return;
+      }
+
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const response = await fetch('/api/theory/import', {
+          method: 'POST',
+          body: formData
+        });
+
+        if (!response.ok) throw new Error('Không thể trích xuất nội dung từ file.');
+        const content = await response.text();
+        if (CKEDITOR.instances['lesson-content']) {
+          CKEDITOR.instances['lesson-content'].setData(content);
+        }
+        alert('Nội dung đã được import thành công! Vui lòng nhập tên bài học và nhấn "Lưu".');
+      } catch (error) {
+        console.error('Error importing file:', error);
+        alert('Có lỗi xảy ra khi import file: ' + error.message);
+      }
+    };
   });
 </script>
-<div th:replace="fragments/footer :: footer"></div>
+<div th:replace="~{fragments/footer :: footer}"></div>
 </body>
 </html>

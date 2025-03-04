@@ -424,6 +424,7 @@ public class ExamService {
         docRef.set(Map.of(
                 "resultId", ResultsId,
                 "examID", examId,
+                "examName", exam.getExamName(),
                 "score", score,
                 "answers", userAnswers,
                 "submittedAt", System.currentTimeMillis(),

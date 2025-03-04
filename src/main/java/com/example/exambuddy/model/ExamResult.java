@@ -8,6 +8,7 @@ import java.util.Map;
 public class ExamResult {
     private String resultId;
     private String examID;
+    private String examName;
     private double score;
     private Map<String, List<String>> answers;
     private long submittedAt;
@@ -64,6 +65,14 @@ public class ExamResult {
 
     public void setExamID(String examID) {
         this.examID = examID;
+    }
+
+    public String getExamName() {
+        return examName;
+    }
+
+    public void setExamName(String examName) {
+        this.examName = examName;
     }
 
     public List<String> getCorrectAnswers() {

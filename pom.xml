@@ -105,6 +105,11 @@
             <version>1.15</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.apache.pdfbox</groupId>
+            <artifactId>pdfbox</artifactId>
+            <version>2.0.27</version>
+        </dependency>
 
             <!-- Apache POI core -->
             <dependency>
@@ -119,6 +124,7 @@
                 <artifactId>poi-ooxml</artifactId>
                 <version>5.2.5</version>
             </dependency>
+
 
     </dependencies>
 </project>
