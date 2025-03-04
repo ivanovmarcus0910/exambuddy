@@ -85,7 +85,7 @@
     </style>
 </head>
 <body>
-<div th:insert="fragments/header :: header"></div>
+<div th:insert="~{fragments/header :: header}"></div>
 
 <div class="container-custom">
     <!-- Breadcrumb với nút Back -->
@@ -105,6 +105,6 @@
     </div>
 </div>
 
-<div th:replace="fragments/footer :: footer"></div>
+<div th:replace="~{fragments/footer :: footer}"></div>
 </body>
 </html>

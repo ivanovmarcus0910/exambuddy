@@ -24,7 +24,7 @@ public class User {
     private String grade;
     private String studentId;
     private String description;
-
+    private long timeExpriredPremium;
     // Các trường dành cho giáo viên
     private String teacherCode;
     private String school;
@@ -34,7 +34,7 @@ public class User {
     public enum Role {
         ADMIN, USER, TEACHER, UPGRADED_USER
     }
-
+    private long joinTime ;
     public User() {
         this.role = Role.USER.name();
     }
@@ -49,7 +49,9 @@ public class User {
         this.avatarUrl = "https://res.cloudinary.com/dsuav027e/image/upload/v1739367972/halnqohla5mqr3seve3d.png";
         this.role = role.name();
         this.coin = 0;
+        this.joinTime = System.currentTimeMillis();
         this.active = true; // Người dùng mới mặc định hoạt động
+        this.timeExpriredPremium = System.currentTimeMillis();
     }
 
     public boolean isActive() {
@@ -229,5 +231,21 @@ public class User {
 
     public void setDegreeUrl(String degreeUrl) {
         this.degreeUrl = degreeUrl;
+    }
+
+    public long getJoinTime() {
+        return joinTime;
+    }
+
+    public void setJoinTime(long joinTime) {
+        this.joinTime = joinTime;
+    }
+
+    public long getTimeExpriredPremium() {
+        return timeExpriredPremium;
+    }
+
+    public void setTimeExpriredPremium(long timeExpriredPremium) {
+        this.timeExpriredPremium = timeExpriredPremium;
     }
 }
