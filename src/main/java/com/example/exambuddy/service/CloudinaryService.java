@@ -32,6 +32,24 @@ public class CloudinaryService {
             return null;
         }
     }
+    public String upLoadImgAvt(MultipartFile file, String folder, String username){
+        try{
+        String publicId = folder + "/" + username;  // Tạo public_id cố định cho user
+        Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap(
+                "public_id", publicId,  // Giữ nguyên ID để ghi đè ảnh cũ
+                "overwrite", true,      // Bật ghi đè
+                "invalidate", true,     // Xóa cache ảnh cũ
+                "use_filename", false,  // Không tự động tạo tên mới
+                "unique_filename", false // Không tạo file ngẫu nhiên
+        ));
+            return (String) uploadResult.get("secure_url");
+
+        }
+        catch (Exception e){
+            System.out.println("Image upload fail");
+            return null;
+            }
+    }
     public boolean deleteImageByUrl(String imageUrl) {
         String publicId = extractPublicIdFromUrl(imageUrl);
         if (publicId == null) return false;

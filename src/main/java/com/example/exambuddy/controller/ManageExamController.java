@@ -205,10 +205,9 @@ public class ManageExamController {
 
     @GetMapping("exams/time-left")
     public ResponseEntity<?> getTimeLeft(@RequestParam String userId, @RequestParam String examId) {
-        System.out.println(" Ở controller :userId = " + userId + " examId = " + examId);
+        long x = System.currentTimeMillis();
         long timeLeft = examService.getRemainingTime(userId, examId);
         boolean submitted = examService.isSubmitted(userId, examId);
-        System.out.println("Time left in controller : " + timeLeft / 1000);
         return ResponseEntity.ok(Map.of("timeLeft", timeLeft / 1000, "submitted", submitted));
     }
 
