@@ -8,7 +8,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -89,4 +92,12 @@ public class TheoryController {
     public Lesson getLessonById(@PathVariable String classId, @PathVariable String subjectId, @PathVariable String chapterId, @PathVariable String lessonId) throws ExecutionException, InterruptedException {
         return theoryService.getLessonById(classId, subjectId, chapterId, lessonId);
     }
+
+    @PostMapping("/import")
+    public String importFile(@RequestParam("file") MultipartFile multipartFile) throws IOException {
+        File file = File.createTempFile("temp", multipartFile.getOriginalFilename());
+        multipartFile.transferTo(file);
+        return theoryService.extractContentFromFile(file);
+    }
+
 }

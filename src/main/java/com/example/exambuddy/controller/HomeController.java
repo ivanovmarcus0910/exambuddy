@@ -21,7 +21,9 @@ public class HomeController {
                            @RequestParam(defaultValue = "6") int size,
                            Model model) {
         try {
-            List<Exam> exams = examService.getExamList(page, size);
+            long x = System.currentTimeMillis();
+            List<Exam> exams = examService.getExamList(page, size, x);
+            System.out.println("Exams in " + (System.currentTimeMillis() - x) + "ms");
             model.addAttribute("exams", exams);
             model.addAttribute("currentPage", page);
             model.addAttribute("size", size);
