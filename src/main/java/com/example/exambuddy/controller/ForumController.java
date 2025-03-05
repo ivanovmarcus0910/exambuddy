@@ -87,7 +87,7 @@ public class ForumController {
         }
 
         for (Post post : posts) {
-            List<Comment> comments = PostService.getCommentsByPostId(post.getPostId());
+            List<Comment> comments = PostService.getCommentsByPostId(post.getPostId(), username);
             if (comments != null) {
                 for (Comment comment : comments) {
                     String avatarUrl = UserService.getAvatarUrlByUsername(comment.getUsername());
@@ -159,6 +159,69 @@ public class ForumController {
         Map<String, Object> response = new HashMap<>();
         if (updatedPost != null) {
             response.put("likeCount", updatedPost.getLikeCount());
+        } else {
+            response.put("likeCount", 0);
+        }
+        return response;
+    }
+
+    @PostMapping("/edit")
+    @ResponseBody
+    public String updatePost(@RequestParam String postId,
+                             @RequestParam String content,
+                             @RequestParam("images") MultipartFile[] files,
+                             HttpServletRequest request) {
+        HttpSession session = request.getSession();
+        String username = (String) session.getAttribute("loggedInUser");
+
+        if (username == null) {
+            return "Bạn cần đăng nhập để chỉnh sửa bài viết";
+        }
+        // Lấy danh sách ảnh mới
+        List<String> imageUrls = new ArrayList<>();
+        if (files != null) {
+            for (MultipartFile file : files) {
+                if (!file.isEmpty()) {
+                    String imageUrl = cloudinaryService.upLoadImg(file, "imgForum/imgPosts");
+                    imageUrls.add(imageUrl);
+                }
+            }
+        }
+
+        postService.updatePost(postId, username, content, imageUrls);
+        return "success";
+    }
+
+    @DeleteMapping("/delete/{postId}")
+    @ResponseBody
+    public String deletePost(@PathVariable String postId, HttpServletRequest request) {
+        HttpSession session = request.getSession();
+        String username = (String) session.getAttribute("loggedInUser");
+
+        if (username == null) {
+            return "Bạn cần đăng nhập để xóa bài viết";
+        }
+
+        boolean success = PostService.deletePost(postId);
+        return success ? "success" : "fail";
+    }
+
+    @PostMapping("/likeComment")
+    @ResponseBody
+    public Map<String, Object> likeComment(@RequestParam String postId,
+                                           @RequestParam String commentId,
+                                           @RequestParam boolean liked,
+                                           @RequestParam String username) {
+        // Cập nhật số lượt thích
+        postService.updateCommentLikeCount(postId, commentId, username, liked);
+
+        // Lấy lại bình luận để lấy số like mới nhất
+        Comment updatedComment = postService.getCommentById(postId, commentId);
+
+        // Tạo phản hồi JSON
+        Map<String, Object> response = new HashMap<>();
+        if (updatedComment != null) {
+            response.put("likeCount", updatedComment.getLikeCount());
         } else {
             response.put("likeCount", 0);
         }

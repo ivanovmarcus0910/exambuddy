@@ -37,19 +37,24 @@ public class PostController {
         // Lấy bài viết theo postId
         Post post = postService.getPostById(postId);
 
-        // Lấy tất cả bình luận của bài viết
-        List<Comment> comments = postService.getCommentsByPostId(post.getPostId());
+        // Kiểm tra xem user đã like post hay chưa
+        post.setLiked(post.getLikedUsernames() != null && post.getLikedUsernames().contains(username));
+
+        // Lấy tất cả bình luận của bài viết (ĐÃ SỬA LỖI: Thêm `username` vào)
+        List<Comment> comments = postService.getCommentsByPostId(post.getPostId(), username);
         if (comments != null) {
             for (Comment comment : comments) {
                 String avatarUrl = UserService.getAvatarUrlByUsername(comment.getUsername());
                 comment.setAvatarUrl(avatarUrl);
             }
         }
-        post.setComments(comments != null ? comments : new ArrayList<>());
-        post.setLiked(post.getLikedUsernames() != null && post.getLikedUsernames().contains(username));
 
+        post.setComments(comments != null ? comments : new ArrayList<>());
+
+        // Lấy avatar của user hiện tại
         String avatarUrl = UserService.getAvatarUrlByUsername(username);
 
+        // Đưa dữ liệu vào model để hiển thị trên giao diện
         model.addAttribute("post", post);
         model.addAttribute("username", username);
         model.addAttribute("avatarUrl", avatarUrl);

@@ -13,6 +13,9 @@ public class Comment {
     private String date;
     private String avatarUrl;
     private List<String> imageUrls;
+    private int likeCount;
+    private List<String> likedUsernames;
+    private boolean liked;
 
     public Comment() {
     }
@@ -108,4 +111,27 @@ public class Comment {
         }
     }
 
+    public int getLikeCount() {
+        return likeCount;
+    }
+
+    public void setLikeCount(int likeCount) {
+        this.likeCount = likeCount;
+    }
+
+    public List<String> getLikedUsernames() {
+        return likedUsernames;
+    }
+
+    public void setLikedUsernames(List<String> likedUsernames) {
+        this.likedUsernames = likedUsernames;
+    }
+
+    public boolean isLiked() {
+        return liked;
+    }
+
+    public void setLiked(boolean liked) {
+        this.liked = liked;
+    }
 }
