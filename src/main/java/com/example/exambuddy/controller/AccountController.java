@@ -60,7 +60,7 @@ public class AccountController {
                                @RequestParam String username,
                                HttpSession session,
                                Model model) throws IOException {
-        String url = this.cloudinaryService.upLoadImg(file, "imgAvatar");
+        String url = this.cloudinaryService.upLoadImgAvt(file, "imgAvatar", username);
         System.out.println("URL=" + url);
         UserService.changeAvatar(username, url);
         session.setAttribute("urlimg", url);

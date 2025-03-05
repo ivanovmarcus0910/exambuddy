@@ -361,7 +361,11 @@ public class ExamService {
         DocumentReference docRef = db.collection("examSessions").document(userId + "_" + examId);
         try {
             DocumentSnapshot snapshot = docRef.get().get();
-            return snapshot.exists() && Boolean.TRUE.equals(snapshot.getBoolean("submitted"));
+            if (snapshot.exists()) {
+                if (snapshot.getBoolean("submitted") == true) {
+                    return true;
+                };
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }

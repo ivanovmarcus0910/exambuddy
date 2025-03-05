@@ -66,11 +66,12 @@ public class ForumController {
     public String getForum(@RequestParam(value = "subject", required = false) String subject,
                            @RequestParam(value = "grade", required = false) String grade,
                            Model model, HttpServletRequest request) {
+        long x = System.currentTimeMillis();
         HttpSession session = request.getSession();
         String username = (String) session.getAttribute("loggedInUser");
-
         // Lấy tất cả bài viết ban đầu (trang forum chung)
         List<Post> posts = postService.getPostsFromFirestore();
+        System.out.println("Time 1 : "+(System.currentTimeMillis() - x));
 
         // Nếu có subject, lọc bài viết theo môn học
         if (subject != null && !subject.isEmpty()) {
@@ -78,6 +79,7 @@ public class ForumController {
                     .filter(post -> subject.trim().replace(",", "").equalsIgnoreCase(post.getSubject()))
                     .collect(Collectors.toList());
         }
+        System.out.println("Time 2 : "+(System.currentTimeMillis() - x));
 
         // Nếu có chọn lớp học, lọc tiếp
         if (grade != null && !grade.isEmpty()) {
@@ -85,18 +87,24 @@ public class ForumController {
                     .filter(post -> grade.equals(post.getGrade()))
                     .collect(Collectors.toList());
         }
+        System.out.println("Time 3 : "+(System.currentTimeMillis() - x));
 
         for (Post post : posts) {
+            long y = System.currentTimeMillis();
+
             List<Comment> comments = PostService.getCommentsByPostId(post.getPostId(), username);
+            System.out.println("Comment 1 : "+(System.currentTimeMillis() - y));
             if (comments != null) {
                 for (Comment comment : comments) {
                     String avatarUrl = UserService.getAvatarUrlByUsername(comment.getUsername());
                     comment.setAvatarUrl(avatarUrl);
                 }
             }
+            System.out.println("Comment 2 : "+(System.currentTimeMillis() - y));
             post.setComments(comments != null ? comments : new ArrayList<>());
             post.setLiked(post.getLikedUsernames() != null && post.getLikedUsernames().contains(username));
         }
+        System.out.println("Time 4 : "+(System.currentTimeMillis() - x));
 
         String avatarUrl = UserService.getAvatarUrlByUsername(username);
 
@@ -105,6 +113,7 @@ public class ForumController {
         model.addAttribute("avatarUrl", avatarUrl);
         model.addAttribute("selectedSubject", subject);
         model.addAttribute("selectedGrade", grade);
+        System.out.println("Time 5   : "+(System.currentTimeMillis() - x));
 
         return "forum"; // Hiển thị trang forum chung nếu không có subject
     }
