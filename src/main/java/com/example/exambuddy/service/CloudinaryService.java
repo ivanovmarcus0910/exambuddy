@@ -68,4 +68,17 @@ public class CloudinaryService {
 
 
 
+    // Phương thức để upload từ byte[]
+    public String uploadImgFromBytes(byte[] imageData, String folderName) {
+        try {
+            Map uploadParams = ObjectUtils.asMap("folder", folderName);
+            Map data = this.cloudinary.uploader().upload(imageData, uploadParams);
+            String url = (String) data.get("url");
+            return url;
+        } catch (Exception e) {
+            System.out.println("Image upload fail: " + e.getMessage());
+            return null;
+        }
+    }
+
 }
