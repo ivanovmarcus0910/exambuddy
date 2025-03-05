@@ -42,12 +42,6 @@ public class PostController {
 
         // Lấy tất cả bình luận của bài viết (ĐÃ SỬA LỖI: Thêm `username` vào)
         List<Comment> comments = postService.getCommentsByPostId(post.getPostId(), username);
-        if (comments != null) {
-            for (Comment comment : comments) {
-                String avatarUrl = UserService.getAvatarUrlByUsername(comment.getUsername());
-                comment.setAvatarUrl(avatarUrl);
-            }
-        }
 
         post.setComments(comments != null ? comments : new ArrayList<>());
 

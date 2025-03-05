@@ -92,7 +92,7 @@ public class PostService {
         return postList;
     }
 
-    public static Comment saveComment(String postId, String username, String content, String date, List<String> imageUrls) {
+    public static Comment saveComment(String postId, String username, String avatarUrl, String content, String date, List<String> imageUrls) {
 
         DocumentReference postRef = db.collection("posts").document(postId);
         CollectionReference commentsRef = postRef.collection("comments");
@@ -100,6 +100,7 @@ public class PostService {
         Comment comment = new Comment();
         comment.setPostId(postId);
         comment.setUsername(username);
+        comment.setAvatarUrl(avatarUrl);
         comment.setContent(content);
         comment.setDate(date);
         comment.setImageUrls(imageUrls);

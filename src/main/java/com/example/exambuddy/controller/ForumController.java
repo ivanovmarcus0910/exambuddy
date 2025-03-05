@@ -88,12 +88,6 @@ public class ForumController {
 
         for (Post post : posts) {
             List<Comment> comments = PostService.getCommentsByPostId(post.getPostId(), username);
-            if (comments != null) {
-                for (Comment comment : comments) {
-                    String avatarUrl = UserService.getAvatarUrlByUsername(comment.getUsername());
-                    comment.setAvatarUrl(avatarUrl);
-                }
-            }
             post.setComments(comments != null ? comments : new ArrayList<>());
             post.setLiked(post.getLikedUsernames() != null && post.getLikedUsernames().contains(username));
         }
@@ -133,11 +127,12 @@ public class ForumController {
                 }
             }
         }
+        String avatarUrl = UserService.getAvatarUrlByUsername(username);
 
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String date = formatter.format(new Date());
 
-        Comment comment = PostService.saveComment(postId, username, content, date, imageUrls);
+        Comment comment = PostService.saveComment(postId, username, avatarUrl, content, date, imageUrls);
         model.addAttribute("comment", comment);
 
         return "redirect:/postDetail/" + postId;
