@@ -33,12 +33,11 @@ import java.util.concurrent.ExecutionException;
 public class ExamService {
     private final Firestore db = FirestoreClient.getFirestore();
 
-    public List<Exam> getExamList(int page, int size) {
+    public List<Exam> getExamList(int page, int size, long x) {
         List<Exam> exams = new ArrayList<>();
         try {
             // Lấy danh sách theo thứ tự mới nhất và giới hạn số lượng theo trang
             Query query = db.collection("exams").orderBy("date", Query.Direction.DESCENDING).limit(size);
-
             if (page > 0) {
                 ApiFuture<QuerySnapshot> previousFuture = db.collection("exams")
                         .orderBy("date", Query.Direction.DESCENDING)
@@ -56,30 +55,18 @@ public class ExamService {
             for (QueryDocumentSnapshot doc : documents) {
                 Exam exam = doc.toObject(Exam.class);
                 exam.setExamID(doc.getId());
-                exam.setQuestionCount(countQuestions(exam.getExamID()));
-
-                if (exam.getDate() != null) {
-                    exam.setDate(formatDate(exam.getDate()));
-                }
                 exams.add(exam);
             }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
+
         return exams;
     }
 
 
 
-    // Phương thức đếm số câu hỏi trong subcollection "questions"
-    public int countQuestions(String examId) throws Exception {
-        ApiFuture<QuerySnapshot> query = db.collection("exams")
-                .document(examId)
-                .collection("questions")
-                .get();
-        List<QueryDocumentSnapshot> questionsSnapshot = query.get().getDocuments();
-        return questionsSnapshot.size();
-    }
 
 
     // Phương thức format lại ngày
@@ -136,6 +123,9 @@ public class ExamService {
             if (tags instanceof String[]) {
                 examData.put("tags", Arrays.asList((String[]) tags));
             }
+            List<Map<String, Object>> questions = (List<Map<String, Object>>) examData.get("questions");
+            int x = (questions != null) ? questions.size() : 0;
+
             // Thêm dữ liệu đề thi vào collection "exams"
             db.collection("exams").document(examId).set(Map.of(
                     "examName", examData.get("examName"),
@@ -145,14 +135,14 @@ public class ExamService {
                     "city", examData.get("city"),
                     "tags", examData.get("tags"),
                     "username", examData.get("username"),
-                    "date", examData.get("date")
+                    "date", examData.get("date"),
+                    "questionCount", x
             )).get();
             System.out.println("Exam document set");
 
 
             // Thêm danh sách câu hỏi vào subcollection "questions"
             // Thêm danh sách câu hỏi vào subcollection "questions"
-            List<Map<String, Object>> questions = (List<Map<String, Object>>) examData.get("questions");
             WriteBatch batch = db.batch();
             for (Map<String, Object> question : questions) {
                 String questionId = UUID.randomUUID().toString();
@@ -505,8 +495,6 @@ public class ExamService {
                 if (examDoc.exists()) {
                     Exam exam = examDoc.toObject(Exam.class);
                     exam.setExamID(examDoc.getId()); // Đặt examID trực tiếp từ ID tài liệu
-                    exam.setQuestionCount(countQuestions(exam.getExamID()));
-
                     if (exam.getDate() != null) {
                         exam.setDate(formatDate(exam.getDate()));
                     }
@@ -595,14 +583,6 @@ public class ExamService {
             if (normalizedExamName.contains(normalizedSearchTerm)) {
                 exam.setExamID(doc.getId());
 
-                try {
-                    int questionCount = countQuestions(exam.getExamID());
-                    exam.setQuestionCount(questionCount);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    exam.setQuestionCount(0); // Gán giá trị mặc định nếu có lỗi
-                }
-
                 if (exam.getDate() != null) {
                     String formattedDate = formatDate(exam.getDate());
                     exam.setDate(formattedDate);
@@ -643,8 +623,6 @@ public class ExamService {
             for (QueryDocumentSnapshot doc : documents) {
                 Exam exam = doc.toObject(Exam.class);
                 exam.setExamID(doc.getId());
-                int questionCount = countQuestions(exam.getExamID());
-                exam.setQuestionCount(questionCount);
                 if (exam.getDate() != null) {
                     String formattedDate = formatDate(exam.getDate());
                     exam.setDate(formattedDate);

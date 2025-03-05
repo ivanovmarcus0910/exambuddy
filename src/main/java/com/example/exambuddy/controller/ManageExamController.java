@@ -48,7 +48,7 @@ public class ManageExamController {
     @GetMapping("/exams")
     public String listExams(Model model) {
         try {
-            List<Exam> exams = examService.getExamList(0, 6);
+            List<Exam> exams = examService.getExamList(0, 6, 6);
             model.addAttribute("exams", exams);
             return "examList"; // Trả về trang hiển thị danh sách đề thi
         } catch (Exception e) {
@@ -233,7 +233,6 @@ public class ManageExamController {
         if (session.getAttribute("loggedInUser") == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Bạn cần đăng nhập để like."));
         }
-
         String username = cookieService.getCookie(request, "noname");
         examService.likeExam(username, id);
 
@@ -328,7 +327,7 @@ public class ManageExamController {
         if (examName != null && !examName.isEmpty()) {
             examList = examService.searchExamByName(examName);
         } else {
-            examList = examService.getExamList(0, 10);
+            examList = examService.getExamList(0, 10, 0);
         }
         model.addAttribute("examList", examList);
         return "resultSearchExam";

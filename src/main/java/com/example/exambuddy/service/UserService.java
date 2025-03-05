@@ -285,5 +285,10 @@ public class UserService {
             e.printStackTrace();
         }
     }
+//    public boolean updatePremiumExp(long time, String username) {
+//        Firestore firestore = FirestoreClient.getFirestore();
+//        DocumentReference userRef = firestore.collection("users").document(username);
+//
+//    }
 
 }
