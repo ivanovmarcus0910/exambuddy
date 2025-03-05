@@ -90,8 +90,6 @@ public class ForumController {
         System.out.println("Time 3 : "+(System.currentTimeMillis() - x));
 
         for (Post post : posts) {
-            long y = System.currentTimeMillis();
-
             List<Comment> comments = PostService.getCommentsByPostId(post.getPostId(), username);
             post.setComments(comments != null ? comments : new ArrayList<>());
             post.setLiked(post.getLikedUsernames() != null && post.getLikedUsernames().contains(username));

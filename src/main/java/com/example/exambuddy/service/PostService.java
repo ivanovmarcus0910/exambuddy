@@ -9,7 +9,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 @Service
 public class PostService {
@@ -137,23 +139,27 @@ public class PostService {
     public static List<Comment> getCommentsByPostId(String postId, String username) {
         List<Comment> comments = new ArrayList<>();
         try {
+            long x = System.currentTimeMillis();
+
             DocumentReference postRef = db.collection("posts").document(postId);
             CollectionReference commentsRef = postRef.collection("comments");
             ApiFuture<QuerySnapshot> future = commentsRef.get();
+            System.out.println("In Comment 1: " + (System.currentTimeMillis()-x));
 
-            for (DocumentSnapshot document : future.get().getDocuments()) {
+            QuerySnapshot querySnapshot = future.get();
+            System.out.println("In Comment 2: " + (System.currentTimeMillis()-x));
+
+
+            comments = querySnapshot.getDocuments().parallelStream().map(document -> {
                 Comment comment = document.toObject(Comment.class);
                 comment.setCommentId(document.getId());
 
-                // Kiểm tra xem user đã like chưa
-                if (comment.getLikedUsernames() != null && comment.getLikedUsernames().contains(username)) {
-                    comment.setLiked(true);
-                } else {
-                    comment.setLiked(false);
-                }
+                List<String> likedUsers = (List<String>) document.get("likedUsernames");
+                comment.setLiked(likedUsers != null && likedUsers.contains(username));
 
-                comments.add(comment);
-            }
+                return comment;
+            }).collect(Collectors.toList());
+            System.out.println("In Comment 3: " + (System.currentTimeMillis()-x));
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
         }
