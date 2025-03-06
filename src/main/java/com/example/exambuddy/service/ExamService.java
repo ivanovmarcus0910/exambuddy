@@ -64,11 +64,6 @@ public class ExamService {
 
         return exams;
     }
-
-
-
-
-
     // Phương thức format lại ngày
     public static String formatDate(String dateString) {
         try {
@@ -87,7 +82,6 @@ public class ExamService {
             return "Lỗi định dạng ngày!";
         }
     }
-
 
     public Exam getExam(String examID) {
         try {
@@ -228,6 +222,7 @@ public class ExamService {
             return false;
         }
     }
+
     public boolean importExamFromDocx(InputStream inputStream, Map<String, Object> examData) {
         try {
             XWPFDocument doc = new XWPFDocument(inputStream);

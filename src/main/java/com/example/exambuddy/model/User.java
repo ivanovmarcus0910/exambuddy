@@ -51,7 +51,7 @@ public class User {
         this.coin = 0;
         this.joinTime = System.currentTimeMillis();
         this.active = true; // Người dùng mới mặc định hoạt động
-        this.timeExpriredPremium = System.currentTimeMillis();
+        this.timeExpriredPremium = 0;
     }
 
     public boolean isActive() {

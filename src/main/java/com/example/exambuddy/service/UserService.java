@@ -285,6 +285,20 @@ public class UserService {
             e.printStackTrace();
         }
     }
+
+    public boolean updateUserPremium(String username, long time){
+        Firestore firestore = FirestoreClient.getFirestore();
+        User user = getUserByUsername(username);
+        long timeExpire = user.getTimeExpriredPremium();
+        long newTime = Math.max(System.currentTimeMillis(), timeExpire) + time;
+        DocumentReference userRef = firestore.collection(COLLECTION_NAME).document(username);
+        try{
+            userRef.update("timeExpriredPremium", newTime);
+            return true;
+        } catch (Exception e){
+            return false;
+        }
+    }
 //    public boolean updatePremiumExp(long time, String username) {
 //        Firestore firestore = FirestoreClient.getFirestore();
 //        DocumentReference userRef = firestore.collection("users").document(username);

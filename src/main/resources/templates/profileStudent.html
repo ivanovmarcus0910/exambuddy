@@ -116,7 +116,9 @@
                                     <div class="px-3 py-2 text-white" style="background-color:#007bff; border-radius:8px;">
                                         <h6 style="margin:0; font-size:1rem;">EB Coin</h6>
                                         <h5 style="margin:0; font-size:1.2rem;" th:text="${user.coin != null ? user.coin : 0}">0</h5>
-                                        <small style="font-size:0.75rem;">Hết hạn Premium User: 05/03/2024</small>
+                                        <small style="font-size:0.75rem;"
+                                               th:text="'Hết hạn Premium User: ' + ${#dates.format(user.timeExpriredPremium, 'dd/MM/yyyy')}">
+                                        </small>
                                     </div>
                                 </div>
                             </div>
