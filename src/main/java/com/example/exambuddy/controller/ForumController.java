@@ -89,13 +89,6 @@ public class ForumController {
         }
         System.out.println("Time 3 : "+(System.currentTimeMillis() - x));
 
-        for (Post post : posts) {
-            List<Comment> comments = PostService.getCommentsByPostId(post.getPostId(), username);
-            post.setComments(comments != null ? comments : new ArrayList<>());
-            post.setLiked(post.getLikedUsernames() != null && post.getLikedUsernames().contains(username));
-        }
-        System.out.println("Time 4 : "+(System.currentTimeMillis() - x));
-
         String avatarUrl = UserService.getAvatarUrlByUsername(username);
 
         model.addAttribute("posts", posts);
@@ -227,4 +220,6 @@ public class ForumController {
         }
         return response;
     }
+
+
 }

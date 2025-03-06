@@ -2,6 +2,7 @@ package com.example.exambuddy.service;
 
 import com.example.exambuddy.model.Post;
 import com.example.exambuddy.model.Comment;
+import com.example.exambuddy.model.Reply;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.*;
 import com.google.firebase.cloud.FirestoreClient;
@@ -140,26 +141,30 @@ public class PostService {
         List<Comment> comments = new ArrayList<>();
         try {
             long x = System.currentTimeMillis();
-
             DocumentReference postRef = db.collection("posts").document(postId);
             CollectionReference commentsRef = postRef.collection("comments");
             ApiFuture<QuerySnapshot> future = commentsRef.get();
-            System.out.println("In Comment 1: " + (System.currentTimeMillis()-x));
 
-            QuerySnapshot querySnapshot = future.get();
-            System.out.println("In Comment 2: " + (System.currentTimeMillis()-x));
-
-
-            comments = querySnapshot.getDocuments().parallelStream().map(document -> {
+            for (DocumentSnapshot document : future.get().getDocuments()) {
                 Comment comment = document.toObject(Comment.class);
                 comment.setCommentId(document.getId());
 
-                List<String> likedUsers = (List<String>) document.get("likedUsernames");
-                comment.setLiked(likedUsers != null && likedUsers.contains(username));
+                // Kiểm tra user đã like chưa
+                comment.setLiked(comment.getLikedUsernames() != null && comment.getLikedUsernames().contains(username));
 
-                return comment;
-            }).collect(Collectors.toList());
-            System.out.println("In Comment 3: " + (System.currentTimeMillis()-x));
+                // Lấy danh sách phản hồi từ sub-collection "replies"
+                List<Reply> replies = new ArrayList<>();
+                CollectionReference repliesRef = document.getReference().collection("replies");
+                ApiFuture<QuerySnapshot> replyFuture = repliesRef.get();
+
+                for (DocumentSnapshot replyDoc : replyFuture.get().getDocuments()) {
+                    Reply reply = replyDoc.toObject(Reply.class);
+                    replies.add(reply);
+                }
+
+                comment.setReplies(replies);
+                comments.add(comment);
+            }
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
         }
