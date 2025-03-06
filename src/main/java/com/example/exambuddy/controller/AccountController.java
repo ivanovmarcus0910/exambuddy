@@ -169,17 +169,16 @@ public class AccountController {
         switch (plan) {
             case 1-> {
                 charge=chargeLevel[0];
-                timer=30*24*60*60*1000;
+                timer=30L*24*60*60*1000;
             }
             case 2-> {
                 charge=chargeLevel[1];
-                timer=30*6*24*60*60*1000;
+                timer=7*30L*24*60*60*1000;
 
             }
             case 3-> {
                 charge=chargeLevel[2];
-                timer=30*12*24*60*60*1000;
-
+                timer=15*30L*24*60*60*1000;
             }
         }
         if (user.getCoin()>charge) {
@@ -187,7 +186,7 @@ public class AccountController {
             {
                 if (userService.updateUserPremium(username, timer))
                 {
-                    return "redirect: /profile";
+                    return "redirect:/profile";
                 }
                 else
                 {
