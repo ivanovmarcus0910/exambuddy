@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard - Thống kê</title>
+  <link rel="icon" type="image/x-icon" href="https://res.cloudinary.com/dsuav027e/image/upload/v1740393796/favicon_llcueu.ico">
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+  <!-- Bootstrap JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    .sidebar-sticky { position: sticky; top: 0; height: 100vh; overflow-y: auto; z-index: 10; }
+    .header-sticky { position: sticky; top: 0; z-index: 999; background: #fff; }
+  </style>
+</head>
+<body class="bg-white">
+<div class="container-fluid">
+  <div class="row">
+    <!-- Sidebar -->
+    <div class="col-2 bg-light px-3 py-4 sidebar-sticky">
+      <div class="text-center mb-4">
+        <img src="/img/logo.png" alt="Logo" class="img-fluid mb-3">
+      </div>
+      <h2 class="h5 fw-bold text-center">🎩 Dashboard</h2>
+      <ul class="nav flex-column mt-4">
+        <li class="nav-item mb-2">
+          <a href="/admin/users" class="nav-link">👥 Quản lí Người dùng</a>
+        </li>
+        <li class="nav-item mb-2">
+          <a href="/admin/exams" class="nav-link">📝 Quản lí Đề thi</a>
+        </li>
+        <li class="nav-item mb-2">
+          <a href="/admin/posts" class="nav-link">📄 Quản lí Bài viết</a>
+        </li>
+        <li class="nav-item mb-2">
+          <a href="/admin/stats" class="nav-link">📊 Thống kê</a>
+        </li>
+        <li class="nav-item mt-3">
+          <a href="/logout" class="nav-link text-danger">🚪 Đăng xuất</a>
+        </li>
+      </ul>
+    </div>
+    <!-- Main Content -->
+    <div class="col-10 px-0">
+      <!-- Header -->
+      <div class="header-sticky shadow-sm p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+          <h1 class="h3 fw-bold m-0">Dashboard</h1>
+          <div class="d-flex align-items-center">
+            <div class="me-3 position-relative">
+              <input type="text" placeholder="🔍 Tìm kiếm..." class="form-control" style="width: 200px;">
+            </div>
+            <div class="d-flex align-items-center">
+              <span class="fw-semibold me-2" th:text="${adminUser.username}">Admin</span>
+              <img th:src="${adminUser.avatarUrl}" alt="Admin Avatar" class="rounded-circle border border-secondary" style="width:40px; height:40px;">
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Nội dung Thống kê & Biểu đồ -->
+      <div class="px-4">
+        <!-- Thống kê số liệu -->
+        <div id="stats" class="d-flex flex-wrap gap-3 mb-4">
+          <div class="border rounded p-3 flex-fill text-center" style="min-width: 200px;">
+            <h3>👤 Tổng tài khoản</h3>
+            <p class="display-6 fw-bold" th:text="${totalUser}">0</p>
+          </div>
+          <div class="border rounded p-3 flex-fill text-center" style="min-width: 200px;">
+            <h3>📄 Tổng bài viết</h3>
+            <p class="display-6 fw-bold" th:text="${totalPost}">0</p>
+          </div>
+          <div class="border rounded p-3 flex-fill text-center" style="min-width: 200px;">
+            <h3>📝 Tổng đề thi</h3>
+            <p class="display-6 fw-bold" th:text="${totalExam}">0</p>
+          </div>
+        </div>
+        <!-- Biểu đồ tròn -->
+        <div class="mb-5 d-flex justify-content-center">
+          <div class="bg-white p-3 rounded shadow-sm" style="width: 500px; max-width: 100%; margin: 0 auto;">
+            <canvas id="userChart" style="height: 250px;"></canvas>
+          </div>
+        </div>
+        <!-- Biểu đồ đường -->
+        <div class="mt-5 text-center">
+          <h2 class="h5 fw-bold mb-3">📈 Biểu đồ số lượng tài khoản hoạt động</h2>
+          <div class="mx-auto bg-white p-3 rounded shadow-sm" style="width: 1100px; max-width:100%;">
+            <canvas id="lineChart" style="height:250px;"></canvas>
+          </div>
+        </div>
+        <!-- Biểu đồ cột -->
+        <div class="mt-5 text-center">
+          <h2 class="h5 fw-bold mb-3">📊 Thống kê Bài viết & Đề thi (12 tháng)</h2>
+          <div class="mx-auto bg-white p-3 rounded shadow-sm" style="width: 1100px; max-width:100%;">
+            <canvas id="monthlyChart" style="height:250px;"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Script cho các biểu đồ -->
+<script>
+  // Biểu đồ tròn (userChart)
+  new Chart(document.getElementById('userChart'), {
+    type: 'pie',
+    data: {
+      labels: ['User', 'Admin', 'Teacher', 'Upgraded User'],
+      datasets: [{
+        data: [45, 5, 15, 10],
+        backgroundColor: ['#4CAF50', '#FF6384', '#36A2EB', '#FFCE56']
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false
+    }
+  });
+
+  // Biểu đồ đường (lineChart)
+  new Chart(document.getElementById('lineChart'), {
+    type: 'line',
+    data: {
+      labels: ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'],
+      datasets: [{
+        label: 'Người dùng hoạt động',
+        data: [100, 150, 120, 180, 60, 90, 300, 112, 156, 189, 203, 500],
+        borderColor: '#36A2EB',
+        fill: false
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false
+    }
+  });
+
+  // Biểu đồ cột (monthlyChart)
+  new Chart(document.getElementById('monthlyChart'), {
+    type: 'bar',
+    data: {
+      labels: ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'],
+      datasets: [{
+        label: 'Bài viết',
+        data: [10, 15, 8, 20, 25, 10, 30, 12, 14, 22, 18, 16],
+        backgroundColor: '#36A2EB'
+      },
+        {
+          label: 'Đề thi',
+          data: [7, 10, 12, 18, 20, 14, 25, 9, 11, 19, 17, 15],
+          backgroundColor: '#FFCE56'
+        }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false
+    }
+  });
+</script>
+</body>
+</html>

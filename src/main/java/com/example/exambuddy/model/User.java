@@ -1,6 +1,7 @@
 package com.example.exambuddy.model;
 
-import java.time.LocalDate;
+
+import java.util.Date;
 
 public class User {
     private String id;
@@ -12,6 +13,7 @@ public class User {
     private String avatarUrl;
     private String role;
     private int coin;
+    private long joinDate;
 
 
     // Thuộc tính mới: trạng thái hoạt động
@@ -32,11 +34,12 @@ public class User {
     private Integer experience; // Số năm kinh nghiệm
     private String degreeUrl;   // Link đến bằng cấp/chứng chỉ đã tải lên
     public enum Role {
-        ADMIN, USER, TEACHER, UPGRADED_USER
+        ADMIN, STUDENT, TEACHER, UPGRADED_STUDENT, PENDING_TEACHER
     }
     private long joinTime ;
     public User() {
-        this.role = Role.USER.name();
+
+        this.role = Role.STUDENT.name();
     }
 
     public User(String id, String email, String username, String password, boolean verified, Role role) {
@@ -53,6 +56,10 @@ public class User {
         this.active = true; // Người dùng mới mặc định hoạt động
         this.timeExpriredPremium = 0;
     }
+
+    public long getJoinDate() { return joinDate;}
+
+    public void setJoinDate(long joinDate) { this.joinDate = joinDate;}
 
     public boolean isActive() {
         return active;
