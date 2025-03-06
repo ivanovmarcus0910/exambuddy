@@ -73,13 +73,16 @@ public class AdminController {
 
         // Phân loại theo vai trò
         List<User> students = allUsers.stream()
-                .filter(u -> "USER".equalsIgnoreCase(u.getRole().toString()))
+                .filter(u -> "STUDENT".equalsIgnoreCase(u.getRole().toString()))
                 .collect(Collectors.toList());
         List<User> teachers = allUsers.stream()
                 .filter(u -> "TEACHER".equalsIgnoreCase(u.getRole().toString()))
                 .collect(Collectors.toList());
         List<User> upgraded = allUsers.stream()
-                .filter(u -> "UPGRADED_USER".equalsIgnoreCase(u.getRole().toString()))
+                .filter(u -> "UPGRADED_STUDENT".equalsIgnoreCase(u.getRole().toString()))
+                .collect(Collectors.toList());
+        List<User> pending = allUsers.stream()
+                .filter(u -> "PENDING_TEACHER".equalsIgnoreCase(u.getRole().toString()))
                 .collect(Collectors.toList());
         List<User> admins = allUsers.stream()
                 .filter(u -> "ADMIN".equalsIgnoreCase(u.getRole().toString()))
@@ -90,7 +93,8 @@ public class AdminController {
         model.addAttribute("allUsers", allUsers);      // Cho tab "Tổng số"
         model.addAttribute("students", students);      // Cho tab "Học sinh"
         model.addAttribute("teachers", teachers);      // Cho tab "Giáo viên"
-        model.addAttribute("upgraded", upgraded);      // Cho tab "Upgrade học sinh"
+        model.addAttribute("upgraded", upgraded);
+        model.addAttribute("pending", pending);// Cho tab "Upgrade học sinh"
         model.addAttribute("admins", admins);          // Cho tab "Admin"
 
         // Thông tin admin

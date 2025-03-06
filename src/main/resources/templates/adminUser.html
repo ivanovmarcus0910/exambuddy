@@ -197,7 +197,8 @@
                   <td class="role text-primary" th:text="${user.role}">Role</td>
                   <td class="coin" th:text="${user.coin}">Coin</td>
                   <td class="join-date" th:text="${#dates.format(user.joinDate, 'dd/MM/yyyy')}">Join Date</td>
-                  <td th:text="${user.active}">Active</td>
+                  <td th:style="${user.active} ? 'color: blue' : 'color:red;'"
+                      th:text="${user.active} ? 'Active' : 'Inactive'">Status</td>
                   <td class="firstname" th:text="${user.firstName}">Họ</td>
                   <td class="lastname" th:text="${user.lastName}">Tên</td>
                   <td class="birth" th:text="${user.birthDate}">Birth Date</td>
@@ -216,17 +217,18 @@
                       <form action="/admin/changeRole" method="post" class="d-inline-flex align-items-center">
                         <input type="hidden" name="username" th:value="${user.username}">
                         <select name="newRole" class="form-select w-auto">
-                          <option value="USER" th:selected="${user.role == 'USER'}">USER</option>
+                          <option value="USER" th:selected="${user.role == 'USER'}">STUDENT</option>
                           <option value="TEACHER" th:selected="${user.role == 'TEACHER'}">TEACHER</option>
                           <option value="ADMIN" th:selected="${user.role == 'ADMIN'}">ADMIN</option>
-                          <option value="UPGRADED_USER" th:selected="${user.role == 'UPGRADED_USER'}">UPGRADED_USER</option>
+                          <option value="UPGRADED_USER" th:selected="${user.role == 'UPGRADED_USER'}">UPGRADED_STUDENT</option>
+                          <option value="PENDING_TEACHER" th:selected="${user.role == 'PENDING_TEACHER'}">PENDING_TEACHER</option>
                         </select>
                         <button type="submit" class="btn btn-success btn-sm ms-2">💾 Lưu</button>
                       </form>
                       <!-- Form cập nhật trạng thái -->
                       <form action="/admin/updateUserStatus" method="post" class="d-inline-flex align-items-center ms-2">
                         <input type="hidden" name="username" th:value="${user.username}">
-                        <button type="submit" class="btn btn-danger btn-sm"
+                        <button type="submit" class="'btn btn-danger btn-sm' : 'btn btn-success btn-sm'"
                                 th:classappend="${user.active} ? ' btn-danger' : ' btn-success'"
                                 th:text="${user.active} ? '🚫 Vô hiệu hóa' : '✅ Kích hoạt lại'">
                         </button>
@@ -293,10 +295,11 @@
                       <form action="/admin/changeRole" method="post" class="d-inline-flex align-items-center">
                         <input type="hidden" name="username" th:value="${user.username}">
                         <select name="newRole" class="form-select w-auto">
-                          <option value="USER" th:selected="${user.role == 'USER'}">USER</option>
+                          <option value="USER" th:selected="${user.role == 'USER'}">STUDENT</option>
                           <option value="TEACHER" th:selected="${user.role == 'TEACHER'}">TEACHER</option>
                           <option value="ADMIN" th:selected="${user.role == 'ADMIN'}">ADMIN</option>
-                          <option value="UPGRADED_USER" th:selected="${user.role == 'UPGRADED_USER'}">UPGRADED_USER</option>
+                          <option value="UPGRADED_USER" th:selected="${user.role == 'UPGRADED_USER'}">UPGRADED_STUDENT</option>
+                          <option value="PENDING_TEACHER" th:selected="${user.role == 'PENDING_TEACHER'}">PENDING_TEACHER</option>
                         </select>
                         <button type="submit" class="btn btn-success btn-sm ms-2">💾 Lưu</button>
                       </form>
@@ -374,10 +377,11 @@
                       <form action="/admin/changeRole" method="post" class="d-inline-flex align-items-center">
                         <input type="hidden" name="username" th:value="${user.username}">
                         <select name="newRole" class="form-select w-auto">
-                          <option value="USER" th:selected="${user.role == 'USER'}">USER</option>
+                          <option value="USER" th:selected="${user.role == 'USER'}">STUDENT</option>
                           <option value="TEACHER" th:selected="${user.role == 'TEACHER'}">TEACHER</option>
                           <option value="ADMIN" th:selected="${user.role == 'ADMIN'}">ADMIN</option>
-                          <option value="UPGRADED_USER" th:selected="${user.role == 'UPGRADED_USER'}">UPGRADED_USER</option>
+                          <option value="UPGRADED_USER" th:selected="${user.role == 'UPGRADED_USER'}">UPGRADED_STUDENT</option>
+                          <option value="PENDING_TEACHER" th:selected="${user.role == 'PENDING_TEACHER'}">PENDING_TEACHER</option>
                         </select>
                         <button type="submit" class="btn btn-success btn-sm ms-2">💾 Lưu</button>
                       </form>
@@ -451,10 +455,11 @@
                       <form action="/admin/changeRole" method="post" class="d-inline-flex align-items-center">
                         <input type="hidden" name="username" th:value="${user.username}">
                         <select name="newRole" class="form-select w-auto">
-                          <option value="USER" th:selected="${user.role == 'USER'}">USER</option>
+                          <option value="USER" th:selected="${user.role == 'USER'}">STUDENT</option>
                           <option value="TEACHER" th:selected="${user.role == 'TEACHER'}">TEACHER</option>
                           <option value="ADMIN" th:selected="${user.role == 'ADMIN'}">ADMIN</option>
-                          <option value="UPGRADED_USER" th:selected="${user.role == 'UPGRADED_USER'}">UPGRADED_USER</option>
+                          <option value="UPGRADED_USER" th:selected="${user.role == 'UPGRADED_USER'}">UPGRADED_STUDENT</option>
+                          <option value="PENDING_TEACHER" th:selected="${user.role == 'PENDING_TEACHER'}">PENDING_TEACHER</option>
                         </select>
                         <button type="submit" class="btn btn-success btn-sm ms-2">💾 Lưu</button>
                       </form>
@@ -516,10 +521,11 @@
                       <form action="/admin/changeRole" method="post" class="d-inline-flex align-items-center">
                         <input type="hidden" name="username" th:value="${user.username}">
                         <select name="newRole" class="form-select w-auto">
-                          <option value="USER" th:selected="${user.role == 'USER'}">USER</option>
+                          <option value="USER" th:selected="${user.role == 'USER'}">STUDENT</option>
                           <option value="TEACHER" th:selected="${user.role == 'TEACHER'}">TEACHER</option>
                           <option value="ADMIN" th:selected="${user.role == 'ADMIN'}">ADMIN</option>
-                          <option value="UPGRADED_USER" th:selected="${user.role == 'UPGRADED_USER'}">UPGRADED_USER</option>
+                          <option value="UPGRADED_USER" th:selected="${user.role == 'UPGRADED_USER'}">UPGRADED_STUDENT</option>
+                          <option value="PENDING_TEACHER" th:selected="${user.role == 'PENDING_TEACHER'}">PENDING_TEACHER</option>
                         </select>
                         <button type="submit" class="btn btn-success btn-sm ms-2">💾 Lưu</button>
                       </form>

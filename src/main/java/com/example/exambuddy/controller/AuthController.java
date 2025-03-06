@@ -287,7 +287,7 @@ public class AuthController {
         try {
             userRole = User.Role.valueOf(role.toUpperCase());
         } catch (IllegalArgumentException e) {
-            userRole = User.Role.USER;
+            userRole = User.Role.STUDENT;
         }
 
         String result = authService.registerUser(email, username, password, userRole);

@@ -203,6 +203,7 @@ public class UserService {
         }
         return payments;
     }
+
     public boolean changeCoinBalance(long change, String username){
         Firestore firestore = FirestoreClient.getFirestore();
         DocumentReference userRef = firestore.collection("users").document(username);
@@ -227,6 +228,7 @@ public class UserService {
         return false;
     }
     }
+
     public String updatePaymentStatus(long paymentCode, long amount, String status) {
         Firestore firestore = FirestoreClient.getFirestore();
         CollectionReference transactions = firestore.collection("Transactions");
@@ -250,6 +252,7 @@ public class UserService {
         }
         return null;
     }
+
     public boolean updatePaymentStatusFail(long paymentCode, String status) {
         Firestore firestore = FirestoreClient.getFirestore();
         CollectionReference transactions = firestore.collection("Transactions");

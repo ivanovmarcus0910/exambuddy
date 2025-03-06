@@ -172,7 +172,7 @@ public class AccountController {
             return "redirect:/login";
         }
         User user = userService.getUserByUsername(username);
-        if (user != null &&( (user.getRole() == User.Role.USER) || (user.getRole() == User.Role.UPGRADED_USER))) {
+        if (user != null &&( (user.getRole() == User.Role.STUDENT) || (user.getRole() == User.Role.UPGRADED_STUDENT))) {
             model.addAttribute("level", chargeLevel);
             return "upgrade";
         }
