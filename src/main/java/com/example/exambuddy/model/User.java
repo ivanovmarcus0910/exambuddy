@@ -1,6 +1,7 @@
 package com.example.exambuddy.model;
 
-import java.time.LocalDate;
+
+import java.util.Date;
 
 public class User {
     private String id;
@@ -12,6 +13,7 @@ public class User {
     private String avatarUrl;
     private String role;
     private int coin;
+    private Date joinDate;
 
 
     // Thuộc tính mới: trạng thái hoạt động
@@ -36,6 +38,7 @@ public class User {
     }
 
     public User() {
+
         this.role = Role.USER.name();
     }
 
@@ -51,6 +54,10 @@ public class User {
         this.coin = 0;
         this.active = true; // Người dùng mới mặc định hoạt động
     }
+
+    public Date getJoinDate() { return joinDate;}
+
+    public void setJoinDate(Date joinDate) { this.joinDate = joinDate;}
 
     public boolean isActive() {
         return active;

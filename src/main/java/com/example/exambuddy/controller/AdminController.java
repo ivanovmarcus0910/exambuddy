@@ -1,7 +1,6 @@
 package com.example.exambuddy.controller;
 
 import com.example.exambuddy.model.Exam;
-import com.example.exambuddy.model.Payment;
 import com.example.exambuddy.model.Post;
 import com.example.exambuddy.model.User;
 import com.example.exambuddy.service.ExamService;
@@ -14,13 +13,14 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/admin")
 public class AdminController {
+
     @Autowired
     private FirebaseAuthService authService;
 
@@ -33,47 +33,142 @@ public class AdminController {
     @Autowired
     private PostService postService;
 
-    // ✅ Chỉ Admin mới có thể truy cập trang này
+    // Trang chủ (Dashboard): admin.html
     @GetMapping("")
     public String adminDashboard(Model model, HttpSession session) throws ExecutionException, InterruptedException {
         String loggedInUser = (String) session.getAttribute("loggedInUser");
-        System.out.println("📌 Session hiện tại: " + loggedInUser);
-
         if (loggedInUser == null || !authService.isAdmin(loggedInUser)) {
-            System.out.println("❌ Không có user trong session hoặc không phải admin. Chuyển về login.");
             return "redirect:/login";
         }
 
-        // Lấy danh sách người dùng
+        // Lấy số liệu tổng hợp (dùng để hiển thị trên trang dashboard)
         List<User> users = userService.getAllUsers();
-        model.addAttribute("users", users);
-
-        // Lấy danh sách đề thi
         List<Exam> exams = examService.getAllExams();
-        model.addAttribute("exams", exams);
-
-        // Lấy danh sách bài đăng
         List<Post> posts = PostService.getPostsFromFirestore();
-        model.addAttribute("posts", posts);
 
-        // Tính tổng số lượng
         model.addAttribute("totalUser", users.size());
         model.addAttribute("totalExam", exams.size());
         model.addAttribute("totalPost", posts.size());
 
-        // ✅ Lấy thông tin admin để hiển thị avatar & username
+        // Lấy thông tin admin
         User adminUser = userService.getUserByUsername(loggedInUser);
         if (adminUser != null) {
             model.addAttribute("adminUser", adminUser);
-            System.out.println("✅ Admin: " + adminUser.getUsername() + " - Avatar: " + adminUser.getAvatarUrl());
-        } else {
-            System.out.println("⚠ Không tìm thấy thông tin admin.");
         }
 
-        System.out.println("✅ Admin vào dashboard thành công!");
-        return "adminDashboard";
+        return "adminDashboard"; // Trả về admin.html
     }
 
+    // Quản lý Người dùng: adminUser.html
+    // Quản lý Người dùng (gộp danh sách và phân loại theo tab vào 1 trang adminUser.html)
+    @GetMapping("/users")
+    public String adminUsers(Model model, HttpSession session) throws ExecutionException, InterruptedException {
+        String loggedInUser = (String) session.getAttribute("loggedInUser");
+        if (loggedInUser == null || !authService.isAdmin(loggedInUser)) {
+            return "redirect:/login";
+        }
+
+        // Lấy toàn bộ người dùng
+        List<User> allUsers = userService.getAllUsers();
+
+        // Phân loại theo vai trò
+        List<User> students = allUsers.stream()
+                .filter(u -> "USER".equalsIgnoreCase(u.getRole().toString()))
+                .collect(Collectors.toList());
+        List<User> teachers = allUsers.stream()
+                .filter(u -> "TEACHER".equalsIgnoreCase(u.getRole().toString()))
+                .collect(Collectors.toList());
+        List<User> upgraded = allUsers.stream()
+                .filter(u -> "UPGRADED_USER".equalsIgnoreCase(u.getRole().toString()))
+                .collect(Collectors.toList());
+        List<User> admins = allUsers.stream()
+                .filter(u -> "ADMIN".equalsIgnoreCase(u.getRole().toString()))
+                .collect(Collectors.toList());
+
+        // Đưa dữ liệu vào model
+        model.addAttribute("users", allUsers);       // Dữ liệu tổng nếu cần
+        model.addAttribute("allUsers", allUsers);      // Cho tab "Tổng số"
+        model.addAttribute("students", students);      // Cho tab "Học sinh"
+        model.addAttribute("teachers", teachers);      // Cho tab "Giáo viên"
+        model.addAttribute("upgraded", upgraded);      // Cho tab "Upgrade học sinh"
+        model.addAttribute("admins", admins);          // Cho tab "Admin"
+
+        // Thông tin admin
+        User adminUser = userService.getUserByUsername(loggedInUser);
+        if (adminUser != null) {
+            model.addAttribute("adminUser", adminUser);
+        }
+
+        return "adminUser"; // Trả về view adminUser.html (đã gộp chức năng tab)
+    }
+
+    // Quản lý Đề thi: adminExam.html
+    @GetMapping("/exams")
+    public String adminExams(Model model, HttpSession session) throws ExecutionException, InterruptedException {
+        String loggedInUser = (String) session.getAttribute("loggedInUser");
+        if (loggedInUser == null || !authService.isAdmin(loggedInUser)) {
+            return "redirect:/login";
+        }
+
+        List<Exam> exams = examService.getAllExams();
+        model.addAttribute("exams", exams);
+
+        // Thông tin admin
+        User adminUser = userService.getUserByUsername(loggedInUser);
+        if (adminUser != null) {
+            model.addAttribute("adminUser", adminUser);
+        }
+
+        return "adminExam"; // Trả về adminExam.html
+    }
+
+    // Quản lý Bài đăng: adminPost.html
+    @GetMapping("/posts")
+    public String adminPosts(Model model, HttpSession session) throws ExecutionException, InterruptedException {
+        String loggedInUser = (String) session.getAttribute("loggedInUser");
+        if (loggedInUser == null || !authService.isAdmin(loggedInUser)) {
+            return "redirect:/login";
+        }
+
+        List<Post> posts = PostService.getPostsFromFirestore();
+        model.addAttribute("posts", posts);
+
+        // Thông tin admin
+        User adminUser = userService.getUserByUsername(loggedInUser);
+        if (adminUser != null) {
+            model.addAttribute("adminUser", adminUser);
+        }
+
+        return "adminPost"; // Trả về adminPost.html
+    }
+
+    // Thống kê & Biểu đồ: adminStat.html
+    @GetMapping("/stats")
+    public String adminStat(Model model, HttpSession session) throws ExecutionException, InterruptedException {
+        String loggedInUser = (String) session.getAttribute("loggedInUser");
+        if (loggedInUser == null || !authService.isAdmin(loggedInUser)) {
+            return "redirect:/login";
+        }
+
+        // Lấy số liệu tổng hợp
+        List<User> users = userService.getAllUsers();
+        List<Exam> exams = examService.getAllExams();
+        List<Post> posts = PostService.getPostsFromFirestore();
+
+        model.addAttribute("totalUser", users.size());
+        model.addAttribute("totalExam", exams.size());
+        model.addAttribute("totalPost", posts.size());
+
+        // Thông tin admin
+        User adminUser = userService.getUserByUsername(loggedInUser);
+        if (adminUser != null) {
+            model.addAttribute("adminUser", adminUser);
+        }
+
+        return "adminStat"; // Trả về adminStat.html
+    }
+
+    // POST: Cập nhật vai trò người dùng
     @PostMapping("/changeRole")
     public String changeUserRole(@RequestParam String username, @RequestParam User.Role newRole, HttpSession session) {
         String loggedInUser = (String) session.getAttribute("loggedInUser");
@@ -82,55 +177,57 @@ public class AdminController {
         }
 
         userService.updateUserRole(username, newRole);
-        return "redirect:/admin";
+        return "redirect:/admin/users";
     }
 
-    // Endpoint cập nhật trạng thái của User (toggle active)
+    // POST: Cập nhật trạng thái hoạt động của người dùng
     @PostMapping("/updateUserStatus")
     public String updateUserStatus(@RequestParam String username, HttpSession session) {
         String loggedInUser = (String) session.getAttribute("loggedInUser");
         if (loggedInUser == null || !authService.isAdmin(loggedInUser)) {
             return "redirect:/login";
         }
+
         User user = userService.getUserByUsername(username);
         if (user != null) {
             boolean newStatus = !user.isActive();
             user.setActive(newStatus);
-            userService.updateUserStatus(username, newStatus);  // Phương thức này cần được triển khai trong UserService
+            userService.updateUserStatus(username, newStatus);
         }
-        return "redirect:/admin";
+        return "redirect:/admin/users";
     }
 
-    // Endpoint cập nhật trạng thái của Exam (toggle active)
+    // POST: Cập nhật trạng thái hoạt động của đề thi
     @PostMapping("/updateExamStatus")
     public String updateExamStatus(@RequestParam String examId, HttpSession session) {
         String loggedInUser = (String) session.getAttribute("loggedInUser");
         if (loggedInUser == null || !authService.isAdmin(loggedInUser)) {
             return "redirect:/login";
         }
+
         Exam exam = examService.getExam(examId);
         if (exam != null) {
             boolean newStatus = !exam.isActive();
             exam.setActive(newStatus);
-            examService.updateExamStatus(examId, newStatus);  // Phương thức cần được triển khai trong ExamService
+            examService.updateExamStatus(examId, newStatus);
         }
-        return "redirect:/admin";
+        return "redirect:/admin/exams";
     }
 
+    // POST: Cập nhật trạng thái hoạt động của bài đăng
     @PostMapping("/updatePostStatus")
     public String updatePostStatus(@RequestParam String postId, HttpSession session) {
         String loggedInUser = (String) session.getAttribute("loggedInUser");
         if (loggedInUser == null || !authService.isAdmin(loggedInUser)) {
             return "redirect:/login";
         }
-        Post post = postService.getPostById(postId); // Giả sử có phương thức này trong PostService
+
+        Post post = postService.getPostById(postId);
         if (post != null) {
             boolean newStatus = !post.isActive();
             post.setActive(newStatus);
-            postService.updatePostStatus(postId, newStatus); // Phương thức cần được triển khai trong PostService
+            postService.updatePostStatus(postId, newStatus);
         }
-        return "redirect:/admin";
+        return "redirect:/admin/posts";
     }
-
-
 }

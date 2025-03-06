@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard - Thông tin Người dùng</title>
+  <link rel="icon" type="image/x-icon" href="https://res.cloudinary.com/dsuav027e/image/upload/v1740393796/favicon_llcueu.ico">
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+  <!-- Bootstrap Bundle JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <style>
+    /* Các định dạng chung: ép toàn bộ nội dung căn trái */
+    body, h1, h2, h3, h4, h5, h6, p, th, td, div {
+      text-align: left !important;
+    }
+    /* Sidebar */
+    .sidebar-sticky {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      z-index: 10;
+    }
+    /* Header */
+    .header-sticky {
+      position: sticky;
+      top: 0;
+      z-index: 999;
+      background: #fff;
+    }
+    /* Định dạng bảng */
+    table th, table td {
+      padding: 12px 15px;
+      vertical-align: middle;
+      text-align: left;
+      border: 1px solid #dee2e6;
+    }
+    table th {
+      white-space: nowrap;
+    }
+    /* Các cột có nội dung dài */
+    th.username, td.username { min-width: 220px; }
+    th.join-date, td.join-date { min-width: 200px; }
+    th.address, td.address { min-width: 220px; }
+    th.description, td.description { min-width: 250px; }
+    th.email, td.email { min-width: 180px; }
+    th.coin, td.coin, th.phone, td.phone, th.role, td.role, th.birth, td.birth, th.active, td.active {
+      min-width: 120px;
+    }
+    th.firstname, td.firstname { min-width: 150px; }
+    th.lastname, td.lastname { min-width: 150px; }
+    th.grade, td.grade { min-width: 80px; }
+    th.school, td.school { min-width: 150px; }
+    /* Cột Tài khoản: căn chỉnh avatar và username theo hàng ngang */
+    .user-account {
+      text-align: left;
+    }
+    .user-account img {
+      margin-right: 8px;
+    }
+    /* Nav Tabs: sử dụng Bootstrap nav-tabs */
+    .nav-tabs {
+      border-bottom: 2px solid #dee2e6;
+      margin-bottom: 1rem;
+    }
+    .nav-tabs .nav-link {
+      border: none;
+      color: #000;
+    }
+    .nav-tabs .nav-link.active {
+      color: #6f42c1; /* Màu tím cho tab active */
+      border-bottom: 2px solid #6f42c1;
+    }
+    /* Tab Content */
+    .tab-content {
+      border: 1px solid #dee2e6;
+      border-top: none;
+      padding: 1rem;
+    }
+  </style>
+</head>
+<body class="bg-white">
+<div class="container-fluid">
+  <div class="row">
+    <!-- Sidebar -->
+    <div class="col-2 bg-light px-3 py-4 sidebar-sticky">
+      <div class="text-center mb-4">
+        <img src="/img/logo.png" alt="Logo" class="img-fluid mb-3">
+      </div>
+      <h2 class="h5 fw-bold">🎩 Dashboard</h2>
+      <ul class="nav flex-column mt-4">
+        <li class="nav-item mb-2">
+          <a href="/admin/users" class="nav-link">👥 Quản lí Người dùng</a>
+        </li>
+        <li class="nav-item mb-2">
+          <a href="/admin/exams" class="nav-link">📝 Quản lí Đề thi</a>
+        </li>
+        <li class="nav-item mb-2">
+          <a href="/admin/posts" class="nav-link">📄 Quản lí Bài viết</a>
+        </li>
+        <li class="nav-item mb-2">
+          <a href="/admin/stats" class="nav-link">📊 Thống kê</a>
+        </li>
+        <li class="nav-item mt-3">
+          <a href="/logout" class="nav-link text-danger">🚪 Đăng xuất</a>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="col-10 px-0">
+      <!-- Header -->
+      <div class="header-sticky shadow-sm p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+          <h1 class="h3 fw-bold m-0">Thông tin Người dùng</h1>
+          <div class="d-flex align-items-center">
+            <div class="me-3">
+              <input type="text" placeholder="🔍 Tìm kiếm..." class="form-control" style="width: 200px;">
+            </div>
+            <div class="d-flex align-items-center">
+              <span th:text="${adminUser.username}">Admin</span>
+              <img th:src="${adminUser.avatarUrl}" alt="Admin Avatar" class="rounded-circle border border-secondary" style="width:40px; height:40px; margin-left: 8px;">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Content: Tabs phân loại người dùng -->
+      <div class="px-4">
+        <h2 class="h5 fw-bold mb-3">Danh sách Người dùng</h2>
+
+        <!-- Nav Tabs -->
+        <ul class="nav nav-tabs mb-3">
+          <li class="nav-item">
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-all">Tất cả</button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-student">Học sinh</button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-teacher">Giáo viên</button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-upgraded">Tài khoản nâng cấp</button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-admin">Quản trị viên</button>
+          </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content">
+          <!-- Tab Tổng số: hiển thị toàn bộ người dùng -->
+          <div class="tab-pane fade show active" id="tab-all">
+            <h5 class="fw-bold mb-3">Tổng số Người dùng</h5>
+            <div class="table-responsive">
+              <table class="table table-bordered table-striped">
+                <thead class="table-secondary">
+                <tr>
+                  <th class="username">Tài khoản</th>
+                  <th class="email">Email</th>
+                  <th class="phone">Số điện thoại</th>
+                  <th>Xác thực</th>
+                  <th class="role">Vai trò</th>
+                  <th class="coin">Coin</th>
+                  <th class="join-date">Ngày tham gia</th>
+                  <th class="active">Trạng thái</th>
+                  <th class="firstname">Họ</th>
+                  <th class="lastname">Tên</th>
+                  <th class="birth">Ngày sinh</th>
+                  <th class="address">Địa chỉ</th>
+                  <th class="grade">Lớp</th>
+                  <th>Mã học sinh</th>
+                  <th class="description">Mô tả</th>
+                  <th>Mã giáo viên</th>
+                  <th class="school">Trường</th>
+                  <th>Chuyên môn</th>
+                  <th>Kinh nghiệm</th>
+                  <th>Chứng chỉ</th>
+                  <th>Thao tác</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="user : ${users}">
+                  <td class="user-account">
+                    <div class="d-flex align-items-center">
+                      <img th:src="${user.avatarUrl}" alt="User Avatar" class="rounded-circle" style="width:30px; height:30px;">
+                      <span th:text="${user.username}">Username</span>
+                    </div>
+                  </td>
+                  <td class="email" th:text="${user.email}">Email</td>
+                  <td class="phone" th:text="${user.phone}">Phone</td>
+                  <td th:text="${user.verified}">Verified</td>
+                  <td class="role text-primary" th:text="${user.role}">Role</td>
+                  <td class="coin" th:text="${user.coin}">Coin</td>
+                  <td class="join-date" th:text="${#dates.format(user.joinDate, 'dd/MM/yyyy')}">Join Date</td>
+                  <td th:text="${user.active}">Active</td>
+                  <td class="firstname" th:text="${user.firstName}">Họ</td>
+                  <td class="lastname" th:text="${user.lastName}">Tên</td>
+                  <td class="birth" th:text="${user.birthDate}">Birth Date</td>
+                  <td class="address" th:text="${user.address}">Address</td>
+                  <td class="grade" th:text="${user.grade}">Grade</td>
+                  <td th:text="${user.studentId}">Student ID</td>
+                  <td class="description" th:text="${user.description}">Description</td>
+                  <td th:text="${user.teacherCode}">Teacher Code</td>
+                  <td class="school" th:text="${user.school}">School</td>
+                  <td th:text="${user.speciality}">Speciality</td>
+                  <td th:text="${user.experience}">Experience</td>
+                  <td th:text="${user.degreeUrl}">Degree URL</td>
+                  <td class="text-center">
+                    <div class="d-flex justify-content-start align-items-center" style="white-space: nowrap;">
+                      <!-- Form cập nhật vai trò -->
+                      <form action="/admin/changeRole" method="post" class="d-inline-flex align-items-center">
+                        <input type="hidden" name="username" th:value="${user.username}">
+                        <select name="newRole" class="form-select w-auto">
+                          <option value="USER" th:selected="${user.role == 'USER'}">USER</option>
+                          <option value="TEACHER" th:selected="${user.role == 'TEACHER'}">TEACHER</option>
+                          <option value="ADMIN" th:selected="${user.role == 'ADMIN'}">ADMIN</option>
+                          <option value="UPGRADED_USER" th:selected="${user.role == 'UPGRADED_USER'}">UPGRADED_USER</option>
+                        </select>
+                        <button type="submit" class="btn btn-success btn-sm ms-2">💾 Lưu</button>
+                      </form>
+                      <!-- Form cập nhật trạng thái -->
+                      <form action="/admin/updateUserStatus" method="post" class="d-inline-flex align-items-center ms-2">
+                        <input type="hidden" name="username" th:value="${user.username}">
+                        <button type="submit" class="btn btn-danger btn-sm"
+                                th:classappend="${user.active} ? ' btn-danger' : ' btn-success'"
+                                th:text="${user.active} ? '🚫 Vô hiệu hóa' : '✅ Kích hoạt lại'">
+                        </button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <!-- Tab Học sinh -->
+          <div class="tab-pane fade" id="tab-student">
+            <h5 class="fw-bold mb-3">Học sinh (Student)</h5>
+            <div class="table-responsive">
+              <table class="table table-bordered table-striped">
+                <thead class="table-secondary">
+                <tr>
+                  <th class="username">Tài khoản</th>
+                  <th class="email">Email</th>
+                  <th class="phone">Số điện thoại</th>
+                  <th>Xác thực</th>
+                  <th class="role">Vai trò</th>
+                  <th class="coin">Coin</th>
+                  <th class="join-date">Ngày tham gia</th>
+                  <th class="active">Trạng thái</th>
+                  <th class="firstname">Họ</th>
+                  <th class="lastname">Tên</th>
+                  <th class="birth">Ngày sinh</th>
+                  <th class="address">Địa chỉ</th>
+                  <th class="grade">Lớp</th>
+                  <th>Mã học sinh</th>
+                  <th class="description">Mô tả</th>
+                  <th class="school">Trường</th>
+                  <th>Thao tác</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="user : ${students}">
+                  <td class="user-account">
+                    <div class="d-flex align-items-center">
+                      <img th:src="${user.avatarUrl}" alt="User Avatar" class="rounded-circle" style="width:30px; height:30px;">
+                      <span th:text="${user.username}">Username</span>
+                    </div>
+                  </td>
+                  <td class="email" th:text="${user.email}">Email</td>
+                  <td class="phone" th:text="${user.phone}">Phone</td>
+                  <td th:text="${user.verified}">Verified</td>
+                  <td class="role text-primary" th:text="${user.role}">Role</td>
+                  <td class="coin" th:text="${user.coin}">Coin</td>
+                  <td class="join-date" th:text="${#dates.format(user.joinDate, 'dd/MM/yyyy')}">Join Date</td>
+                  <td th:text="${user.active}">Active</td>
+                  <td class="firstname" th:text="${user.firstName}">Họ</td>
+                  <td class="lastname" th:text="${user.lastName}">Tên</td>
+                  <td class="birth" th:text="${user.birthDate}">Birth Date</td>
+                  <td class="address" th:text="${user.address}">Address</td>
+                  <td class="grade" th:text="${user.grade}">Grade</td>
+                  <td th:text="${user.studentId}">Student ID</td>
+                  <td class="description" th:text="${user.description}">Description</td>
+                  <td class="school" th:text="${user.school}">School</td>
+                  <td class="text-center">
+                    <div class="d-flex justify-content-start align-items-center" style="white-space: nowrap;">
+                      <!-- Form cập nhật vai trò -->
+                      <form action="/admin/changeRole" method="post" class="d-inline-flex align-items-center">
+                        <input type="hidden" name="username" th:value="${user.username}">
+                        <select name="newRole" class="form-select w-auto">
+                          <option value="USER" th:selected="${user.role == 'USER'}">USER</option>
+                          <option value="TEACHER" th:selected="${user.role == 'TEACHER'}">TEACHER</option>
+                          <option value="ADMIN" th:selected="${user.role == 'ADMIN'}">ADMIN</option>
+                          <option value="UPGRADED_USER" th:selected="${user.role == 'UPGRADED_USER'}">UPGRADED_USER</option>
+                        </select>
+                        <button type="submit" class="btn btn-success btn-sm ms-2">💾 Lưu</button>
+                      </form>
+                      <!-- Form cập nhật trạng thái -->
+                      <form action="/admin/updateUserStatus" method="post" class="d-inline-flex align-items-center ms-2">
+                        <input type="hidden" name="username" th:value="${user.username}">
+                        <button type="submit" class="btn btn-danger btn-sm"
+                                th:classappend="${user.active} ? ' btn-danger' : ' btn-success'"
+                                th:text="${user.active} ? '🚫 Vô hiệu hóa' : '✅ Kích hoạt lại'">
+                        </button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <!-- Tab Giáo viên -->
+          <div class="tab-pane fade" id="tab-teacher">
+            <h5 class="fw-bold mb-3">Giáo viên (TEACHER)</h5>
+            <div class="table-responsive">
+              <table class="table table-bordered table-striped">
+                <thead class="table-secondary">
+                <tr>
+                  <th class="username">Tài khoản</th>
+                  <th class="email">Email</th>
+                  <th class="phone">Số điện thoại</th>
+                  <th>Xác thực</th>
+                  <th class="role">Vai trò</th>
+                  <th class="coin">Coin</th>
+                  <th class="join-date">Ngày tham gia</th>
+                  <th class="active">Trạng thái</th>
+                  <th class="firstname">Họ</th>
+                  <th class="lastname">Tên</th>
+                  <th class="birth">Ngày sinh</th>
+                  <th class="address">Địa chỉ</th>
+                  <th class="description">Mô tả</th>
+                  <th>Mã giáo viên</th>
+                  <th class="school">Trường</th>
+                  <th>Chuyên môn</th>
+                  <th>Kinh nghiệm</th>
+                  <th>Chứng chỉ</th>
+                  <th>Thao tác</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="user : ${teachers}">
+                  <td class="user-account">
+                    <div class="d-flex align-items-center">
+                      <img th:src="${user.avatarUrl}" alt="User Avatar" class="rounded-circle" style="width:30px; height:30px;">
+                      <span th:text="${user.username}">Username</span>
+                    </div>
+                  </td>
+                  <td class="email" th:text="${user.email}">Email</td>
+                  <td class="phone" th:text="${user.phone}">Phone</td>
+                  <td th:text="${user.verified}">Verified</td>
+                  <td class="role text-primary" th:text="${user.role}">Role</td>
+                  <td class="coin" th:text="${user.coin}">Coin</td>
+                  <td class="join-date" th:text="${#dates.format(user.joinDate, 'dd/MM/yyyy')}">Join Date</td>
+                  <td th:text="${user.active}">Active</td>
+                  <td class="firstname" th:text="${user.firstName}">Họ</td>
+                  <td class="lastname" th:text="${user.lastName}">Tên</td>
+                  <td class="birth" th:text="${user.birthDate}">Birth Date</td>
+                  <td class="address" th:text="${user.address}">Address</td>
+                  <td class="description" th:text="${user.description}">Description</td>
+                  <td th:text="${user.teacherCode}">Teacher Code</td>
+                  <td class="school" th:text="${user.school}">School</td>
+                  <td th:text="${user.speciality}">Speciality</td>
+                  <td th:text="${user.experience}">Experience</td>
+                  <td th:text="${user.degreeUrl}">Degree URL</td>
+                  <td class="text-center">
+                    <div class="d-flex justify-content-start align-items-center" style="white-space: nowrap;">
+                      <!-- Form cập nhật vai trò -->
+                      <form action="/admin/changeRole" method="post" class="d-inline-flex align-items-center">
+                        <input type="hidden" name="username" th:value="${user.username}">
+                        <select name="newRole" class="form-select w-auto">
+                          <option value="USER" th:selected="${user.role == 'USER'}">USER</option>
+                          <option value="TEACHER" th:selected="${user.role == 'TEACHER'}">TEACHER</option>
+                          <option value="ADMIN" th:selected="${user.role == 'ADMIN'}">ADMIN</option>
+                          <option value="UPGRADED_USER" th:selected="${user.role == 'UPGRADED_USER'}">UPGRADED_USER</option>
+                        </select>
+                        <button type="submit" class="btn btn-success btn-sm ms-2">💾 Lưu</button>
+                      </form>
+                      <!-- Form cập nhật trạng thái -->
+                      <form action="/admin/updateUserStatus" method="post" class="d-inline-flex align-items-center ms-2">
+                        <input type="hidden" name="username" th:value="${user.username}">
+                        <button type="submit" class="btn btn-danger btn-sm"
+                                th:classappend="${user.active} ? ' btn-danger' : ' btn-success'"
+                                th:text="${user.active} ? '🚫 Vô hiệu hóa' : '✅ Kích hoạt lại'">
+                        </button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <!-- Tab Upgrade học sinh -->
+          <div class="tab-pane fade" id="tab-upgraded">
+            <h5 class="fw-bold mb-3">Upgrade học sinh (UPGRADED_USER)</h5>
+            <div class="table-responsive">
+              <table class="table table-bordered table-striped">
+                <thead class="table-secondary">
+                <tr>
+                  <th class="username">Tài khoản</th>
+                  <th class="email">Email</th>
+                  <th class="phone">Số điện thoại</th>
+                  <th>Xác thực</th>
+                  <th class="role">Vai trò</th>
+                  <th class="coin">Coin</th>
+                  <th class="join-date">Ngày tham gia</th>
+                  <th class="active">Trạng thái</th>
+                  <th class="firstname">Họ</th>
+                  <th class="lastname">Tên</th>
+                  <th class="birth">Ngày sinh</th>
+                  <th class="address">Địa chỉ</th>
+                  <th class="grade">Lớp</th>
+                  <th>Mã học sinh</th>
+                  <th class="description">Mô tả</th>
+                  <th class="school">Trường</th>
+                  <th>Thao tác</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="user : ${upgraded}">
+                  <td class="user-account">
+                    <div class="d-flex align-items-center">
+                      <img th:src="${user.avatarUrl}" alt="User Avatar" class="rounded-circle" style="width:30px; height:30px;">
+                      <span th:text="${user.username}">Username</span>
+                    </div>
+                  </td>
+                  <td class="email" th:text="${user.email}">Email</td>
+                  <td class="phone" th:text="${user.phone}">Phone</td>
+                  <td th:text="${user.verified}">Verified</td>
+                  <td class="role text-primary" th:text="${user.role}">Role</td>
+                  <td class="coin" th:text="${user.coin}">Coin</td>
+                  <td class="join-date" th:text="${#dates.format(user.joinDate, 'dd/MM/yyyy')}">Join Date</td>
+                  <td th:text="${user.active}">Active</td>
+                  <td class="firstname" th:text="${user.firstName}">Họ</td>
+                  <td class="lastname" th:text="${user.lastName}">Tên</td>
+                  <td class="birth" th:text="${user.birthDate}">Birth Date</td>
+                  <td class="address" th:text="${user.address}">Address</td>
+                  <td class="grade" th:text="${user.grade}">Grade</td>
+                  <td th:text="${user.studentId}">Student ID</td>
+                  <td class="description" th:text="${user.description}">Description</td>
+                  <td class="school" th:text="${user.school}">School</td>
+                  <td class="text-center">
+                    <div class="d-flex justify-content-start align-items-center" style="white-space: nowrap;">
+                      <!-- Form cập nhật vai trò -->
+                      <form action="/admin/changeRole" method="post" class="d-inline-flex align-items-center">
+                        <input type="hidden" name="username" th:value="${user.username}">
+                        <select name="newRole" class="form-select w-auto">
+                          <option value="USER" th:selected="${user.role == 'USER'}">USER</option>
+                          <option value="TEACHER" th:selected="${user.role == 'TEACHER'}">TEACHER</option>
+                          <option value="ADMIN" th:selected="${user.role == 'ADMIN'}">ADMIN</option>
+                          <option value="UPGRADED_USER" th:selected="${user.role == 'UPGRADED_USER'}">UPGRADED_USER</option>
+                        </select>
+                        <button type="submit" class="btn btn-success btn-sm ms-2">💾 Lưu</button>
+                      </form>
+                      <!-- Form cập nhật trạng thái -->
+                      <form action="/admin/updateUserStatus" method="post" class="d-inline-flex align-items-center ms-2">
+                        <input type="hidden" name="username" th:value="${user.username}">
+                        <button type="submit" class="btn btn-danger btn-sm"
+                                th:classappend="${user.active} ? ' btn-danger' : ' btn-success'"
+                                th:text="${user.active} ? '🚫 Vô hiệu hóa' : '✅ Kích hoạt lại'">
+                        </button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <!-- Tab Admin -->
+          <div class="tab-pane fade" id="tab-admin">
+            <h5 class="fw-bold mb-3">Admin (ADMIN)</h5>
+            <div class="table-responsive">
+              <table class="table table-bordered table-striped">
+                <thead class="table-secondary">
+                <tr>
+                  <th class="username">Tài khoản</th>
+                  <th class="email">Email</th>
+                  <th class="phone">Số điện thoại</th>
+                  <th>Xác thực</th>
+                  <th class="coin">Coin</th>
+                  <th class="active">Trạng thái</th>
+                  <th class="firstname">Họ</th>
+                  <th class="lastname">Tên</th>
+                  <th class="birth">Ngày sinh</th>
+                  <th class="address">Địa chỉ</th>
+                  <th>Thao tác</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="user : ${admins}">
+                  <td class="user-account">
+                    <div class="d-flex align-items-center">
+                      <img th:src="${user.avatarUrl}" alt="User Avatar" class="rounded-circle" style="width:30px; height:30px;">
+                      <span th:text="${user.username}">Username</span>
+                    </div>
+                  </td>
+                  <td class="email" th:text="${user.email}">Email</td>
+                  <td class="phone" th:text="${user.phone}">Phone</td>
+                  <td th:text="${user.verified}">Verified</td>
+                  <td class="coin" th:text="${user.coin}">Coin</td>
+                  <td th:text="${user.active}">Active</td>
+                  <td class="firstname" th:text="${user.firstName}">Họ</td>
+                  <td class="lastname" th:text="${user.lastName}">Tên</td>
+                  <td class="birth" th:text="${user.birthDate}">Birth Date</td>
+                  <td class="address" th:text="${user.address}">Address</td>
+                  <td class="text-center">
+                    <div class="d-flex justify-content-start align-items-center" style="white-space: nowrap;">
+                      <!-- Form cập nhật vai trò -->
+                      <form action="/admin/changeRole" method="post" class="d-inline-flex align-items-center">
+                        <input type="hidden" name="username" th:value="${user.username}">
+                        <select name="newRole" class="form-select w-auto">
+                          <option value="USER" th:selected="${user.role == 'USER'}">USER</option>
+                          <option value="TEACHER" th:selected="${user.role == 'TEACHER'}">TEACHER</option>
+                          <option value="ADMIN" th:selected="${user.role == 'ADMIN'}">ADMIN</option>
+                          <option value="UPGRADED_USER" th:selected="${user.role == 'UPGRADED_USER'}">UPGRADED_USER</option>
+                        </select>
+                        <button type="submit" class="btn btn-success btn-sm ms-2">💾 Lưu</button>
+                      </form>
+                      <!-- Form cập nhật trạng thái -->
+                      <form action="/admin/updateUserStatus" method="post" class="d-inline-flex align-items-center ms-2">
+                        <input type="hidden" name="username" th:value="${user.username}">
+                        <button type="submit" class="btn btn-danger btn-sm"
+                                th:classappend="${user.active} ? ' btn-danger' : ' btn-success'"
+                                th:text="${user.active} ? '🚫 Vô hiệu hóa' : '✅ Kích hoạt lại'">
+                        </button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div> <!-- End tab-content -->
+      </div> <!-- End main content (px-4) -->
+    </div> <!-- End col-10 -->
+  </div> <!-- End row -->
+</div> <!-- End container-fluid -->
+</body>
+</html>
