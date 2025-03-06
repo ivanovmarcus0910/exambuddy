@@ -1,0 +1,46 @@
+<div th:fragment="postModal">
+    <div class="modal fade" id="editPostModal" tabindex="-1" aria-labelledby="editPostModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Chỉnh sửa bài viết</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="edit-post-form" method="post" enctype="multipart/form-data">
+                        <input type="hidden" id="editPostId" name="postId">
+
+                        <div class="mb-3">
+                            <label for="editContent" class="form-label">Nội dung</label>
+                            <textarea id="editContent" name="content" class="form-control" rows="3" required></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Ảnh hiện tại</label>
+                            <div id="editPostImagePreview" class="d-flex flex-wrap"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="editPostImages" class="form-label">Hình ảnh</label>
+                            <input type="file" id="editPostImages" name="images" multiple class="form-control" accept="image/*">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Cập nhật</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-fullscreen">
+            <div class="modal-content">
+                <button type="button" class="btn-close position-absolute" style="top: 10px; right: 10px; z-index: 10;"
+                        data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="modal-body text-center d-flex justify-content-center align-items-center">
+                    <img id="modalImage" src="" class="img-fluid" style="max-width: 90vw; max-height: 90vh;">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -9,7 +9,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 @Service
 public class PostService {
@@ -92,7 +94,7 @@ public class PostService {
         return postList;
     }
 
-    public static Comment saveComment(String postId, String username, String content, String date, List<String> imageUrls) {
+    public static Comment saveComment(String postId, String username, String avatarUrl, String content, String date, List<String> imageUrls) {
 
         DocumentReference postRef = db.collection("posts").document(postId);
         CollectionReference commentsRef = postRef.collection("comments");
@@ -100,6 +102,7 @@ public class PostService {
         Comment comment = new Comment();
         comment.setPostId(postId);
         comment.setUsername(username);
+        comment.setAvatarUrl(avatarUrl);
         comment.setContent(content);
         comment.setDate(date);
         comment.setImageUrls(imageUrls);
@@ -133,31 +136,88 @@ public class PostService {
         }
     }
 
-    public static List<Comment> getCommentsByPostId(String postId) {
+    public static List<Comment> getCommentsByPostId(String postId, String username) {
         List<Comment> comments = new ArrayList<>();
         try {
+            long x = System.currentTimeMillis();
+
             DocumentReference postRef = db.collection("posts").document(postId);
             CollectionReference commentsRef = postRef.collection("comments");
             ApiFuture<QuerySnapshot> future = commentsRef.get();
+            System.out.println("In Comment 1: " + (System.currentTimeMillis()-x));
 
-            for (DocumentSnapshot document : future.get().getDocuments()) {
+            QuerySnapshot querySnapshot = future.get();
+            System.out.println("In Comment 2: " + (System.currentTimeMillis()-x));
+
+
+            comments = querySnapshot.getDocuments().parallelStream().map(document -> {
                 Comment comment = document.toObject(Comment.class);
                 comment.setCommentId(document.getId());
-                comments.add(comment);
-            }
+
+                List<String> likedUsers = (List<String>) document.get("likedUsernames");
+                comment.setLiked(likedUsers != null && likedUsers.contains(username));
+
+                return comment;
+            }).collect(Collectors.toList());
+            System.out.println("In Comment 3: " + (System.currentTimeMillis()-x));
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
         }
         return comments;
     }
 
-    public static void deletePost(String postId) {
+    public static Comment getCommentById(String postId, String commentId) {
+        try {
+            DocumentReference commentRef = db.collection("posts")
+                    .document(postId)
+                    .collection("comments")
+                    .document(commentId);
+            ApiFuture<DocumentSnapshot> future = commentRef.get();
+            DocumentSnapshot document = future.get();
+            if (document.exists()) {
+                Comment comment = document.toObject(Comment.class);
+                comment.setCommentId(document.getId()); // Gán ID cho comment
+                return comment;
+            } else {
+                System.out.println("❌ Không tìm thấy bình luận với ID: " + commentId + " trong bài viết " + postId);
+                return null;
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            System.out.println("❌ Lỗi khi lấy bình luận theo ID: " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public void updatePost(String postId, String username, String content, List<String> imageUrls) {
+        DocumentReference postRef = db.collection(COLLECTION_NAME).document(postId);
+
+        try {
+            DocumentSnapshot document = postRef.get().get();
+            if (document.exists()) {
+                Post post = document.toObject(Post.class);
+                if (post != null && post.getUsername().equals(username)) {
+                    postRef.update("content", content, "imageUrls", imageUrls).get();
+                    System.out.println("✅ Cập nhật bài viết thành công");
+                } else {
+                    System.out.println("❌ Không có quyền chỉnh sửa bài viết này");
+                }
+            } else {
+                System.out.println("❌ Không tìm thấy bài viết với ID: " + postId);
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            System.err.println("❌ Lỗi khi cập nhật bài viết: " + e.getMessage());
+        }
+    }
+
+    public static boolean deletePost(String postId) {
         Firestore firestore = FirestoreClient.getFirestore();
         try {
             firestore.collection("posts").document(postId).delete();
-            System.out.println("Deleted post: " + postId);
+            return true;
         } catch (Exception e) {
             e.printStackTrace();
+            return false;
         }
     }
 
@@ -172,4 +232,40 @@ public class PostService {
             e.printStackTrace();
         }
     }
+
+    public static void updateCommentLikeCount(String postId, String commentId, String username, boolean liked) {
+        DocumentReference commentRef = db.collection("posts")
+                .document(postId)
+                .collection("comments")
+                .document(commentId);
+        try {
+            DocumentSnapshot document = commentRef.get().get();
+            if (document.exists()) {
+                Comment comment = document.toObject(Comment.class);
+                if (comment.getLikedUsernames() == null) {
+                    comment.setLikedUsernames(new ArrayList<>());
+                }
+                List<String> likedUsernames = comment.getLikedUsernames();
+
+                if (liked) {
+                    if (!likedUsernames.contains(username)) {
+                        comment.setLikeCount(comment.getLikeCount() + 1);
+                        likedUsernames.add(username);
+                    }
+                } else {
+                    if (likedUsernames.contains(username)) {
+                        comment.setLikeCount(comment.getLikeCount() - 1);
+                        likedUsernames.remove(username);
+                    }
+                }
+                commentRef.update("likeCount", comment.getLikeCount(), "likedUsernames", likedUsernames).get();
+            } else {
+                System.out.println("❌ Không tìm thấy bình luận với ID: " + commentId);
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            System.out.println("❌ Lỗi khi cập nhật số lượt thích bình luận: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
 }

@@ -230,7 +230,7 @@
                 <!-- Ví dụ: Lặp dữ liệu -->
                 <tr th:each="result : ${results}" class="table-row-hover">
                     <!-- "white-space: nowrap" => chữ không bao giờ xuống hàng -->
-                    <td class="text-center fw-bold text-primary" th:text="${result.getExamID()}"></td>
+                    <td class="text-center fw-bold text-primary" th:text="${result.getExamName()}"></td>
                     <td class="text-center text-muted" th:text="${username}"></td>
                     <td class="text-center fw-bold"
                         th:classappend="${result.getScore() >= 8 ? 'text-success' : 'text-warning'}"

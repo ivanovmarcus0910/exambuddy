@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.net.URLDecoder;
 import java.net.http.HttpRequest;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,7 +33,7 @@ public class AccountController {
     private CookieService cookieService;
     @Autowired
     private UserService userService;
-
+    private long[] chargeLevel ={25000, 150000, 300000};
     public AccountController(PasswordService passService) {
         this.passService = passService;
     }
@@ -59,7 +60,7 @@ public class AccountController {
                                @RequestParam String username,
                                HttpSession session,
                                Model model) throws IOException {
-        String url = this.cloudinaryService.upLoadImg(file, "imgAvatar");
+        String url = this.cloudinaryService.upLoadImgAvt(file, "imgAvatar", username);
         System.out.println("URL=" + url);
         UserService.changeAvatar(username, url);
         session.setAttribute("urlimg", url);
@@ -162,6 +163,43 @@ public class AccountController {
             return previousPage.get(previousPage.size() - 1).getTimestamp();
         }
         return null;
+    }
+
+    @GetMapping("/upgrade")
+    public String upgrage(HttpSession session, Model model) {
+        String username = (String) session.getAttribute("loggedInUser");
+        if (username == null) {
+            return "redirect:/login";
+        }
+        User user = userService.getUserByUsername(username);
+        if (user != null &&( (user.getRole() == User.Role.USER) || (user.getRole() == User.Role.UPGRADED_USER))) {
+            model.addAttribute("level", chargeLevel);
+            return "upgrade";
+        }
+        else
+            return "error";
+    }
+    @PostMapping("/upgrade")
+    public  String upgradePremium(@RequestParam int sellect, HttpSession session, Model model) {
+        String username = (String) session.getAttribute("loggedInUser");
+        if (username == null) {
+            return "redirect:/login";
+        }
+        User user = userService.getUserByUsername(username);
+        long charge = 0;
+        switch (sellect) {
+            case 1-> charge=chargeLevel[0];
+            case 2-> charge=chargeLevel[1];
+            case 3-> charge=chargeLevel[2];
+        }
+        if (user.getCoin()>charge) {
+            if (userService.changeCoinBalance(charge, username))
+            {
+
+            }
+
+        }
+        return "redirect:/profile";
     }
 
 }
