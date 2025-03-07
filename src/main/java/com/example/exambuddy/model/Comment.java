@@ -16,7 +16,7 @@ public class Comment {
     private int likeCount;
     private List<String> likedUsernames;
     private boolean liked;
-
+    private List<Reply> replies;
     public Comment() {
     }
 
@@ -133,5 +133,13 @@ public class Comment {
 
     public void setLiked(boolean liked) {
         this.liked = liked;
+    }
+
+    public List<Reply> getReplies() {
+        return replies;
+    }
+
+    public void setReplies(List<Reply> replies) {
+        this.replies = replies;
     }
 }

@@ -359,6 +359,40 @@ function toggleLikeComment(btn) {
         });
 }
 
+function toggleReplyForm(button, commentId) {
+    let form = document.getElementById("reply-form-" + commentId);
+    form.style.display = form.style.display === "none" ? "block" : "none";
+}
+
+function submitReply(commentId) {
+    let inputField = document.getElementById("reply-input-" + commentId);
+    let content = inputField.value.trim();
+    let imageInput = document.getElementById("reply-image-" + commentId);
+    let imageFile = imageInput.files[0];
+
+    if (!content && !imageFile) return; // Không gửi nếu cả nội dung & ảnh đều trống
+
+    let formData = new FormData();
+    formData.append("commentId", commentId);
+    formData.append("content", content);
+    if (imageFile) {
+        formData.append("image", imageFile);
+    }
+
+    fetch("/forum/reply", {
+        method: "POST",
+        body: formData
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload(); // Reload để cập nhật phản hồi mới
+            }
+        })
+        .catch(error => console.error("❌ Lỗi khi gửi phản hồi:", error));
+}
+
+
 
 
 
