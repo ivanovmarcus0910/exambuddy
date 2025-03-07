@@ -88,8 +88,6 @@ public class AdminController {
                 .filter(u -> "ADMIN".equalsIgnoreCase(u.getRole().toString()))
                 .collect(Collectors.toList());
 
-        // Đưa dữ liệu vào model
-        model.addAttribute("users", allUsers);       // Dữ liệu tổng nếu cần
         model.addAttribute("allUsers", allUsers);      // Cho tab "Tổng số"
         model.addAttribute("students", students);      // Cho tab "Học sinh"
         model.addAttribute("teachers", teachers);      // Cho tab "Giáo viên"
@@ -97,6 +95,12 @@ public class AdminController {
         model.addAttribute("pending", pending);// Cho tab "Upgrade học sinh"
         model.addAttribute("admins", admins);          // Cho tab "Admin"
 
+        // Thêm số liệu thống kê cho biểu đồ
+        model.addAttribute("studentCount", students.size());
+        model.addAttribute("teacherCount", teachers.size());
+        model.addAttribute("upgradedCount", upgraded.size());
+        model.addAttribute("pendingCount", pending.size());
+        model.addAttribute("adminCount", admins.size());
         // Thông tin admin
         User adminUser = userService.getUserByUsername(loggedInUser);
         if (adminUser != null) {
