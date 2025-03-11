@@ -62,7 +62,7 @@
         let icon = button.querySelector("i");
 
         // Kiểm tra trạng thái like khi trang tải
-        fetch(`/exams/${examId}/isLiked`)
+        fetch(`/exams/${examId}/isLiked`) // Dùng backtick ``
             .then(response => response.json())
             .then(data => {
                 if (data.liked) {
@@ -76,7 +76,7 @@
         button.addEventListener("click", function () {
             let isLiked = button.classList.contains("liked");
 
-            fetch(`/exams/${examId}/like`, {
+            fetch(`/exams/${examId}/like`, { // Dùng backtick ``
                 method: isLiked ? "DELETE" : "POST"
             })
                 .then(response => response.json())
@@ -96,7 +96,6 @@
                 .catch(error => console.error("Lỗi:", error));
         });
     });
-
 </script>
 
 </body>

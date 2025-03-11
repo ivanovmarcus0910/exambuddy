@@ -422,6 +422,7 @@ public class ExamService {
 
         ), SetOptions.merge());
     }
+
     public void updateUserScore(String username, double newScore) {
         DocumentReference userScoreRef = db.collection("userScores").document(username);
 
@@ -443,9 +444,6 @@ public class ExamService {
             System.err.println("Lỗi khi cập nhật điểm: " + e.getMessage());
         }
     }
-
-
-
 
     public List<ExamResult> getExamResultByUsername(String userId) {
         List<ExamResult> results = new ArrayList<>();
@@ -472,7 +470,6 @@ public class ExamService {
         }
         return results;
     }
-
 
     public void likeExam(String userId, String examId) {
         DocumentReference docRef = db.collection("likedExams").document(userId + "_" + examId);

@@ -271,8 +271,9 @@ public class ManageExamController {
             return "redirect:/login"; // Nếu chưa đăng nhập, chuyển hướng về home
         }
         String username = cookieService.getCookie(request, "noname");
+        long x = System.currentTimeMillis();
         List<Exam> likedExams = examService.getLikedExamsByUser(username);
-
+        System.out.println("likedExams: " + (System.currentTimeMillis()-x));
         model.addAttribute("likedExams", likedExams);
         return "likedExams"; // Trả về giao diện liked-exams.html
     }
