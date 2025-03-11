@@ -91,13 +91,12 @@
         </div>
 
         <!-- Menu items -->
-        <nav class="nav flex-column" style="gap:1rem;">
+        <nav class="nav flex-column" style="gap: 0.5rem;">
             <!-- Gắn class="menu-text" cho phần text -->
             <a class="d-flex align-items-center px-2 py-1 text-secondary" href="/profile" style="border-radius:8px;">
                 <i class="bi bi-person-fill me-2" style="font-size:1.2rem;"></i>
                 <span class="menu-text">Thông tin cá nhân</span>
             </a>
-
             <a class="d-flex align-items-center px-2 py-1 text-secondary" href="/payment-coin" style="border-radius:8px;">
                 <i class="bi bi-wallet-fill me-2" style="font-size:1.2rem;"></i>
                 <span class="menu-text">Nạp Coin</span>
@@ -115,18 +114,15 @@
                 <span class="menu-text">Lịch sử làm đề</span>
             </a>
             <th:block th:if="${#strings.equalsIgnoreCase(user.role, 'TEACHER')}">
-
-            <a class="d-flex align-items-center px-2 py-1 text-secondary" href="/exams/created" style="border-radius:8px;">
+                <a class="d-flex align-items-center px-2 py-2 text-secondary" href="/exams/created" style="border-radius:8px;">
+                    <i class="bi bi-file-earmark me-2" style="font-size:1.2rem;"></i>
+                    <span class="menu-text">Lịch sử tạo đề</span>
+                </a>
+            </th:block>
             <a class="d-flex align-items-center px-2 py-2 text-secondary" href="/exams/liked" style="border-radius:8px;">
                 <i class="bi bi-heart-fill me-2" style="font-size:1.2rem;"></i>
                 <span class="menu-text">Bài kiểm tra yêu thích</span>
             </a>
-            <a class="d-flex align-items-center px-2 py-2 text-secondary" href="/exams/created" style="border-radius:8px;">
-                <i class="bi bi-file-earmark me-2" style="font-size:1.2rem;"></i>
-                <span class="menu-text">Lịch sử tạo đề</span>
-            </a>
-            </th:block>
-
             <a class="d-flex align-items-center px-2 py-1 text-secondary" href="#!" style="border-radius:8px;">
                 <i class="bi bi-pencil-square me-2" style="font-size:1.2rem;"></i>
                 <span class="menu-text">Lịch sử đăng bài</span>
@@ -140,6 +136,7 @@
                 <span class="menu-text">Đăng xuất</span>
             </a>
         </nav>
+
     </div>
     <!-- /SIDEBAR -->
 
