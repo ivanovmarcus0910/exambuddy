@@ -33,7 +33,7 @@ import java.util.concurrent.ExecutionException;
 public class ExamService {
     private final Firestore db = FirestoreClient.getFirestore();
 
-    public List<Exam> getExamList(int page, int size, long x) {
+    public List<Exam> getExamList(int page, int size) {
         List<Exam> exams = new ArrayList<>();
         try {
             // Lấy danh sách theo thứ tự mới nhất và giới hạn số lượng theo trang
@@ -417,10 +417,35 @@ public class ExamService {
                 "score", score,
                 "answers", userAnswers,
                 "submittedAt", System.currentTimeMillis(),
-                "correctAnswers", correctAnswers
+                "correctAnswers", correctAnswers,
+                "username", userId
 
         ), SetOptions.merge());
     }
+    public void updateUserScore(String username, double newScore) {
+        DocumentReference userScoreRef = db.collection("userScores").document(username);
+
+        try {
+            // Kiểm tra xem document có tồn tại không
+            if (userScoreRef.get().get().exists()) {
+                // Nếu tồn tại, cập nhật điểm số
+                userScoreRef.update("totalScore", FieldValue.increment(newScore)).get();
+                System.out.println("Cập nhật điểm thành công!");
+            } else {
+                // Nếu chưa có, tạo mới document
+                Map<String, Object> data = new HashMap<>();
+                data.put("username", username);
+                data.put("totalScore", newScore);
+                userScoreRef.set(data).get();
+                System.out.println("Tạo mới và cập nhật điểm thành công!");
+            }
+        } catch (Exception e) {
+            System.err.println("Lỗi khi cập nhật điểm: " + e.getMessage());
+        }
+    }
+
+
+
 
     public List<ExamResult> getExamResultByUsername(String userId) {
         List<ExamResult> results = new ArrayList<>();
@@ -674,5 +699,9 @@ public class ExamService {
             System.out.println("Lỗi cập nhật trạng thái của exam " + examId);
             e.printStackTrace();
         }
+    }
+
+    public static void main(String[] args) {
+        System.out.println("ADD");
     }
 }

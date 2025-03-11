@@ -48,7 +48,7 @@ public class ManageExamController {
     @GetMapping("/exams")
     public String listExams(Model model) {
         try {
-            List<Exam> exams = examService.getExamList(0, 6, 6);
+            List<Exam> exams = examService.getExamList(0, 6);
             model.addAttribute("exams", exams);
             return "examList"; // Trả về trang hiển thị danh sách đề thi
         } catch (Exception e) {
@@ -144,6 +144,7 @@ public class ManageExamController {
             String username = cookieService.getCookie(request, "noname");
             examService.submitExam(username, examId);
             examService.saveExamResult(username, examId, score, exam, userAnswers, correctQuestions);
+            examService.updateUserScore(username, score);
             model.addAttribute("exam", exam);
             model.addAttribute("score", score);
             model.addAttribute("totalQuestions", questions.size());
@@ -326,7 +327,7 @@ public class ManageExamController {
         if (examName != null && !examName.isEmpty()) {
             examList = examService.searchExamByName(examName);
         } else {
-            examList = examService.getExamList(0, 10, 0);
+            examList = examService.getExamList(0, 10);
         }
         model.addAttribute("examList", examList);
         return "resultSearchExam";
