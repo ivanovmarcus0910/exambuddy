@@ -4,6 +4,7 @@ import com.example.exambuddy.service.FirebaseAuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -13,9 +14,25 @@ public class OtpController {
     private FirebaseAuthService authService;
 
 
+    @GetMapping("/support-verification")
+    public String showSupportVerificationPage() {
+        return "supportVerification";
+    }
+
     @PostMapping("/resendOTP")
     public String resendOtp(@RequestParam String email, @RequestParam String actionType, Model model) {
         System.out.println("📩 Đang gửi lại OTP cho email: " + email);
+
+        if (!authService.isEmailExists(email)) {
+            model.addAttribute("error", "Email chưa được đăng ký trong hệ thống!");
+            return "supportVerification";
+        }
+
+        if (authService.isEmailVerified(email) && "register".equals(actionType)) {
+            model.addAttribute("error", "Tài khoản này đã được xác thực!");
+            return "supportVerification";
+        }
+
         String result = authService.resendOtp(email, actionType);
         model.addAttribute("message", result);
         model.addAttribute("email", email);
@@ -37,7 +54,7 @@ public class OtpController {
 
         if (success) {
             if ("register".equals(actionType)) {
-                model.addAttribute("message", "Tài khoản đã được xác thực! Hãy đăng nhập.");
+                model.addAttribute("success", "Tài khoản đã được xác thực! Hãy đăng nhập.");
                 return "login";
             } else {
                 model.addAttribute("email", email);
