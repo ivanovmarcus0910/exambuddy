@@ -8,6 +8,7 @@ import java.util.List;
 public class Comment {
     private String commentId;
     private String postId;
+    private String parentCommentId;
     private String content;
     private String username;
     private String date;
@@ -16,7 +17,9 @@ public class Comment {
     private int likeCount;
     private List<String> likedUsernames;
     private boolean liked;
-    private List<Reply> replies;
+    private List<Comment> replies;
+    private LocalDateTime localDateTime;
+    private String postOwner;
     public Comment() {
     }
 
@@ -43,6 +46,14 @@ public class Comment {
 
     public void setPostId(String postId) {
         this.postId = postId;
+    }
+
+    public String getParentCommentId() {
+        return parentCommentId;
+    }
+
+    public void setParentCommentId(String parentCommentId) {
+        this.parentCommentId = parentCommentId;
     }
 
     public String getContent() {
@@ -135,11 +146,26 @@ public class Comment {
         this.liked = liked;
     }
 
-    public List<Reply> getReplies() {
+    public List<Comment> getReplies() {
         return replies;
     }
 
-    public void setReplies(List<Reply> replies) {
+    public void setReplies(List<Comment> replies) {
         this.replies = replies;
+    }
+    public LocalDateTime getLocalDateTime() {
+        return localDateTime;
+    }
+
+    public void setLocalDateTime(LocalDateTime localDateTime) {
+        this.localDateTime = localDateTime;
+    }
+
+    public String getPostOwner() {
+        return postOwner;
+    }
+
+    public void setPostOwner(String postOwner) {
+        this.postOwner = postOwner;
     }
 }

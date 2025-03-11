@@ -42,7 +42,6 @@ public class PostController {
 
         // Lấy tất cả bình luận của bài viết (ĐÃ SỬA LỖI: Thêm `username` vào)
         List<Comment> comments = postService.getCommentsByPostId(post.getPostId(), username);
-
         post.setComments(comments != null ? comments : new ArrayList<>());
 
         // Lấy avatar của user hiện tại

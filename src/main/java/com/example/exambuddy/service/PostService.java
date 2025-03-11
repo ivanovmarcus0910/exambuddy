@@ -2,17 +2,18 @@ package com.example.exambuddy.service;
 
 import com.example.exambuddy.model.Post;
 import com.example.exambuddy.model.Comment;
-import com.example.exambuddy.model.Reply;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.*;
 import com.google.firebase.cloud.FirestoreClient;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
 
 @Service
 public class PostService {
@@ -95,13 +96,14 @@ public class PostService {
         return postList;
     }
 
-    public static Comment saveComment(String postId, String username, String avatarUrl, String content, String date, List<String> imageUrls) {
+    public static Comment saveComment(String postId, String parentCommentId, String username, String avatarUrl, String content, String date, List<String> imageUrls) {
 
         DocumentReference postRef = db.collection("posts").document(postId);
         CollectionReference commentsRef = postRef.collection("comments");
 
         Comment comment = new Comment();
         comment.setPostId(postId);
+        comment.setParentCommentId(parentCommentId);
         comment.setUsername(username);
         comment.setAvatarUrl(avatarUrl);
         comment.setContent(content);
@@ -111,6 +113,7 @@ public class PostService {
         try {
             DocumentReference newCommentRef = commentsRef.add(comment).get();
             comment.setCommentId(newCommentRef.getId());
+            newCommentRef.update("commentId", comment.getCommentId()).get();
             return comment;
         } catch (InterruptedException | ExecutionException e) {
             System.out.println("❌ Lỗi khi lưu bình luận: " + e.getMessage());
@@ -140,10 +143,12 @@ public class PostService {
     public static List<Comment> getCommentsByPostId(String postId, String username) {
         List<Comment> comments = new ArrayList<>();
         try {
-            long x = System.currentTimeMillis();
             DocumentReference postRef = db.collection("posts").document(postId);
             CollectionReference commentsRef = postRef.collection("comments");
             ApiFuture<QuerySnapshot> future = commentsRef.get();
+
+            // Tạo map để nhóm phản hồi theo comment cha
+            Map<String, List<Comment>> replyMap = new HashMap<>();
 
             for (DocumentSnapshot document : future.get().getDocuments()) {
                 Comment comment = document.toObject(Comment.class);
@@ -152,23 +157,33 @@ public class PostService {
                 // Kiểm tra user đã like chưa
                 comment.setLiked(comment.getLikedUsernames() != null && comment.getLikedUsernames().contains(username));
 
-                // Lấy danh sách phản hồi từ sub-collection "replies"
-                List<Reply> replies = new ArrayList<>();
-                CollectionReference repliesRef = document.getReference().collection("replies");
-                ApiFuture<QuerySnapshot> replyFuture = repliesRef.get();
-
-                for (DocumentSnapshot replyDoc : replyFuture.get().getDocuments()) {
-                    Reply reply = replyDoc.toObject(Reply.class);
-                    replies.add(reply);
+                // Phân loại comment gốc & reply
+                if (comment.getParentCommentId() == null || "null".equals(comment.getParentCommentId()) || comment.getParentCommentId().isEmpty()) {
+                    comments.add(comment); // Đây là bình luận chính
+                } else {
+                    replyMap.computeIfAbsent(comment.getParentCommentId(), k -> new ArrayList<>()).add(comment);
                 }
+            }
 
-                comment.setReplies(replies);
-                comments.add(comment);
+            // Gán danh sách reply vào từng comment cha
+            for (Comment comment : comments) {
+                comment.setReplies(getRepliesRecursive(comment.getCommentId(), replyMap));
             }
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
         }
         return comments;
+    }
+
+    private static List<Comment> getRepliesRecursive(String parentId, Map<String, List<Comment>> replyMap) {
+        List<Comment> replies = replyMap.getOrDefault(parentId, new ArrayList<>());
+
+        for (Comment reply : replies) {
+            // Đệ quy để lấy phản hồi con của phản hồi hiện tại
+            reply.setReplies(getRepliesRecursive(reply.getCommentId(), replyMap));
+        }
+
+        return replies;
     }
 
     public static Comment getCommentById(String postId, String commentId) {
@@ -273,4 +288,54 @@ public class PostService {
         }
     }
 
+    public List<Comment> getUserLatestComments(String username) {
+        Map<String, Comment> latestCommentsMap = new HashMap<>();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+        try {
+            CollectionReference postsRef = db.collection("posts");
+            ApiFuture<QuerySnapshot> future = postsRef.get();
+
+            for (QueryDocumentSnapshot postDoc : future.get().getDocuments()) {
+                String postId = postDoc.getId();
+                String postOwner = postDoc.getString("username"); // Lấy username của chủ bài post
+                CollectionReference commentsRef = postDoc.getReference().collection("comments");
+
+                Query query = commentsRef.whereEqualTo("username", username);
+                ApiFuture<QuerySnapshot> commentFuture = query.get();
+
+                Comment latestComment = null;
+
+                for (DocumentSnapshot commentDoc : commentFuture.get().getDocuments()) {
+                    Comment comment = commentDoc.toObject(Comment.class);
+                    comment.setCommentId(commentDoc.getId());
+                    comment.setPostId(postId);
+                    comment.setPostOwner(postOwner); // Lưu username của chủ post
+
+                    if (comment.getDate() != null && !comment.getDate().isEmpty()) {
+                        comment.setLocalDateTime(LocalDateTime.parse(comment.getDate(), formatter));
+                    } else {
+                        comment.setLocalDateTime(LocalDateTime.MIN);
+                    }
+
+                    // Lấy comment mới nhất của mỗi post
+                    if (latestComment == null || comment.getLocalDateTime().isAfter(latestComment.getLocalDateTime())) {
+                        latestComment = comment;
+                    }
+                }
+
+                if (latestComment != null) {
+                    latestCommentsMap.put(postId, latestComment);
+                }
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
+
+        // Chuyển Map thành List và sắp xếp theo thời gian mới nhất
+        List<Comment> latestComments = new ArrayList<>(latestCommentsMap.values());
+        latestComments.sort((c1, c2) -> c2.getLocalDateTime().compareTo(c1.getLocalDateTime()));
+
+        return latestComments;
+    }
 }
