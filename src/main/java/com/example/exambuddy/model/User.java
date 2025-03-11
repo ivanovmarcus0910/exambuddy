@@ -1,6 +1,7 @@
 package com.example.exambuddy.model;
 
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class User {
@@ -55,6 +56,13 @@ public class User {
         this.joinTime = System.currentTimeMillis();
         this.active = true; // Người dùng mới mặc định hoạt động
         this.timeExpriredPremium = 0;
+    }
+
+
+    public String getFormattedJoinTime() {
+        // Định dạng ngày theo mẫu "dd/MM/yyyy HH:mm:ss"
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+        return sdf.format(new Date(this.joinTime));
     }
 
     public long getJoinDate() { return joinDate;}

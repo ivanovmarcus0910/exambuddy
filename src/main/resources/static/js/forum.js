@@ -364,32 +364,45 @@ function toggleReplyForm(button, commentId) {
     form.style.display = form.style.display === "none" ? "block" : "none";
 }
 
-function submitReply(commentId) {
-    let inputField = document.getElementById("reply-input-" + commentId);
-    let content = inputField.value.trim();
-    let imageInput = document.getElementById("reply-image-" + commentId);
-    let imageFile = imageInput.files[0];
+function setReplyForm(commentId, username) {
+    let form = document.getElementById("comment-form");
+    let parentInput = document.getElementById("parentCommentId");
+    let contentInput = document.getElementById("commentContent");
+    let replyInfo = document.getElementById("reply-info");
+    let replyUsername = document.getElementById("reply-username");
 
-    if (!content && !imageFile) return; // Không gửi nếu cả nội dung & ảnh đều trống
+    // Cập nhật giá trị ID của comment cha
+    parentInput.value = commentId;
 
-    let formData = new FormData();
-    formData.append("commentId", commentId);
-    formData.append("content", content);
-    if (imageFile) {
-        formData.append("image", imageFile);
-    }
+    // Cập nhật tên người được phản hồi
+    replyUsername.innerText = username;
+    replyInfo.classList.remove("d-none"); // Hiển thị thông tin phản hồi
 
-    fetch("/forum/reply", {
-        method: "POST",
-        body: formData
-    })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                location.reload(); // Reload để cập nhật phản hồi mới
-            }
-        })
-        .catch(error => console.error("❌ Lỗi khi gửi phản hồi:", error));
+    // Hiển thị form ngay dưới comment được phản hồi
+    let commentElement = document.getElementById("comment-" + commentId);
+    commentElement.appendChild(form);
+
+    // Focus vào ô nhập nội dung
+    contentInput.focus();
+}
+
+function cancelReply() {
+    let parentInput = document.getElementById("parentCommentId");
+    let replyInfo = document.getElementById("reply-info");
+    let form = document.getElementById("comment-form");
+    let contentInput = document.getElementById("commentContent");
+
+    // Xóa ID của comment cha (trở lại trạng thái bình luận mới)
+    parentInput.value = "";
+
+    // Ẩn phần thông tin phản hồi
+    replyInfo.classList.add("d-none");
+
+    // Đưa form về vị trí mặc định (bình luận cho bài viết)
+    document.querySelector(".add-comment").appendChild(form);
+
+    // Reset nội dung nhập vào
+    contentInput.value = "";
 }
 
 

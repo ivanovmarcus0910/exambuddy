@@ -139,7 +139,7 @@
                             <button class="btn btn-outline-secondary"
                                     th:attr="onclick='openPostModal(event, \'' + ${post.postId} + '\')'">
                                 <i class="bi bi-chat"></i>
-                                <span class="comment-count" th:text="${#lists.size(post.comments)}">0</span>
+                                <span class="comment-count" th:text="${post.comments != null ? #lists.size(post.comments) : 0}"></span>
                             </button>
                             <button class="btn btn-outline-secondary share-button ms-auto"
                                     th:attr="data-post-id=${post.postId}">
@@ -153,12 +153,22 @@
         </main>
         <aside class="col-md-3 d-none d-md-block sidebar">
             <div class="card">
-                <div class="card-header">
-                    <h2>Ranking</h2>
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h2 class="h5 mb-0">Lịch sử bình luận</h2>
+                    <a href="#" class="text-decoration-none">Xem tất cả</a>
                 </div>
                 <ul class="list-group list-group-flush">
-                    <li class="list-group-item">Username 1 - Score</li>
-                    <li class="list-group-item">Username 2 - Score</li>
+                    <li th:each="comment : ${userComments}" class="list-group-item">
+                        <a th:href="@{/postDetail/{id}(id=${comment.postId})}"
+                           class="d-flex align-items-center text-decoration-none text-dark">
+                            <img th:src="${comment.avatarUrl}" class="rounded-circle me-3" width="35" height="35" alt="User">
+                            <div>
+                                <strong th:text="${comment.username} + ' >>> ' + ${comment.postOwner}"></strong>
+                                <div class="small text-muted">Bạn: <span th:text="${comment.content}"></span></div>
+                                <div class="small text-muted" th:text="${comment.timeAgo}"></div>
+                            </div>
+                        </a>
+                    </li>
                 </ul>
             </div>
         </aside>

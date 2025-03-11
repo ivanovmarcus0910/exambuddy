@@ -44,6 +44,7 @@ public class FirebaseAuthService {
         System.out.println("Mật khẩu sau khi mã hoá: " + hashedPassword);
         User user = new User(username, email, username, hashedPassword, false, role); // Chưa xác thực tài khoản
 
+
         try {
             // ✅ Tạo OTP xác thực tài khoản
             String otp = emailService.generateOtp();
