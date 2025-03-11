@@ -20,9 +20,23 @@
 <!-- Container Xác thực OTP -->
 <div class="container d-flex justify-content-center align-items-center min-vh-100">
     <div class="row shadow-lg p-5 bg-white rounded-4 w-100 text-center" style="max-width: 450px;">
-        <img th:src="@{/img/logo.png}" class="img-fluid mb-3 rounded-circle" style="width: 100px; height: 100px;">
+        <div class="d-flex justify-content-center">
+            <img th:src="@{/img/logo.png}" class="img-fluid mb-3 rounded-circle"
+                 style="width: 100px; height: 100px; object-fit: cover;">
+        </div>
         <h2 class="fw-bold">XÁC THỰC OTP</h2>
         <p class="text-muted">Nhập mã OTP đã được gửi tới email của bạn.</p>
+
+        <!-- Hiển thị thông báo thành công nếu có -->
+        <div th:if="${success}" class="alert alert-success text-center">
+            <span th:text="${success}"></span>
+        </div>
+
+        <!-- Hiển thị lỗi nếu có -->
+        <div th:if="${error}" class="alert alert-danger text-center">
+            <span th:text="${error}"></span>
+        </div>
+
 
         <!-- Hiển thị thông báo lỗi nếu có -->
         <p class="text-danger small" th:if="${error}" th:text="${error}"></p>

@@ -89,15 +89,10 @@ public class ForumController {
         }
         System.out.println("Time 3 : "+(System.currentTimeMillis() - x));
 
-        for (Post post : posts) {
-            List<Comment> comments = PostService.getCommentsByPostId(post.getPostId(), username);
-            post.setComments(comments != null ? comments : new ArrayList<>());
-            post.setLiked(post.getLikedUsernames() != null && post.getLikedUsernames().contains(username));
-        }
-        System.out.println("Time 4 : "+(System.currentTimeMillis() - x));
-
         String avatarUrl = UserService.getAvatarUrlByUsername(username);
+        List<Comment> latestComments = postService.getUserLatestComments(username);
 
+        model.addAttribute("userComments", latestComments);
         model.addAttribute("posts", posts);
         model.addAttribute("username", username);
         model.addAttribute("avatarUrl", avatarUrl);
@@ -110,6 +105,7 @@ public class ForumController {
 
     @PostMapping("/comment")
     public String createComment(@RequestParam String postId,
+                                @RequestParam(required = false) String parentCommentId,
                                 @RequestParam String content,
                                 @RequestParam("commentImages") MultipartFile[] files,
                                 HttpServletRequest request,
@@ -137,7 +133,8 @@ public class ForumController {
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String date = formatter.format(new Date());
 
-        Comment comment = PostService.saveComment(postId, username, avatarUrl, content, date, imageUrls);
+        // Lưu bình luận, có thể là bình luận chính hoặc phản hồi
+        Comment comment = PostService.saveComment(postId, parentCommentId, username, avatarUrl, content, date, imageUrls);
         model.addAttribute("comment", comment);
 
         return "redirect:/postDetail/" + postId;
@@ -227,4 +224,6 @@ public class ForumController {
         }
         return response;
     }
+
+
 }

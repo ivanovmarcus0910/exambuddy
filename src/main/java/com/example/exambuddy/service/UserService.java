@@ -203,6 +203,7 @@ public class UserService {
         }
         return payments;
     }
+
     public boolean changeCoinBalance(long change, String username){
         Firestore firestore = FirestoreClient.getFirestore();
         DocumentReference userRef = firestore.collection("users").document(username);
@@ -227,6 +228,7 @@ public class UserService {
         return false;
     }
     }
+
     public String updatePaymentStatus(long paymentCode, long amount, String status) {
         Firestore firestore = FirestoreClient.getFirestore();
         CollectionReference transactions = firestore.collection("Transactions");
@@ -250,6 +252,7 @@ public class UserService {
         }
         return null;
     }
+
     public boolean updatePaymentStatusFail(long paymentCode, String status) {
         Firestore firestore = FirestoreClient.getFirestore();
         CollectionReference transactions = firestore.collection("Transactions");
@@ -283,6 +286,20 @@ public class UserService {
         } catch (InterruptedException | ExecutionException e) {
             System.out.println("Lỗi khi cập nhật trạng thái cho user " + username);
             e.printStackTrace();
+        }
+    }
+
+    public boolean updateUserPremium(String username, long time){
+        Firestore firestore = FirestoreClient.getFirestore();
+        User user = getUserByUsername(username);
+        long timeExpire = user.getTimeExpriredPremium();
+        long newTime = Math.max(System.currentTimeMillis(), timeExpire) + time;
+        DocumentReference userRef = firestore.collection(COLLECTION_NAME).document(username);
+        try{
+            userRef.update("timeExpriredPremium", newTime);
+            return true;
+        } catch (Exception e){
+            return false;
         }
     }
 //    public boolean updatePremiumExp(long time, String username) {

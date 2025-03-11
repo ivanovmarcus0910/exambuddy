@@ -9,6 +9,27 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+    <style>
+        /* Loại bỏ icon cảnh báo mặc định của Bootstrap */
+        .is-invalid {
+            background-image: none !important;
+            border-color: red;
+        }
+        .invalid-feedback {
+            display: block;
+            font-size: 0.875rem;
+            color: red;
+            padding-top: 5px;
+        }
+        /* Tăng độ rõ nét của chữ hỗ trợ xác thực */
+        .text-primary {
+            text-decoration: none;
+        }
+
+        .text-primary:hover {
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body class="bg-white">
 <!-- Header -->
@@ -24,17 +45,22 @@
         </div>
 
         <!-- Form đăng nhập -->
-        <form action="/login" method="post" class="mt-3">
+        <form action="/login" method="post" id="loginForm" class="mt-3">
             <!-- Thông báo lỗi -->
             <div id="error-message" th:if="${error}" class="alert alert-danger text-center">
                 <span th:text="${error}"></span>
             </div>
+            <!-- Hiển thị thông báo thành công nếu có -->
+            <div th:if="${success}" class="alert alert-success text-center">
+                <span th:text="${success}"></span>
+            </div>
+
 
             <!-- Ô nhập Tên đăng nhập -->
             <div class="mb-3">
                 <label class="form-label fw-semibold">Tên tài khoản</label>
-                <input type="text" name="username" class="form-control rounded-pill" placeholder="Nhập tên tài khoản"
-                       required>
+                <input type="text" id="username" name="username" class="form-control rounded-pill" placeholder="Nhập tên tài khoản">
+                <div class="invalid-feedback" id="username-error"></div>
             </div>
 
             <!-- Ô nhập Mật khẩu -->
@@ -42,10 +68,11 @@
                 <label class="form-label fw-semibold">Mật khẩu</label>
                 <div class="position-relative">
                     <input type="password" id="password" name="password" class="form-control rounded-pill px-4 pe-5"
-                           placeholder="Nhập mật khẩu" required>
+                           placeholder="Nhập mật khẩu" >
                     <i id="passwordIcon" class="bi bi-eye position-absolute top-50 end-0 translate-middle-y me-3"
                        style="cursor: pointer; font-size: 1.2rem; color: #6c757d;"></i>
                 </div>
+                <div class="invalid-feedback" id="password-error"></div>
             </div>
 
             <!-- Ghi nhớ đăng nhập & Quên mật khẩu -->
@@ -80,6 +107,11 @@
         <p class="text-center text-muted mt-4">
             Chưa có tài khoản? <a href="/signup" class="text-primary">Đăng ký</a>
         </p>
+
+        <!-- Hỗ trợ xác thực tài khoản -->
+        <p class="text-center mt-2">
+            <a href="/support-verification" class="text-primary fw-bold">Hỗ trợ về xác thực tài khoản</a>
+        </p>
     </div>
 </div>
 
@@ -89,18 +121,62 @@
 
 <!-- Toggle Password -->
 <script>
-    document.getElementById("passwordIcon").addEventListener("click", function () {
-        const passwordField = document.getElementById("password");
-        const icon = this;
+    document.addEventListener("DOMContentLoaded", function () {
+        const loginForm = document.getElementById("loginForm");
 
-        if (passwordField.type === "password") {
-            passwordField.type = "text";
-            icon.classList.remove("bi-eye");
-            icon.classList.add("bi-eye-slash"); // Đổi thành icon mắt đóng
-        } else {
-            passwordField.type = "password";
-            icon.classList.remove("bi-eye-slash");
-            icon.classList.add("bi-eye"); // Đổi lại thành icon mắt mở
+        if (loginForm) {
+            loginForm.addEventListener("submit", function (event) {
+                let username = document.getElementById("username");
+                let password = document.getElementById("password");
+                let usernameError = document.getElementById("username-error");
+                let passwordError = document.getElementById("password-error");
+
+                let hasError = false;
+
+                // Reset lỗi trước đó
+                username.classList.remove("is-invalid");
+                password.classList.remove("is-invalid");
+                usernameError.innerText = "";
+                passwordError.innerText = "";
+
+                // Kiểm tra username
+                if (!username.value.trim()) {
+                    username.classList.add("is-invalid");
+                    usernameError.innerText = "Vui lòng nhập tên tài khoản.";
+                    hasError = true;
+                }
+
+                // Kiểm tra password
+                if (!password.value.trim()) {
+                    password.classList.remove("is-invalid"); // Reset lỗi trước
+                    setTimeout(() => password.classList.add("is-invalid"), 10); // Cập nhật CSS
+                    passwordError.innerText = "Vui lòng nhập mật khẩu.";
+                    passwordError.classList.add("d-block"); // Hiển thị lỗi
+                    hasError = true;
+                }
+
+                // Nếu có lỗi, ngăn form submit
+                if (hasError) {
+                    event.preventDefault();
+                }
+            });
+        }
+
+        // Ẩn/Hiện mật khẩu
+        const passwordIcon = document.getElementById("passwordIcon");
+        if (passwordIcon) {
+            passwordIcon.addEventListener("click", function () {
+                const passwordField = document.getElementById("password");
+                if (passwordField.type === "password") {
+                    passwordField.type = "text";
+                    passwordIcon.classList.remove("bi-eye");
+                    passwordIcon.classList.add("bi-eye-slash");
+                } else {
+                    passwordField.type = "password";
+                    passwordIcon.classList.remove("bi-eye-slash");
+                    passwordIcon.classList.add("bi-eye");
+                }
+            });
         }
     });
 </script>

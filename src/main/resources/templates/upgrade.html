@@ -1,171 +1,59 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Upgrade Account</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css"
-          integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-
-    <link rel="icon" type="image/x-icon"
-          href="https://res.cloudinary.com/dsuav027e/image/upload/v1740393796/favicon_llcueu.ico">
+    <title>Nâng cấp tài khoản</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.0/dist/css/bootstrap.min.css">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
     <style>
-        .modal-dialog {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            width: fit-content;
+        body {
             background-color: #f8f9fa;
         }
-        .modal-content {
-            border-radius: 10px;
+        .upgrade-container {
+            max-width: 500px;
+            margin: 50px auto;
+            background: white;
             padding: 20px;
-            text-align: center;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
-
-        .modal-header {
-            border-bottom: none;
-        }
-
-        .modal-body {
-            padding: 0;
-        }
-
-        .modal-footer {
-            border-top: none;
-            padding-top: 0;
-        }
-
-        .btn-custom {
+        .btn-upgrade {
             background: linear-gradient(90deg, #ff8a00, #e52e71);
             color: white;
-            border: none;
             border-radius: 25px;
-            padding: 10px 20px;
             font-weight: bold;
+            padding: 10px 20px;
         }
-
-        .btn-custom:hover {
+        .btn-upgrade:hover {
             background: linear-gradient(90deg, #e52e71, #ff8a00);
         }
-
-        .list-group-item {
-            border: none;
-            padding-left: 0;
-        }
-
-        .list-group-item i {
-            margin-right: 10px;
-        }
-
-        .form-check-label {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-        }
-
-        .form-check-input:checked + .form-check-label {
-            background: linear-gradient(90deg, #ff8a00, #e52e71);
-            color: white;
-            border-radius: 5px;
-        }
-
-        .form-check-input:checked + .form-check-label .badge {
-            background-color: white;
-            color: #ff8a00;
-        }
-
-        .badge {
-            background-color: #e52e71;
-            color: white;
-        }
     </style>
+
 </head>
 <body>
-<div th:insert="fragments/header :: header"></div>
+<div class="upgrade-container">
+    <h2 class="text-center">Nâng cấp lên Premium</h2>
+    <p class="text-center">Chọn gói phù hợp với bạn:</p>
 
-<div class="modal-dialog">
-    <div class="modal-content">
-        <div class="modal-header">
-            <button aria-label="Close" class="btn-close" type="button">
-            </button>
-        </div>
-        <div class="modal-body">
-            <img alt="DuckPro logo with a duck face and a crown" class="mb-3" height="100"
-                 src="https://storage.googleapis.com/a1aa/image/aGG13DA-f8cbqaUSnDtc7zAnLEG_vHnvpohWQPaJf_M.jpg"
-                 width="100"/>
-            <h2>
-                Upgrade to
-                <span style="color: #ff8a00;">
-       Buddy
-      </span>
-                <span style="color: #00c6ff;">
-       Pro
-      </span>
-            </h2>
-            <p>
-                One subscription. Many integrations. And then
-                <span style="color: #00c6ff;">
-       some more
-      </span>
-            </p>
-            <ul class="list-group list-group-flush mb-3">
-                <li class="list-group-item">
-                    <i class="fas fa-infinity"></i>
-                    Unlimited Test Attempts
-                </li>
-                <li class="list-group-item">
-                    <i class="fas fa-robot"></i>
-                    AI-Powered Answer Explanations
-                </li>
-                <li class="list-group-item">
-                    <i class="fas fa-comments"></i>
-                    Unlimited Forum Posts
-                </li>
-                <li class="list-group-item">
-                    <i class="fas fa-graduation-cap"></i>
-                    Access to Advanced Exam Sets
-                </li>
-            </ul>
+    <div th:if="${err}" class="alert alert-danger text-center" th:text="${err}"></div>
 
-            <div class="form-check mb-2">
-                <input checked="" class="form-check-input" id="billYearly" name="billingOption" type="radio"/>
-                <label class="form-check-label" for="billYearly">
-                    <span>12 tháng</span>
-                    <span class="badge">TIẾT KIỆM NHẤT</span>
-                    <span>200,000 VND</span>
-                </label>
-            </div>
-            <div class="form-check mb-2">
-                <input class="form-check-input" id="billHalfYear" name="billingOption" type="radio"/>
-                <label class="form-check-label" for="billHalfYear">
-                    <span>6 tháng</span>
-                    <span>120,000 VND</span>
-                </label>
-            </div>
-            <div class="form-check mb-3">
-                <input class="form-check-input" id="billMonthly" name="billingOption" type="radio"/>
-                <label class="form-check-label" for="billMonthly">
-                    <span>1 tháng</span>
-                    <span>25,000 VND</span>
-                </label>
-            </div>
-            <p>
-                Got questions?
-                <a href="#">
-                    <i class="fas fa-comment-dots">
-                    </i>
-                    Chat to us
-                </a>
-            </p>
+    <form id="upgradeForm" action="/upgrade" method="POST">
+        <div class="form-check mb-2">
+            <input class="form-check-input" type="radio" name="plan" id="plan1" value="3" checked>
+            <label class="form-check-label" for="plan1">12 tháng - <b>300,000 Coin (Tặng thêm 3 tháng)</b></label>
         </div>
-    </div>
+        <div class="form-check mb-2">
+            <input class="form-check-input" type="radio" name="plan" id="plan2" value="2">
+            <label class="form-check-label" for="plan2">6 tháng - <b>150,000 Coin (Tặng thêm 1 tháng)</b></label>
+        </div>
+        <div class="form-check mb-3">
+            <input class="form-check-input" type="radio" name="plan" id="plan3" value="1">
+            <label class="form-check-label" for="plan3">1 tháng - <b>25,000 Coin</b></label>
+        </div>
+
+        <button type="submit" class="btn btn-upgrade btn-block">Thanh toán</button>
+    </form>
 </div>
-<div th:replace="fragments/footer :: footer"></div>
-
 </body>
 </html>

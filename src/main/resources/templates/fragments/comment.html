@@ -1,0 +1,65 @@
+<!-- Fragment hiển thị Comment và Reply -->
+<div th:fragment="commentItem(comment)" class="comment-item border-bottom py-2">
+    <div class="d-flex">
+        <img th:src="${comment.avatarUrl}" class="rounded-circle me-3 mt-1" width="35" height="35" alt="User">
+
+        <div class="flex-grow-1">
+            <div class="card bg-light border-0 p-2">
+                <div class="d-flex align-items-center justify-content-between">
+                    <h6 class="fw-bold mb-0" th:text="${comment.username}"></h6>
+                    <div class="dropdown">
+                        <button class="btn btn-sm" type="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-three-dots-vertical"></i>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item text-primary" href="#"><i class="bi bi-pencil"></i> Chỉnh sửa</a></li>
+                            <li><a class="dropdown-item text-danger" href="#"><i class="bi bi-trash"></i> Xoá</a></li>
+                            <li><a class="dropdown-item text-secondary" href="#"><i class="bi bi-flag"></i> Báo cáo</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <span class="comment-content" th:text="${comment.content}"></span>
+            </div>
+
+            <!-- Hiển thị ảnh trong bình luận -->
+            <div th:if="${comment.imageUrls != null and !comment.imageUrls.isEmpty()}" class="comment-images mt-2">
+                <span th:each="imageUrl, iterStat : ${comment.imageUrls}" th:if="${iterStat.index < 3}">
+                    <img th:src="${imageUrl}" class="comment-image" onclick="openImageModal(this)">
+                </span>
+                <span th:if="${#lists.size(comment.imageUrls) > 3}" class="more-images text-primary fw-bold"
+                      th:text="'+' + (${#lists.size(comment.imageUrls)} - 3) + ' ảnh nữa'" onclick="showAllImages(this)">
+                </span>
+            </div>
+            <div class="hidden-comment-images" style="display: none;">
+                <span th:each="imageUrl, iterStat : ${comment.imageUrls}" th:if="${iterStat.index >= 3}">
+                    <img th:src="${imageUrl}" class="comment-image" onclick="openImageModal(this)">
+                </span>
+            </div>
+            <!-- Nút "Thu gọn" -->
+            <span class="collapse-comment-images text-primary fw-bold" style="display: none; cursor: pointer;"
+                  onclick="collapseImages(this)"> Thu gọn</span>
+            <!-- Nút like và phản hồi -->
+            <div class="d-flex align-items-center mt-2">
+                <button class="btn btn-outline-secondary heart-btn"
+                        th:attr="data-comment-id=${comment.commentId}, data-post-id=${post.postId}"
+                        th:classappend="${comment.liked} ? 'text-danger' : ''"
+                        onclick="toggleLikeComment(this)">
+                    <i class="bi" th:classappend="${comment.liked} ? 'bi-heart-fill' : 'bi-heart'"></i>
+                    <span class="heart-count" th:text="${comment.likeCount}">0</span>
+                </button>
+                <button class="btn btn-sm btn-link text-dark text-decoration-none ms-2"
+                        th:attr="onclick='setReplyForm(\'' + ${comment.commentId} + '\', \'' + ${comment.username} + '\')'">
+                    Phản hồi
+                </button>
+                <span style="font-size: 11px; color: gray" th:text="${comment.timeAgo}"></span>
+            </div>
+
+            <!-- Hiển thị danh sách phản hồi -->
+            <div class="replies ms-4 mt-2" th:if="${comment.replies != null and not comment.replies.isEmpty()}">
+                <div th:each="reply : ${comment.replies}">
+                    <div th:replace="~{fragments/comment :: commentItem(comment=${reply})}"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

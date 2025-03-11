@@ -359,6 +359,53 @@ function toggleLikeComment(btn) {
         });
 }
 
+function toggleReplyForm(button, commentId) {
+    let form = document.getElementById("reply-form-" + commentId);
+    form.style.display = form.style.display === "none" ? "block" : "none";
+}
+
+function setReplyForm(commentId, username) {
+    let form = document.getElementById("comment-form");
+    let parentInput = document.getElementById("parentCommentId");
+    let contentInput = document.getElementById("commentContent");
+    let replyInfo = document.getElementById("reply-info");
+    let replyUsername = document.getElementById("reply-username");
+
+    // Cập nhật giá trị ID của comment cha
+    parentInput.value = commentId;
+
+    // Cập nhật tên người được phản hồi
+    replyUsername.innerText = username;
+    replyInfo.classList.remove("d-none"); // Hiển thị thông tin phản hồi
+
+    // Hiển thị form ngay dưới comment được phản hồi
+    let commentElement = document.getElementById("comment-" + commentId);
+    commentElement.appendChild(form);
+
+    // Focus vào ô nhập nội dung
+    contentInput.focus();
+}
+
+function cancelReply() {
+    let parentInput = document.getElementById("parentCommentId");
+    let replyInfo = document.getElementById("reply-info");
+    let form = document.getElementById("comment-form");
+    let contentInput = document.getElementById("commentContent");
+
+    // Xóa ID của comment cha (trở lại trạng thái bình luận mới)
+    parentInput.value = "";
+
+    // Ẩn phần thông tin phản hồi
+    replyInfo.classList.add("d-none");
+
+    // Đưa form về vị trí mặc định (bình luận cho bài viết)
+    document.querySelector(".add-comment").appendChild(form);
+
+    // Reset nội dung nhập vào
+    contentInput.value = "";
+}
+
+
 
 
 

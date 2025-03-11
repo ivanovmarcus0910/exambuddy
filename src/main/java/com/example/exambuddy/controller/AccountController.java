@@ -6,6 +6,7 @@ import com.example.exambuddy.service.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.ui.Model;
@@ -70,28 +71,6 @@ public class AccountController {
         return "redirect:/profile";  // Trở về trang profile
     }
 
-//    @PostMapping("/profile/update")
-//    public String updateProfile(@RequestParam String fullName,
-//                                @RequestParam String phone,
-//                                HttpServletRequest request,
-//                                Model model) {
-//        HttpSession session = request.getSession();
-//        String username = (String) session.getAttribute("loggedInUser");
-//
-//        if (username == null) {
-//            return "redirect:/login";
-//        }
-//
-//        // Gọi Firestore Service để cập nhật dữ liệu
-//        UserService.updateUserField(username, "fullName", fullName);
-//        UserService.updateUserField(username, "phone", phone);
-//        // Lấy dữ liệu mới từ Firestore để cập nhật lại model
-//        User updatedUser = UserService.getUserData(username);
-//        session.setAttribute("user", updatedUser);
-//        model.addAttribute("user", updatedUser);
-//
-//        return "redirect:/profile"; // Trở về trang profile
-//    }
 
     @GetMapping("/changePass")
     public String changePasswordPage(HttpSession session, Model model) {
@@ -172,7 +151,7 @@ public class AccountController {
             return "redirect:/login";
         }
         User user = userService.getUserByUsername(username);
-        if (user != null &&( (user.getRole() == User.Role.USER) || (user.getRole() == User.Role.UPGRADED_USER))) {
+        if (user != null &&( (user.getRole() == User.Role.STUDENT) || (user.getRole() == User.Role.UPGRADED_STUDENT))) {
             model.addAttribute("level", chargeLevel);
             return "upgrade";
         }
@@ -180,26 +159,55 @@ public class AccountController {
             return "error";
     }
     @PostMapping("/upgrade")
-    public  String upgradePremium(@RequestParam int sellect, HttpSession session, Model model) {
+    public  String upgradePremium(@RequestParam int plan, RedirectAttributes redirectAttributes, HttpSession session, Model model) {
         String username = (String) session.getAttribute("loggedInUser");
         if (username == null) {
             return "redirect:/login";
         }
         User user = userService.getUserByUsername(username);
-        long charge = 0;
-        switch (sellect) {
-            case 1-> charge=chargeLevel[0];
-            case 2-> charge=chargeLevel[1];
-            case 3-> charge=chargeLevel[2];
-        }
-        if (user.getCoin()>charge) {
-            if (userService.changeCoinBalance(charge, username))
-            {
+        long charge = 0, timer = 0;
+        switch (plan) {
+            case 1-> {
+                charge=chargeLevel[0];
+                timer=30L*24*60*60*1000;
+            }
+            case 2-> {
+                charge=chargeLevel[1];
+                timer=7*30L*24*60*60*1000;
 
             }
-
+            case 3-> {
+                charge=chargeLevel[2];
+                timer=15*30L*24*60*60*1000;
+            }
         }
-        return "redirect:/profile";
+        if (user.getCoin()>charge) {
+            if (userService.changeCoinBalance(-charge, username))
+            {
+                if (userService.updateUserPremium(username, timer))
+                {
+                    return "redirect:/profile";
+                }
+                else
+                {
+
+                    model.addAttribute("err", "Lỗi giao dịch, vui lòng thử lại!");
+                    return "upgrade";
+                }
+
+            }
+            else
+            {
+                model.addAttribute("err", "Lỗi giao dịch, vui lòng thử lại!");
+                return "upgrade";
+
+            }
+        }
+        else{
+            model.addAttribute("err", "Không đủ coin vui lòng nạp và thử lại!");
+            return "upgrade";
+        }
+
     }
 
 }

@@ -7,7 +7,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -42,6 +44,7 @@ public class FirebaseAuthService {
         String hashedPassword = passService.encodePassword(password);
         System.out.println("Mật khẩu sau khi mã hoá: " + hashedPassword);
         User user = new User(username, email, username, hashedPassword, false, role); // Chưa xác thực tài khoản
+
 
         try {
             // ✅ Tạo OTP xác thực tài khoản

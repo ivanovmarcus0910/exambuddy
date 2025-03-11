@@ -105,16 +105,32 @@ public class AuthController {
                         HttpServletResponse response,
                         HttpServletRequest request) throws UnsupportedEncodingException {
 
-        // Kiểm tra xác thực email
-        if (!authService.isEmailVerified(username)) {
-            model.addAttribute("error", "Tài khoản chưa được xác thực. Vui lòng kiểm tra email.");
+        if (username.isEmpty() || password.isEmpty()) {
+            model.addAttribute("error", "Vui lòng nhập đầy đủ thông tin đăng nhập!");
             return "login";
         }
 
+        // Kiểm tra xem tài khoản có tồn tại không
+        User user = userService.getUserByUsername(username);
+        if (user == null) {
+            model.addAttribute("error", "Tài khoản không tồn tại trong hệ thống!");
+            return "login";
+        }
+        // Kiểm tra xác thực email
+        if (!authService.isEmailVerified(username)) {
+            model.addAttribute("error", "Tài khoản chưa được xác thực. Vui lòng kiểm tra email.");
+            model.addAttribute("actionType", "register");  // Xác thực tài khoản
+            return "login";
+        }
+
+        // Kiểm tra nếu mật khẩu không đúng
+        if (!authService.authenticate(username, password)) {
+            model.addAttribute("error", "Mật khẩu không đúng. Vui lòng thử lại!");
+            return "login";
+        }
         // Xác thực tài khoản
         if (authService.authenticate(username, password)) {
             // Lấy đối tượng người dùng
-            User user = userService.getUserByUsername(username);
             if (user == null) {
                 model.addAttribute("error", "Không tìm thấy người dùng!");
                 return "login";
@@ -287,13 +303,14 @@ public class AuthController {
         try {
             userRole = User.Role.valueOf(role.toUpperCase());
         } catch (IllegalArgumentException e) {
-            userRole = User.Role.USER;
+            userRole = User.Role.STUDENT;
         }
 
         String result = authService.registerUser(email, username, password, userRole);
         model.addAttribute("email", email);
         model.addAttribute("actionType", "register");  // Xác thực tài khoản
         model.addAttribute("message", result);
+        model.addAttribute("success", "🎉 Đăng ký thành công! Kiểm tra email để xác thực tài khoản.");
         return "verifyOTP"; // Dùng chung trang verifyOTP.html
     }
 
