@@ -1,9 +1,6 @@
 package com.example.exambuddy.controller;
 
-import com.example.exambuddy.model.Exam;
-import com.example.exambuddy.model.ExamResult;
-import com.example.exambuddy.model.Question;
-import com.example.exambuddy.model.User;
+import com.example.exambuddy.model.*;
 import com.example.exambuddy.service.CookieService;
 import com.example.exambuddy.service.ExamService;
 import com.example.exambuddy.service.UserService;
@@ -265,37 +262,78 @@ public class ManageExamController {
     }
 
     @GetMapping("/exams/liked")
-    public String showLikedExams(Model model, HttpServletRequest request, HttpSession session) {
+    public String showLikedExams(
+            @RequestParam(value = "subject", required = false) String subject,
+            @RequestParam(value = "grade", required = false) String grade,
+            @RequestParam(value = "searchQuery", required = false) String searchQuery,
+            Model model, HttpServletRequest request, HttpSession session) {
         if (session.getAttribute("loggedInUser") == null) {
             return "redirect:/login"; // Nếu chưa đăng nhập, chuyển hướng về home
         }
         String username = cookieService.getCookie(request, "noname");
         List<Exam> likedExams = examService.getLikedExamsByUser(username);
+        User user =userService.getUserByUsername(username);
+        model.addAttribute("user", user);
+
+        if (searchQuery != null && !searchQuery.trim().isEmpty()) {
+            likedExams = likedExams.stream()
+                    .filter(exam -> exam.getExamName() != null && exam.getExamName().toLowerCase().contains(searchQuery.toLowerCase()))
+                    .collect(Collectors.toList());
+        }
+        // Áp dụng bộ lọc theo môn học và grade
+        likedExams = examService.filterExamsBySubject(likedExams, subject);
+        likedExams = examService.filterExamsByClass(likedExams, grade);
 
         model.addAttribute("likedExams", likedExams);
+        model.addAttribute("selectedSubject", subject);
+        model.addAttribute("selectedGrade", grade);
+        model.addAttribute("searchQuery", searchQuery);
         return "likedExams"; // Trả về giao diện liked-exams.html
     }
 
 
     @GetMapping("/exams/created")
-    public String showCreatedExams(Model model, HttpServletRequest request, HttpSession session) {
+    public String showCreatedExams(
+            @RequestParam(value = "subject", required = false) String subject,
+            @RequestParam(value = "grade", required = false) String grade,
+            @RequestParam(value = "searchQuery", required = false) String searchQuery,
+            Model model, HttpServletRequest request, HttpSession session) {
         if (session.getAttribute("loggedInUser") == null) {
-            return "redirect:/login"; // Nếu chưa đăng nhập, chuyển hướng về home
+            return "redirect:/login"; // Nếu chưa đăng nhập, chuyển hướng về login
         }
 
         String username = cookieService.getCookie(request, "noname");
         User user = userService.getUserByUsername(username);
         model.addAttribute("user", user);
+
+        // Lấy danh sách bài kiểm tra đã tạo bởi username
         List<Exam> createdExams = examService.getHtoryCreateExamsByUsername(username);
+
+        // Áp dụng tìm kiếm theo tên
+        if (searchQuery != null && !searchQuery.trim().isEmpty()) {
+            createdExams = createdExams.stream()
+                    .filter(exam -> exam.getExamName() != null && exam.getExamName().toLowerCase().contains(searchQuery.toLowerCase()))
+                    .collect(Collectors.toList());
+        }
+
+        // Áp dụng bộ lọc theo môn học và grade
+        createdExams = examService.filterExamsBySubject(createdExams, subject);
+        createdExams = examService.filterExamsByClass(createdExams, grade);
+
+        // Truyền dữ liệu sang view
         model.addAttribute("createdExams", createdExams);
-        return "createdExams"; // Tên file HTML để hiển thị các bài thi đã tạo
+        model.addAttribute("selectedSubject", subject);
+        model.addAttribute("selectedGrade", grade);
+        model.addAttribute("searchQuery", searchQuery);
+
+        return "createdExams";
     }
 
 
     @GetMapping("/exams/result/{resultId}/{examId}")
     public String viewExamResult(@PathVariable String resultId, @PathVariable String examId, Model model, HttpServletRequest request, HttpSession session) throws ExecutionException, InterruptedException {
         if (session.getAttribute("loggedInUser") == null) {
-            return "redirect:/login"; // Nếu chưa đăng nhập, chuyển hướng về home
+            return "redirect:/login"; // Nếu chưa đăng nhập, chuyển hướng về login
         }
         String username = cookieService.getCookie(request, "noname");
 
@@ -315,8 +353,10 @@ public class ManageExamController {
         model.addAttribute("score", examResult.getScore());
         model.addAttribute("userAnswers", examResult.getAnswers());
         model.addAttribute("correctQuestions", examResult.getCorrectAnswers());
+        model.addAttribute("userName", examResult.getUsername());
 
-        return "examResultDetail";
+        // Trả về fragment thay vì toàn bộ trang
+        return "fragments/ResultDetail :: detailFragment";
     }
 
     @GetMapping("/search")
@@ -440,6 +480,40 @@ public class ManageExamController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("message", "Lỗi khi xử lý file: " + e.getMessage()));
         }
+    }
+
+    @GetMapping("/exams/{examId}/statistics")
+    public String getExamStatistics(@PathVariable String examId, Model model,
+                                    HttpServletRequest request, HttpSession session) {
+        if (session.getAttribute("loggedInUser") == null) {
+            return "redirect:/login";
+        }
+
+        String username = cookieService.getCookie(request, "noname");
+        User user = userService.getUserByUsername(username);
+        model.addAttribute("user", user);
+
+        Exam exam = examService.getExam(examId);
+        if (exam == null || !exam.getUsername().equals(username)) {
+            model.addAttribute("error", "Không tìm thấy đề thi hoặc bạn không có quyền xem thống kê!");
+            return "error";
+        }
+
+        List<ExamResult> results = examService.getExamResultsByExamId(examId);
+        System.out.println("Số kết quả trả về: " + results.size());
+        for (ExamResult result : results) {
+            System.out.println("Kết quả trong controller: resultId=" + result.getResultId() +
+                    ", username=" + result.getUsername() +
+                    ", score=" + result.getScore());
+        }
+
+        ExamStatistics stats = examService.calculateStatistics(results);
+
+        model.addAttribute("exam", exam);
+        model.addAttribute("stats", stats);
+        model.addAttribute("results", results);
+
+        return "examStatistics";
     }
 }
 

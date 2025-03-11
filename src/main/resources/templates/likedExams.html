@@ -2,64 +2,280 @@
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Bài kiểm tra đã thích</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>Lịch sử tạo đề</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/x-icon"
           href="https://res.cloudinary.com/dsuav027e/image/upload/v1740393796/favicon_llcueu.ico">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
+    <!-- Bootstrap CSS (CDN) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background: #f5f6fa;
+        }
+        a {
+            text-decoration: none;
+        }
+        .sidebar-fixed {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 240px;
+            height: 100vh;
+            background: #fff;
+            padding: 1.5rem 1rem;
+            border-right: 1px solid #eee;
+            z-index: 998;
+            transition: width 0.3s ease;
+        }
+        .header-fixed {
+            position: fixed;
+            top: 0;
+            left: 240px;
+            right: 0;
+            height: 70px;
+            background: #fff;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 1rem;
+            z-index: 999;
+            transition: left 0.3s ease;
+        }
+        @media (max-width: 768px) {
+            .sidebar-fixed {
+                width: 70px;
+                padding: 1rem 0.5rem;
+            }
+            .header-fixed {
+                left: 70px;
+            }
+            .brand-text {
+                display: none !important;
+            }
+            .sidebar-fixed .nav.flex-column a span.menu-text {
+                display: none !important;
+            }
+        }
+        .content-area {
+            margin-top: 80px;
+            margin-left: 240px;
+            padding: 20px;
+            background: #f5f6fa;
+            min-height: calc(100vh - 80px);
+            position: relative;
+        }
+        @media (max-width: 768px) {
+            .content-area {
+                margin-top: 70px;
+                margin-left: 70px;
+            }
+        }
+        .exam-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .exam-table th, .exam-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .exam-table th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        .exam-table td button {
+            margin-right: 5px;
+        }
+        .filter-form {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+    </style>
 </head>
 <body class="bg-light">
+<!-- Sidebar -->
+<!--<div class="sidebar-fixed">-->
+<!--    <div class="mb-4">-->
+<!--        <div class="d-flex align-items-center brand" style="gap:8px;">-->
+<!--            <img src="https://res.cloudinary.com/dsuav027e/image/upload/v1740393796/favicon_iexkhg.png"-->
+<!--                 alt="Exam Buddy Logo"-->
+<!--                 style="width:48px; height:48px; border-radius:50%; object-fit:cover;">-->
+<!--            <div class="brand-text">-->
+<!--                <div style="color:#8e44ad; font-weight:600; font-size:1.1rem;">Exam Buddy</div>-->
+<!--                <small class="text-muted subtitle-text">E-learning</small>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--        <button class="btn btn-light border mt-3 d-block"-->
+<!--                style="border-radius:50%; width:36px; height:36px;">-->
+<!--            <i class="bi bi-box-arrow-right"></i>-->
+<!--        </button>-->
+<!--    </div>-->
+<!--    <nav class="nav flex-column" style="gap:1rem;">-->
+<!--        <a class="d-flex align-items-center px-2 py-2 text-secondary" href="/profile" style="border-radius:8px;">-->
+<!--            <i class="bi bi-person-fill me-2" style="font-size:1.2rem;"></i>-->
+<!--            <span class="menu-text">Thông tin cá nhân</span>-->
+<!--        </a>-->
+<!--        <a class="d-flex align-items-center px-2 py-2 text-secondary" href="/payment-coin" style="border-radius:8px;">-->
+<!--            <i class="bi bi-wallet-fill me-2" style="font-size:1.2rem;"></i>-->
+<!--            <span class="menu-text">Nạp Coin</span>-->
+<!--        </a>-->
+<!--        <a class="d-flex align-items-center px-2 py-2 text-secondary" href="/statistics" style="border-radius:8px;">-->
+<!--            <i class="bi bi-bar-chart-fill me-2" style="font-size:1.2rem;"></i>-->
+<!--            <span class="menu-text">Thống kê</span>-->
+<!--        </a>-->
+<!--        <a class="d-flex align-items-center px-2 py-2 text-secondary" href="/exams/result-list" style="border-radius:8px;">-->
+<!--            <i class="bi bi-clock-history me-2" style="font-size:1.2rem;"></i>-->
+<!--            <span class="menu-text">Lịch sử làm đề</span>-->
+<!--        </a>-->
+<!--        <a class="d-flex align-items-center px-2 py-2 text-secondary" href="/exams/created" style="border-radius:8px;">-->
+<!--            <i class="bi bi-file-earmark me-2" style="font-size:1.2rem;"></i>-->
+<!--            <span class="menu-text">Lịch sử tạo đề</span>-->
+<!--        </a>-->
+<!--        <a class="d-flex align-items-center px-2 py-2 text-secondary" href="#!" style="border-radius:8px;">-->
+<!--            <i class="bi bi-pencil-square me-2" style="font-size:1.2rem;"></i>-->
+<!--            <span class="menu-text">Lịch sử đăng bài</span>-->
+<!--        </a>-->
+<!--        <a class="d-flex align-items-center px-2 py-2 text-secondary" href="/paymentHistory" style="border-radius:8px;">-->
+<!--            <i class="bi bi-wallet2 me-2" style="font-size:1.2rem;"></i>-->
+<!--            <span class="menu-text">Lịch sử thanh toán</span>-->
+<!--        </a>-->
+<!--        <a class="d-flex align-items-center px-2 py-2 text-danger" href="/logout" style="border-radius:8px;">-->
+<!--            <i class="bi bi-box-arrow-right me-2" style="font-size:1.2rem;"></i>-->
+<!--            <span class="menu-text">Đăng xuất</span>-->
+<!--        </a>-->
+<!--    </nav>-->
+<!--</div>-->
 
-<!-- Header -->
-<div th:insert="~{fragments/header :: header}"></div>
 
-<!-- Container -->
-<div class="container py-5">
-    <h2 class="text-center fw-bold mb-4">Bài kiểm tra đã thích</h2>
+<!--&lt;!&ndash; Header &ndash;&gt;-->
+<!--<div class="header-fixed">-->
+<!--    <div class="d-flex align-items-center" style="color:#6c757d;">-->
+<!--        <a style="font-size:1rem; color:#6c757d;" href="/home">-->
+<!--            <i class="bi bi-house-door me-2" style="font-size:1.2rem;"></i>-->
+<!--            Trang chủ-->
+<!--        </a>-->
+<!--    </div>-->
+<!--    <div class="d-flex align-items-center">-->
+<!--        <a href="#!" class="text-dark me-3" style="font-size:1.2rem;">-->
+<!--            <i class="bi bi-bell"></i>-->
+<!--        </a>-->
+<!--        <a href="#!" class="text-dark me-3" style="font-size:1.2rem;">-->
+<!--            <i class="bi bi-globe"></i>-->
+<!--        </a>-->
+<!--        <div class="dropdown">-->
+<!--            <a href="#!" class="d-flex align-items-center text-dark dropdown-toggle"-->
+<!--               id="userDropdown" data-bs-toggle="dropdown">-->
+<!--                <img th:src="${user.avatarUrl}" alt="Avatar"-->
+<!--                     style="width:40px; height:40px; border-radius:50%; object-fit:cover; margin-right:6px;">-->
+<!--                <span style="font-size:0.9rem;" th:text="${user.role}">Học viên</span>-->
+<!--            </a>-->
+<!--            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">-->
+<!--                <li><a class="dropdown-item" href="#">Thông tin cá nhân</a></li>-->
+<!--                <li><a class="dropdown-item" href="/logout">Đăng xuất</a></li>-->
+<!--            </ul>-->
+<!--        </div>-->
+<!--    </div>-->
+<!--</div>-->
 
-    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-        <div class="col" th:each="exam : ${likedExams}">
-            <div class="card shadow-sm h-100">
-                <div class="card-body">
-                    <h5 class="card-title text-primary fw-bold" th:text="${exam.examName}"></h5>
-                    <p class="card-text"><b>Môn học:</b> <span th:text="${exam.subject}"></span></p>
-                    <p class="card-text"><b>Ngày đăng:</b> <span th:text="${exam.date}"></span></p>
-                    <p class="card-text"><b>Số câu hỏi:</b> <span th:text="${exam.questionCount}"></span></p>
+<div th:insert="~{fragments/headerProfile :: headerSidebar}"></div>
+<!-- Content Area: Lịch sử tạo đề -->
+<div class="content-area">
+    <div class="container mt-4">
+        <h2 class="text-center text-primary mb-4">Bài kiểm tra yêu thích</h2>
 
-                    <div class="d-flex justify-content-between align-items-center mt-3">
-                        <div>
-                            <a th:href="@{/exams/{id}/detail(id=${exam.examID})}"
-                               class="btn btn-outline-primary btn-sm">Xem chi tiết</a>
-                            <a th:href="@{/exams/{id}/do(id=${exam.examID})}" class="btn btn-primary btn-sm">Làm bài</a>
-                        </div>
-                        <button class="btn btn-outline-danger btn-sm likeButton"
-                                th:attr="data-exam-id=${exam.examID}, data-liked=${isLiked}">
-                            <i class="fa-regular fa-heart"></i>
-                        </button>
-                    </div>
-                </div>
+        <form th:action="@{/exams/liked}" method="get" class="filter-form">
+            <!-- Thanh tìm kiếm -->
+            <div class="input-group" style="max-width: 300px;">
+                <input type="text" class="form-control" name="searchQuery" placeholder="Tìm kiếm tên bài kiểm tra"
+                       th:value="${searchQuery}">
+                <button class="btn btn-primary" type="submit">
+                    <i class="bi bi-search"></i>
+                </button>
             </div>
+
+            <!-- Dropdown lọc theo môn học -->
+            <div class="form-group">
+                <select class="form-select" name="subject">
+                    <option value="all" th:selected="${selectedSubject == null or selectedSubject == 'all'}">Tất cả môn học</option>
+                    <option value="Toán" th:selected="${selectedSubject == 'Toán'}">Toán</option>
+                    <option value="Văn" th:selected="${selectedSubject == 'Văn'}">Văn</option>
+                    <option value="Anh" th:selected="${selectedSubject == 'Anh'}">Anh</option>
+                    <!-- Thêm các môn học khác nếu cần -->
+                </select>
+            </div>
+
+            <!-- Dropdown lọc theo grade -->
+            <div class="form-group">
+                <select class="form-select" name="grade">
+                    <option value="all" th:selected="${selectedGrade == null or selectedGrade == 'all'}">Tất cả lớp</option>
+                    <option value="10" th:selected="${selectedGrade == '10'}">Lớp 10</option>
+                    <option value="11" th:selected="${selectedGrade == '11'}">Lớp 11</option>
+                    <option value="12" th:selected="${selectedGrade == '12'}">Lớp 12</option>
+                    <!-- Thêm các lớp khác nếu cần -->
+                </select>
+            </div>
+
+            <!-- Nút Lọc -->
+            <div class="form-group">
+                <button type="submit" class="btn btn-success">
+                    <i class="bi bi-filter"></i> Lọc
+                </button>
+            </div>
+        </form>
+
+        <div class="table-responsive">
+            <table class="exam-table">
+                <thead>
+                <tr>
+                    <th>Tên bài kiểm tra</th>
+                    <th>Môn học</th>
+                    <th>Lớp</th>
+                    <th>Ngày đăng</th>
+                    <th>Hành động</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="exam : ${likedExams}">
+                    <td th:text="${exam.examName}"></td>
+                    <td th:text="${exam.subject}"></td>
+                    <td th:text="${exam.grade}"></td>
+                    <td th:text="${exam.date}"></td>
+                    <td>
+                        <div class="d-flex gap-2">
+                            <form th:action="@{/exams/{id}/detail(id=${exam.examID})}" method="get">
+                                <button type="submit" class="btn btn-primary">Xem chi tiết</button>
+                            </form>
+                            <a th:href="@{/exams/{id}/do(id=${exam.examID})}" class="btn btn-primary btn-sm">Làm bài</a>
+                            <button class="btn btn-outline-danger btn-sm likeButton"
+                                    th:attr="data-exam-id=${exam.examID}, data-liked=${isLiked}">
+                                <i class="fa-regular fa-heart"></i>
+                            </button>
+
+
+                        </div>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(likedExams)}">
+                    <td colspan="5" class="text-center">Chưa có bài kiểm tra nào được thêm vào danh sách</td>
+                </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
-
-<!-- Quay lại danh sách bài kiểm tra -->
-<div class="text-center mt-4">
-    <a href="/exams">
-        <i class="fas fa-arrow-left"></i> Quay lại danh sách bài kiểm tra
-    </a>
-</div>
-
-<!-- Footer -->
-<div th:insert="~{fragments/footer :: footer}"></div>
-
-
 <script>
     document.querySelectorAll(".likeButton").forEach(button => {
         let examId = button.getAttribute("data-exam-id");
         let icon = button.querySelector("i");
+
 
         // Kiểm tra trạng thái like khi trang tải
         fetch(`/exams/${examId}/isLiked`)
@@ -72,9 +288,11 @@
             })
             .catch(error => console.error("Lỗi kiểm tra like:", error));
 
+
         // Toggle Like/Unlike
         button.addEventListener("click", function () {
             let isLiked = button.classList.contains("liked");
+
 
             fetch(`/exams/${examId}/like`, {
                 method: isLiked ? "DELETE" : "POST"
@@ -88,6 +306,7 @@
                         return;
                     }
 
+
                     // Chỉ thay đổi giao diện, không hiện thông báo
                     button.classList.toggle("liked");
                     icon.classList.toggle("fa-solid");
@@ -98,6 +317,7 @@
     });
 
 </script>
-
+<!-- Bootstrap Bundle JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

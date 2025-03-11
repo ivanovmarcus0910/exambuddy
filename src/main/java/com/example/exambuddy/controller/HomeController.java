@@ -54,4 +54,9 @@ public class HomeController {
     public String viewTheory() {
         return "viewTheory"; // Trả về tên file HTML (không cần đuôi .html)
     }
+
+    @GetMapping("/participant")
+    public String participant() {
+        return "examStatistics";}
+
 }

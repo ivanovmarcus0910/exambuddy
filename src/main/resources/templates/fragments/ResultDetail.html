@@ -1,0 +1,51 @@
+<div th:fragment="detailFragment">
+  <div class="container mt-5">
+    <div class="card shadow-lg border-0 rounded-4">
+      <div class="card-body p-5">
+        <h2 class="text-center text-primary fw-bold" th:text="'Kết quả bài thi của : ' +${userName} "></h2>
+        <p class="fs-5 text-center mt-3">
+        <strong>Điểm:</strong>
+        <span class="badge bg-success fs-4" th:text="${score}"></span>/10
+      </p>
+        <h4 class="mt-4 text-secondary">Bài thi: <span th:text="${exam.examName}" ></span></h4>
+        <h4 class="mt-4 text-secondary">Chi tiết bài làm</h4>
+        <div class="list-group mt-3">
+          <div class="list-group-item border-0" th:each="question, i : ${exam.questions}">
+            <h5 class="fw-bold mb-3">
+              Câu <span th:text="${i.index + 1}"></span>: <span th:text="${question.questionText}"></span>
+            </h5>
+            <ul class="list-unstyled">
+              <li th:each="option, j : ${question.options}" class="mb-2">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox"
+                         th:checked="${userAnswers['q' + i.index] != null
+                                                           && #lists.contains(userAnswers['q' + i.index], j.index + '')}"
+                         disabled>
+                  <label class="form-check-label" th:text="${option}"></label>
+
+                  <span th:if="${userAnswers['q' + i.index] != null
+                                                    && #lists.contains(userAnswers['q' + i.index], j.index + '')}">
+                                            <span th:if="${question.correctAnswers.contains(j.index)}"
+                                                  class="text-success fw-bold ms-2"> ✅</span>
+                                            <span th:unless="${question.correctAnswers.contains(j.index)}"
+                                                  class="text-danger fw-bold ms-2"> ❌</span>
+                                        </span>
+
+                  <span th:if="${question.correctAnswers.contains(j.index)
+                                                    && (userAnswers['q' + i.index] == null
+                                                    || !#lists.contains(userAnswers['q' + i.index], j.index + ''))}"
+                        class="text-success fw-bold ms-2"> (Đáp án đúng)</span>
+                </div>
+              </li>
+            </ul>
+            <hr class="my-3">
+          </div>
+        </div>
+
+        <div class="text-center mt-4">
+          <button class="btn btn-secondary px-4 py-2 fw-bold" onclick="goBack()">Quay lại</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

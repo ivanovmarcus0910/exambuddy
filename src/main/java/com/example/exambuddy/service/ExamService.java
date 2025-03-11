@@ -3,6 +3,7 @@ package com.example.exambuddy.service;
 
 import com.example.exambuddy.model.Exam;
 import com.example.exambuddy.model.ExamResult;
+import com.example.exambuddy.model.ExamStatistics;
 import com.example.exambuddy.model.Question;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.*;
@@ -28,6 +29,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 @Service
 public class ExamService {
@@ -64,10 +66,6 @@ public class ExamService {
 
         return exams;
     }
-
-
-
-
 
     // Phương thức format lại ngày
     public static String formatDate(String dateString) {
@@ -294,7 +292,6 @@ public class ExamService {
                 throw new Exception("Không tìm thấy bảng đáp án trong file.");
             }
 
-
             // Trích xuất đáp án từ bảng
             Map<Integer, String> answerMap = new HashMap<>();
             for (XWPFTableRow row : answerTable.getRows()) {
@@ -309,7 +306,6 @@ public class ExamService {
                     }
                 }
             }
-
 
             // Gán đáp án cho câu hỏi
             for (int i = 0; i < questions.size(); i++) {
@@ -479,39 +475,71 @@ public class ExamService {
 
     public List<Exam> getLikedExamsByUser(String userId) {
         List<Exam> likedExams = new ArrayList<>();
-
         try {
-            CollectionReference collectionReference = db.collection("likedExams");
-            ApiFuture<QuerySnapshot> future = collectionReference
-                    .whereEqualTo("userId", userId) // Tìm bài thi đã thích theo userId
+            // Tạo prefix dựa trên userId (ví dụ: "LamHai_")
+            String prefix = userId + "_";
+
+            // Truy vấn collection "likedExams" theo khoảng của document ID
+            CollectionReference likedExamsCollection = db.collection("likedExams");
+            ApiFuture<QuerySnapshot> future = likedExamsCollection
+                    .whereGreaterThanOrEqualTo(FieldPath.documentId(), prefix)
+                    .whereLessThanOrEqualTo(FieldPath.documentId(), prefix + "\uf8ff")
                     .get();
 
             List<QueryDocumentSnapshot> documents = future.get().getDocuments();
             List<String> examIds = new ArrayList<>();
 
+            // Lấy examId từ document ID, giả sử định dạng là: userId_examId
             for (DocumentSnapshot doc : documents) {
-                examIds.add(doc.getString("examId"));
+                String docId = doc.getId();
+                int index = docId.indexOf('_');
+                if (index != -1 && index < docId.length() - 1) {
+                    String examId = docId.substring(index + 1);
+                    examIds.add(examId);
+                }
             }
 
-            // Lấy thông tin bài thi từ danh sách examId
-            CollectionReference examCollection = db.collection("exams");
-            for (String id : examIds) {
-                DocumentSnapshot examDoc = examCollection.document(id).get().get();
-                if (examDoc.exists()) {
-                    Exam exam = examDoc.toObject(Exam.class);
-                    exam.setExamID(examDoc.getId()); // Đặt examID trực tiếp từ ID tài liệu
-                    if (exam.getDate() != null) {
-                        exam.setDate(formatDate(exam.getDate()));
+            // Nếu có examIds, truy vấn collection "exams" để lấy thông tin bài thi
+            if (!examIds.isEmpty()) {
+                CollectionReference examCollection = db.collection("exams");
+                final int batchSize = 10; // Giới hạn của toán tử whereIn
+                List<List<String>> batches = splitList(examIds, batchSize);
+
+                for (List<String> batch : batches) {
+                    ApiFuture<QuerySnapshot> examFuture = examCollection
+                            .whereIn(FieldPath.documentId(), batch)
+                            .get();
+
+                    List<QueryDocumentSnapshot> examDocs = examFuture.get().getDocuments();
+                    for (DocumentSnapshot examDoc : examDocs) {
+                        Exam exam = examDoc.toObject(Exam.class);
+                        exam.setExamID(examDoc.getId());
+                        if (exam.getDate() != null) {
+                            exam.setDate(formatDate(exam.getDate()));
+                        }
+                        likedExams.add(exam);
                     }
-                    likedExams.add(exam);
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-
         return likedExams;
     }
+
+    /**
+     * Hàm helper để chia danh sách thành các nhóm nhỏ có kích thước batchSize
+     */
+    private <T> List<List<T>> splitList(List<T> list, int batchSize) {
+        List<List<T>> batches = new ArrayList<>();
+        for (int i = 0; i < list.size(); i += batchSize) {
+            int end = Math.min(i + batchSize, list.size());
+            batches.add(list.subList(i, end));
+        }
+        return batches;
+    }
+
+
 
     public List<Exam> getHtoryCreateExamsByUsername(String username) {
         List<Exam> exams = new ArrayList<>();
@@ -679,5 +707,103 @@ public class ExamService {
             System.out.println("Lỗi cập nhật trạng thái của exam " + examId);
             e.printStackTrace();
         }
+    }
+
+    public List<ExamResult> getExamResultsByExamId(String examId) {
+        List<ExamResult> results = new ArrayList<>();
+        try {
+            System.out.println("Bắt đầu truy vấn examResults với examId: " + examId);
+            CollectionReference collectionReference = db.collection("examResults");
+            ApiFuture<QuerySnapshot> future = collectionReference
+                    .whereEqualTo("examID", examId)
+                    .get();
+            List<QueryDocumentSnapshot> documents = future.get().getDocuments();
+
+            System.out.println("Số lượng tài liệu tìm thấy: " + documents.size());
+            for (QueryDocumentSnapshot doc : documents) {
+                System.out.println("Dữ liệu gốc từ Firestore: " + doc.getData());
+                ExamResult examResult = doc.toObject(ExamResult.class);
+                String[] parts = doc.getId().split("_");
+                if (parts.length > 0) {
+                    examResult.setUsername(parts[0]);
+                }
+                Map<String, List<String>> answers = new HashMap<>();
+                doc.getData().forEach((key, value) -> {
+                    if (key.startsWith("q") && value instanceof String) {
+                        List<String> answerList = new ArrayList<>();
+                        answerList.add((String) value);
+                        answers.put(key, answerList);
+                    }
+                });
+                examResult.setAnswers(answers);
+
+                System.out.println("Kết quả sau ánh xạ: resultId=" + examResult.getResultId() +
+                        ", username=" + examResult.getUsername() +
+                        ", score=" + examResult.getScore() +
+                        ", submittedAt=" + examResult.getSubmittedAt());
+                results.add(examResult);
+            }
+            results.sort((r1, r2) -> Long.compare(r2.getSubmittedAt(), r1.getSubmittedAt()));
+        } catch (Exception e) {
+            System.err.println("Lỗi khi truy vấn examResults với examId " + examId + ": " + e.getMessage());
+            e.printStackTrace();
+        }
+        return results;
+    }
+
+    public ExamStatistics calculateStatistics(List<ExamResult> results) {
+        if (results == null || results.isEmpty()) {
+            System.out.println("Danh sách kết quả rỗng!");
+            return new ExamStatistics(0, 0, 0, 0, new LinkedHashMap<>());
+        }
+
+        int count = results.size();
+        double sum = 0;
+        double min = Double.MAX_VALUE;
+        double max = Double.MIN_VALUE;
+        Map<String, Integer> distribution = new LinkedHashMap<>();
+
+        String[] bins = {"0-2", "2-4", "4-6", "6-8", "8-10"};
+        for (String bin : bins) {
+            distribution.put(bin, 0);
+        }
+
+        for (ExamResult result : results) {
+            double score = result.getScore();
+            System.out.println("Điểm của kết quả: " + score);
+            sum += score;
+            min = Math.min(min, score);
+            max = Math.max(max, score);
+
+            if (score >= 0 && score < 2) distribution.put("0-2", distribution.get("0-2") + 1);
+            else if (score >= 2 && score < 4) distribution.put("2-4", distribution.get("2-4") + 1);
+            else if (score >= 4 && score < 6) distribution.put("4-6", distribution.get("4-6") + 1);
+            else if (score >= 6 && score < 8) distribution.put("6-8", distribution.get("6-8") + 1);
+            else if (score >= 8 && score <= 10) distribution.put("8-10", distribution.get("8-10") + 1);
+        }
+
+        double average = sum / count;
+        System.out.println("Phân phối điểm: " + distribution);
+        return new ExamStatistics(count, average, min, max, distribution);
+    }
+
+    // Lọc danh sách bài kiểm tra theo môn học
+    public List<Exam> filterExamsBySubject(List<Exam> exams, String subject) {
+        if (subject == null || subject.isEmpty() || subject.equals("all")) {
+            return exams;
+        }
+        return exams.stream()
+                .filter(exam -> exam.getSubject() != null && exam.getSubject().equalsIgnoreCase(subject))
+                .collect(Collectors.toList());
+    }
+
+    // Lọc danh sách bài kiểm tra theo grade
+    public List<Exam> filterExamsByClass(List<Exam> exams, String grade) { // Thay classLevel bằng grade
+        if (grade == null || grade.isEmpty() || grade.equals("all")) {
+            return exams;
+        }
+        return exams.stream()
+                .filter(exam -> exam.getGrade() != null && exam.getGrade().equalsIgnoreCase(grade)) // Thay classLevel bằng grade
+                .collect(Collectors.toList());
     }
 }
