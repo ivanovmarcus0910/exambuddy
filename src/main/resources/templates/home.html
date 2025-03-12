@@ -129,19 +129,18 @@
             <!-- Cột xếp hạng -->
             <div class="col-12 col-md-3 px-md-3">
                 <div class="rank-section p-3 shadow-sm rounded border">
-                    <h4 class="text-center mb-3">BXH Điểm Cao</h4>
-                    <ul class="list-group">
-                        <li class="list-group-item">Username1 - Điểm</li>
-                        <li class="list-group-item">Username2 - Điểm</li>
-                        <li class="list-group-item">Username3 - Điểm</li>
+                    <h4 class="text-center mb-3">BXH Điểm Số</h4>
+                    <ul id="leaderboard" class="list-group">
+                        <!-- Dữ liệu sẽ được thêm vào đây bằng JavaScript -->
                     </ul>
+
                     <h4 class="text-center mt-4 mb-3">BXH Đóng Góp</h4>
-                    <ul class="list-group">
-                        <li class="list-group-item">Username1 - Điểm đóng góp</li>
-                        <li class="list-group-item">Username2 - Điểm đóng góp</li>
+                    <ul id="contribution-board" class="list-group">
+                        <!-- Dữ liệu sẽ được thêm vào đây bằng JavaScript -->
                     </ul>
                 </div>
             </div>
+
         </div>
     </div>
 
@@ -187,6 +186,49 @@
                 .catch(error => console.error("Lỗi:", error));
         });
     });
+    async function updateLeaderboard() {
+        try {
+            let response = await fetch("/top-score"); // Gọi API lấy dữ liệu
+            let data = await response.json();
+
+            let leaderboard = document.querySelector("#leaderboard");
+            leaderboard.innerHTML = ""; // Xóa dữ liệu cũ
+
+            data.forEach(user => {
+                let row = `<li class="list-group-item">${user.username} - ${user.totalScore} Điểm</li>`;
+                leaderboard.innerHTML += row;
+            });
+        } catch (error) {
+            console.error("Lỗi khi cập nhật BXH:", error);
+        }
+    }
+
+    async function updateContributionBoard() {
+        try {
+            let response = await fetch("/top-contribute"); // API lấy BXH đóng góp
+            let data = await response.json();
+
+            let contributionBoard = document.querySelector("#contribution-board");
+            contributionBoard.innerHTML = ""; // Xóa dữ liệu cũ
+
+            data.forEach(user => {
+                let row = `<li class="list-group-item">${user.username} - ${user.contributionScore} Điểm</li>`;
+                contributionBoard.innerHTML += row;
+            });
+        } catch (error) {
+            console.error("Lỗi khi cập nhật BXH Đóng Góp:", error);
+        }
+    }
+
+    // Cập nhật BXH khi trang load xong
+    document.addEventListener("DOMContentLoaded", () => {
+        updateLeaderboard();
+        updateContributionBoard();
+    });
+
+    // Tự động cập nhật BXH mỗi 5 giây
+    setInterval(updateLeaderboard, 5000);
+    setInterval(updateContributionBoard, 5000);
 </script>
 
 <div th:insert="~{fragments/footer :: footer}"></div>
