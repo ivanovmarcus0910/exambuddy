@@ -9,6 +9,7 @@ import com.example.exambuddy.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -63,44 +64,44 @@ public class ForumController {
     }
 
     @GetMapping
-    public String getForum(@RequestParam(value = "subject", required = false) String subject,
-                           @RequestParam(value = "grade", required = false) String grade,
-                           Model model, HttpServletRequest request) {
-        long x = System.currentTimeMillis();
-        HttpSession session = request.getSession();
-        String username = (String) session.getAttribute("loggedInUser");
-        // Lấy tất cả bài viết ban đầu (trang forum chung)
-        List<Post> posts = postService.getPostsFromFirestore();
-        System.out.println("Time 1 : "+(System.currentTimeMillis() - x));
+    public String forumPage() {
+        return "forum"; // Trả về file forum.html (đặt trong thư mục templates)
+    }
 
-        // Nếu có subject, lọc bài viết theo môn học
+    @GetMapping("/posts")
+    public ResponseEntity<List<Map<String, Object>>> getPosts(@RequestParam(value = "subject", required = false) String subject,
+                                                              @RequestParam(value = "grade", required = false) String grade) {
+        List<Post> posts = postService.getPostsFromFirestore();
+
         if (subject != null && !subject.isEmpty()) {
             posts = posts.stream()
                     .filter(post -> subject.trim().replace(",", "").equalsIgnoreCase(post.getSubject()))
                     .collect(Collectors.toList());
         }
-        System.out.println("Time 2 : "+(System.currentTimeMillis() - x));
 
-        // Nếu có chọn lớp học, lọc tiếp
         if (grade != null && !grade.isEmpty()) {
             posts = posts.stream()
                     .filter(post -> grade.equals(post.getGrade()))
                     .collect(Collectors.toList());
         }
-        System.out.println("Time 3 : "+(System.currentTimeMillis() - x));
 
-        String avatarUrl = UserService.getAvatarUrlByUsername(username);
-        List<Comment> latestComments = postService.getUserLatestComments(username);
+        // Chuyển đổi danh sách bài viết thành danh sách Map (JSON)
+        List<Map<String, Object>> response = posts.stream().map(post -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("postId", post.getPostId());
+            map.put("avatarUrl", post.getAvatarUrl());
+            map.put("username", post.getUsername());
+            map.put("timeAgo", post.getTimeAgo());
+            map.put("content", post.getContent());
+            map.put("subject", post.getSubject());
+            map.put("grade", post.getGrade());
+            map.put("likeCount", post.getLikeCount());
+            map.put("liked", post.isLiked());
+            map.put("imageUrls", post.getImageUrls()); // Trả về danh sách ảnh
+            return map;
+        }).collect(Collectors.toList());
 
-        model.addAttribute("userComments", latestComments);
-        model.addAttribute("posts", posts);
-        model.addAttribute("username", username);
-        model.addAttribute("avatarUrl", avatarUrl);
-        model.addAttribute("selectedSubject", subject);
-        model.addAttribute("selectedGrade", grade);
-        System.out.println("Time 5   : "+(System.currentTimeMillis() - x));
-
-        return "forum"; // Hiển thị trang forum chung nếu không có subject
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/comment")

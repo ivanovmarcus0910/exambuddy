@@ -17,7 +17,7 @@
         </aside>
 
         <main class="col-md-6 overflow-auto p-3" id="scrollableMain">
-            <div class="card mb-3" th:if="${username}">
+            <div class="card mb-3">
                 <div class="card-body">
                     <form action="/forum/create" method="post" enctype="multipart/form-data" class="mb-2">
                         <div class="row mt-3 mb-3">
@@ -66,7 +66,6 @@
                     </form>
                 </div>
             </div>
-            <p style="color:red" th:if="${username == null}">Vui lòng đăng nhập để đăng bài.</p>
             <div class="class-filter" th:if="${selectedSubject}">
                 <a th:href="@{/forum(subject=${#strings.trim(selectedSubject)})}" class="btn btn-primary">Chung</a>
                 <a th:href="@{/forum(subject=${#strings.trim(selectedSubject)}, grade='10')}" class="btn btn-secondary">Lớp
@@ -77,78 +76,9 @@
                     12</a>
             </div>
             <input type="hidden" name="username" th:value="${username}">
-            <div class="posts">
-                <div class="post card mb-3" th:each="post : ${posts}">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between mb-2">
-                            <div class="d-flex align-items-center">
-                                <img th:src="${post.avatarUrl}" class="rounded-circle me-2" width="40" height="40"
-                                     alt="User">
-                                <div class="d-flex flex-column justify-content-center h-100">
-                                    <h5 th:text="${post.username}" class="mb-1 fw-bold"></h5>
-                                    <span class="text-muted" style="font-size: 12px" th:text="${post.timeAgo}"></span>
-                                </div>
-                            </div>
-                            <div class="d-flex align-items-center">
-                                <span th:text="${post.subject}" class="badge bg-success me-2"></span>
-                                <span th:text="${post.grade}" class="badge bg-warning me-1"></span>
 
-                                <div class="dropdown">
-                                    <button class="btn btn-link text-dark" type="button" id="postMenu"
-                                            data-bs-toggle="dropdown" aria-expanded="false">
-                                        <i class="bi bi-three-dots"></i>
-                                    </button>
-                                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="postMenu">
-                                        <li><a class="dropdown-item" th:attr="onclick='openPostModal(event, \'' + ${post.postId} + '\')'" style="cursor: pointer">
-                                            <i class="bi bi-file-text me-2"></i>Chi tiết bài viết</a></li>
-                                        <li><a class="dropdown-item hide-post-btn" href="#" th:attr="data-post-id=${post.postId}">
-                                            <i class="bi bi-eye-slash me-2"></i>Ẩn bài viết</a></li>
-                                        <li><a class="dropdown-item" href="#"><i class="bi bi-flag me-2"></i>Báo cáo bài viết</a></li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                        <p style="text-align: left !important;" th:text="${post.content}"></p>
-                        <div class="post-images">
-                            <div class="row g-1">
-                                <!-- Hiển thị 2 ảnh đầu tiên -->
-                                <div th:each="imageUrl, iterStat : ${post.imageUrls}"
-                                     th:if="${iterStat.index < 2}"
-                                     class="col-6">
-                                    <div class="ratio ratio-1x1 position-relative mb-2">
-                                        <img th:src="${imageUrl}" class="img-fluid rounded post-image"
-                                             th:attr="onclick='openPostModal(event, \'' + ${post.postId} + '\')'">
-                                    </div>
-                                </div>
-
-                                <!-- Nếu có nhiều hơn 2 ảnh, hiển thị nút "+X ảnh nữa" -->
-                                <div th:if="${#lists.size(post.imageUrls) >= 2}" class="mt-2">
-                                    <a th:attr="onclick='openPostModal(event, \'' + ${post.postId} + '\')'"
-                                       class="text-primary fw-bold text-decoration-none" style="cursor: pointer">
-                                        +[[${#lists.size(post.imageUrls) - 2}]] ảnh nữa
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="post-actions d-flex gap-2 align-items-center">
-                            <button class="btn btn-outline-secondary heart-btn" th:attr="data-post-id=${post.postId}"
-                                    th:classappend="${post.liked} ? 'text-danger' : ''" onclick="toggleLike(this)">
-                                <i class="bi" th:classappend="${post.liked} ? 'bi-heart-fill' : 'bi-heart'"></i>
-                                <span class="heart-count" th:text="${post.likeCount}">0</span>
-                            </button>
-                            <button class="btn btn-outline-secondary"
-                                    th:attr="onclick='openPostModal(event, \'' + ${post.postId} + '\')'">
-                                <i class="bi bi-chat"></i>
-                                <span class="comment-count" th:text="${post.comments != null ? #lists.size(post.comments) : 0}"></span>
-                            </button>
-                            <button class="btn btn-outline-secondary share-button ms-auto"
-                                    th:attr="data-post-id=${post.postId}">
-                                <i class="bi bi-share"></i>
-                            </button>
-                        </div>
-                        <hr class="mt-2 mb-0">
-                    </div>
-                </div>
+            <div id="posts-container">
+                <p>Đang tải bài viết...</p>
             </div>
         </main>
         <aside class="col-md-3 d-none d-md-block sidebar">
@@ -204,8 +134,83 @@
 </div>
 <div th:insert="~{fragments/postModal :: postModal}"></div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="/js/forum.js"></script>
 <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        fetch("/forum/posts")
+            .then(response => response.json())
+            .then(posts => {
+                let container = document.getElementById("posts-container");
+                container.innerHTML = ""; // Xóa nội dung "Đang tải..."
+
+                posts.forEach(post => {
+                    let postElement = document.createElement("div");
+                    postElement.classList.add("post", "card", "mb-3");
+                    postElement.innerHTML = `
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between mb-2">
+                            <div class="d-flex align-items-center">
+                                <img src="${post.avatarUrl}" class="rounded-circle me-2" width="40" height="40">
+                                <div>
+                                    <h5 class="mb-1 fw-bold">${post.username}</h5>
+                                    <span class="text-muted" style="font-size: 12px">${post.timeAgo}</span>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <span class="badge bg-success me-2">${post.subject}</span>
+                                <span class="badge bg-warning me-1">${post.grade}</span>
+                            </div>
+                        </div>
+                        <p>${post.content}</p>
+                        ${renderPostImages(post.imageUrls, post.postId)}
+                        <div class="post-actions d-flex gap-2 align-items-center">
+                            <button class="btn btn-outline-secondary heart-btn" data-post-id="${post.postId}"
+                                    onclick="toggleLike(this)" ${post.liked ? 'style="color: red;"' : ''}>
+                                <i class="bi ${post.liked ? 'bi-heart-fill' : 'bi-heart'}"></i>
+                                <span class="heart-count">${post.likeCount}</span>
+                            </button>
+                            <button class="btn btn-outline-secondary" onclick="openPostModal(event, '${post.postId}')">
+                                <i class="bi bi-chat"></i>
+                            </button>
+                        </div>
+                        <hr class="mt-2 mb-0">
+                    </div>
+                `;
+                    container.appendChild(postElement);
+                });
+            })
+            .catch(error => console.error("Lỗi khi tải bài viết:", error));
+    });
+    function renderPostImages(imageUrls, postId) {
+        if (!imageUrls || imageUrls.length === 0) return '';
+
+        let imageHtml = '<div class="post-images"><div class="row g-1">';
+
+        // Hiển thị 2 ảnh đầu tiên
+        imageUrls.slice(0, 2).forEach(imageUrl => {
+            imageHtml += `
+            <div class="col-6">
+                <div class="ratio ratio-1x1 position-relative mb-2">
+                    <img src="${imageUrl}" class="img-fluid rounded post-image" onclick="openPostModal(event, '${postId}')">
+                </div>
+            </div>
+        `;
+        });
+
+        // Nếu có nhiều hơn 2 ảnh, hiển thị nút "+X ảnh nữa"
+        if (imageUrls.length > 2) {
+            imageHtml += `
+            <div class="mt-2">
+                <a onclick="openPostModal(event, '${postId}')" class="text-primary fw-bold text-decoration-none" style="cursor: pointer">
+                    +${imageUrls.length - 2} ảnh nữa
+                </a>
+            </div>
+        `;
+        }
+
+        imageHtml += '</div></div>';
+        return imageHtml;
+    }
+
     document.getElementById('postImageInput').addEventListener('change', function(event) {
         let fileList = event.target.files;
         let output = document.getElementById('postFiles');
@@ -217,5 +222,6 @@
         }
     });
 </script>
+<script src="/js/forum.js"></script>
 </body>
 </html>

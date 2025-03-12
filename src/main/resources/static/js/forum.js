@@ -364,22 +364,26 @@ function toggleReplyForm(button, commentId) {
     form.style.display = form.style.display === "none" ? "block" : "none";
 }
 
-function setReplyForm(commentId, username) {
+function setReplyForm(commentId, username, parentCommentId) {
     let form = document.getElementById("comment-form");
     let parentInput = document.getElementById("parentCommentId");
     let contentInput = document.getElementById("commentContent");
     let replyInfo = document.getElementById("reply-info");
     let replyUsername = document.getElementById("reply-username");
 
-    // Cập nhật giá trị ID của comment cha
-    parentInput.value = commentId;
+    // Nếu có parentCommentId (tức là đang phản hồi vào reply), thì lấy comment gốc làm parent
+    if (parentCommentId) {
+        parentInput.value = parentCommentId;
+    } else {
+        parentInput.value = commentId;
+    }
 
     // Cập nhật tên người được phản hồi
     replyUsername.innerText = username;
     replyInfo.classList.remove("d-none"); // Hiển thị thông tin phản hồi
 
-    // Hiển thị form ngay dưới comment được phản hồi
-    let commentElement = document.getElementById("comment-" + commentId);
+    // Hiển thị form ngay dưới comment chính
+    let commentElement = document.getElementById("comment-" + (parentCommentId ? parentCommentId : commentId));
     commentElement.appendChild(form);
 
     // Focus vào ô nhập nội dung
