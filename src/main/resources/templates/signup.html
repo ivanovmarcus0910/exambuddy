@@ -27,38 +27,56 @@
             <!-- Ô nhập Email -->
             <div class="mb-3">
                 <label class="form-label fw-semibold">Email</label>
-                <input type="email" id="email" name="email" class="form-control rounded-pill px-4" placeholder="Nhập email" required>
-                <p class="text-danger small mt-1" id="emailError" th:if="${emailError}" th:text="${emailError}"></p>
+                <input type="email" id="email" name="email" class="form-control rounded-pill px-4"
+                       placeholder="Nhập email" oninput="validateEmail()" >
+                <p class="text-danger small mt-1 d-none" id="emailError"></p>
+                <p class="text-danger small mt-1" id="emailError2"
+                   th:if="${emailError2}" th:text="${emailError2}"></p>
             </div>
 
             <!-- Ô nhập Tên đăng nhập -->
             <div class="mb-3">
                 <label class="form-label fw-semibold">Tên tài khoản</label>
-                <input type="text" id="username" name="username" class="form-control rounded-pill px-4" placeholder="Nhập tên tài khoản" required>
-                <p class="text-danger small mt-1" id="usernameError" th:if="${usernameError}" th:text="${usernameError}"></p>
+                <input type="text" id="username" name="username" class="form-control rounded-pill px-4"
+                       placeholder="Nhập tên tài khoản" oninput="validateUsername()" >
+                <p class="text-danger small mt-1 d-none" id="usernameError"></p>
+                <p class="text-danger small mt-1" id="usernameError2"
+                   th:if="${usernameError2}" th:text="${usernameError2}"></p>
             </div>
 
             <!-- Ô nhập Mật khẩu -->
             <div class="mb-3">
                 <label class="form-label fw-semibold">Mật khẩu</label>
                 <div class="position-relative">
-                    <input type="password" id="password" name="password" class="form-control rounded-pill px-4 pe-5" placeholder="Nhập mật khẩu" required>
+                    <input type="password" id="password" name="password" class="form-control rounded-pill px-4 pe-5"
+                           placeholder="Nhập mật khẩu" oninput="validatePassword()" >
                     <i id="passwordIcon" class="bi bi-eye position-absolute top-50 end-0 translate-middle-y me-3"
                        style="cursor: pointer; font-size: 1.2rem; color: #6c757d;"></i>
                 </div>
-                <p class="text-danger small mt-1" id="passwordError" style="display: none;"></p>
+                <p class="text-danger small mt-1 d-none" id="passwordError"></p>
             </div>
 
             <!-- Ô nhập Xác nhận mật khẩu -->
             <div class="mb-3">
                 <label class="form-label fw-semibold">Xác nhận mật khẩu</label>
                 <div class="position-relative">
-                    <input type="password" id="confirmPassword" name="confirmPassword" class="form-control rounded-pill px-4 pe-5" placeholder="Nhập lại mật khẩu" required>
+                    <input type="password" id="confirmPassword" name="confirmPassword" class="form-control rounded-pill px-4 pe-5"
+                           placeholder="Nhập lại mật khẩu" oninput="validateConfirmPassword()" >
                     <i id="confirmPasswordIcon" class="bi bi-eye position-absolute top-50 end-0 translate-middle-y me-3"
                        style="cursor: pointer; font-size: 1.2rem; color: #6c757d;"></i>
                 </div>
-                <p class="text-danger small mt-1" id="confirmPasswordError" style="display: none;"></p>
+                <p class="text-danger small mt-1 d-none" id="confirmPasswordError"></p>
             </div>
+
+            <!-- Điều khoản & Dịch vụ -->
+            <div class="form-check mb-3">
+                <input type="checkbox" id="terms" class="form-check-input" onchange="validateTerms()">
+                <label class="form-check-label" for="terms">
+                    Tôi đồng ý với <a href="/policy" class="text-primary">Điều khoản & Dịch vụ</a>
+                </label>
+                <p class="text-danger small mt-1 d-none" id="termsError"></p>
+            </div>
+
 
             <!-- Chọn vai trò -->
             <div class="mb-3">
@@ -69,14 +87,6 @@
                 </select>
             </div>
 
-            <!-- Điều khoản & Dịch vụ -->
-            <div class="form-check mb-3">
-                <input type="checkbox" id="terms" class="form-check-input" required>
-                <label class="form-check-label" for="terms">
-                    Tôi đồng ý với <a href="/policy" class="text-primary">Điều khoản & Dịch vụ</a>
-                </label>
-                <p class="text-danger small" id="termsError" style="display: none;"></p>
-            </div>
 
             <button type="submit" class="btn btn-primary w-100 rounded-pill">Tạo tài khoản →</button>
         </form>
@@ -94,6 +104,111 @@
 
 <!-- Toggle Password & Validate Form -->
 <script>
+    function validateForm() {
+        let isValid = true;
+        clearAllErrors();
+
+        if (!validateEmail()) isValid = false;
+        if (!validateUsername()) isValid = false;
+        if (!validatePassword()) isValid = false;
+        if (!validateConfirmPassword()) isValid = false;
+        if (!validateTerms()) isValid = false;
+
+        return isValid;
+    }
+
+    // Kiểm tra email
+    function validateEmail() {
+        const email = document.getElementById("email").value.trim();
+        const emailError = document.getElementById("emailError");
+
+        if (email === "") {
+            showError(emailError, "Email không được bỏ trống!");
+            return false;
+        } else if (!email.match(/^[A-Za-z0-9+_.-]+@(.+)$/)) {
+            showError(emailError, "Email không hợp lệ!");
+            return false;
+        }
+        hideError(emailError);
+        return true;
+    }
+
+    // Kiểm tra tên đăng nhập
+    function validateUsername() {
+        const username = document.getElementById("username").value.trim();
+        const usernameError = document.getElementById("usernameError");
+
+        if (username === "") {
+            showError(usernameError, "Tên tài khoản không được bỏ trống!");
+            return false;
+        }
+        hideError(usernameError);
+        return true;
+    }
+
+    // Kiểm tra mật khẩu
+    function validatePassword() {
+        const password = document.getElementById("password").value;
+        const passwordError = document.getElementById("passwordError");
+
+        if (password === "") {
+            showError(passwordError, "Mật khẩu không được bỏ trống!");
+            return false;
+        } else if (!password.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/)) {
+            showError(passwordError, "Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt!");
+            return false;
+        }
+        hideError(passwordError);
+        return true;
+    }
+
+    // Kiểm tra xác nhận mật khẩu
+    function validateConfirmPassword() {
+        const password = document.getElementById("password").value;
+        const confirmPassword = document.getElementById("confirmPassword").value;
+        const confirmPasswordError = document.getElementById("confirmPasswordError");
+
+        if (confirmPassword === "") {
+            showError(confirmPasswordError, "Vui lòng nhập lại mật khẩu!");
+            return false;
+        } else if (password !== confirmPassword) {
+            showError(confirmPasswordError, "Mật khẩu xác nhận không khớp!");
+            return false;
+        }
+        hideError(confirmPasswordError);
+        return true;
+    }
+
+    // Kiểm tra checkbox Điều khoản & Dịch vụ
+    function validateTerms() {
+        const termsChecked = document.getElementById("terms").checked;
+        const termsError = document.getElementById("termsError");
+
+        if (!termsChecked) {
+            showError(termsError, "Bạn phải đồng ý với Điều khoản & Dịch vụ.");
+            return false;
+        }
+        hideError(termsError);
+        return true;
+    }
+
+    // Hiển thị lỗi
+    function showError(element, message) {
+        element.textContent = message;
+        element.classList.remove("d-none"); // Hiển thị lỗi ngay lập tức
+    }
+
+    // Ẩn lỗi
+    function hideError(element) {
+        element.classList.add("d-none");
+    }
+
+    // Xóa tất cả lỗi khi form reset
+    function clearAllErrors() {
+        document.querySelectorAll(".text-danger").forEach(e => e.classList.add("d-none"));
+    }
+
+    // Toggle mật khẩu
     function togglePassword(fieldId, iconId) {
         const passwordField = document.getElementById(fieldId);
         const icon = document.getElementById(iconId);
@@ -116,48 +231,6 @@
         togglePassword("confirmPassword", "confirmPasswordIcon");
     });
 
-    function validateForm() {
-        let isValid = true;
-        const email = document.getElementById("email").value;
-        const username = document.getElementById("username").value;
-        const password = document.getElementById("password").value;
-        const confirmPassword = document.getElementById("confirmPassword").value;
-        const termsChecked = document.getElementById("terms").checked;
-        clearAllErrors();
-
-        if (!email.match(/^[A-Za-z0-9+_.-]+@(.+)$/)) {
-            showError("emailError", "Email không hợp lệ!");
-            isValid = false;
-        }
-        if (username.trim() === "") {
-            showError("usernameError", "Tên đăng nhập không được bỏ trống!");
-            isValid = false;
-        }
-        // Kiểm tra mật khẩu: ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt.
-        if (!password.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/)) {
-            showError("passwordError", "Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt!");
-            isValid = false;
-        }
-        if (password !== confirmPassword) {
-            showError("confirmPasswordError", "Mật khẩu xác nhận không khớp!");
-            isValid = false;
-        }
-        if (!termsChecked) {
-            showError("termsError", "Bạn phải đồng ý với Điều khoản & Dịch vụ.");
-            isValid = false;
-        }
-        return isValid;
-    }
-
-    function showError(id, message) {
-        const errorElement = document.getElementById(id);
-        errorElement.textContent = message;
-        errorElement.style.display = "block";
-    }
-
-    function clearAllErrors() {
-        document.querySelectorAll(".text-danger").forEach(e => e.style.display = "none");
-    }
 </script>
 </body>
 </html>
