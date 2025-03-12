@@ -176,20 +176,6 @@ public class AuthController {
         return "login";
     }
 
-
-//    @RequestMapping("/logout")
-//    public String logout(HttpSession session, HttpServletResponse response, HttpServletRequest request) {
-//        System.out.println("Đã logout");
-//        session.removeAttribute("loggedInUser");
-//        session.removeAttribute("urlimg");
-//        session.invalidate();
-//        cookieService.removeCookie(response,"rememberedUsername");
-//        cookieService.removeCookie(response,"rememberedPassword");
-//        cookieService.removeCookie(response,"noname");
-//        System.out.println("Đã logout");
-//        return "redirect:/home";
-//    }
-
     @GetMapping("/forgotPass")
     public String forgotPasswordPage() {
         return "forgotPass";
@@ -198,6 +184,12 @@ public class AuthController {
     @PostMapping("/forgotPass")
     public String sendOtp(@RequestParam String email, Model model) {
         System.out.println("📩 Đã nhận yêu cầu gửi OTP cho email: " + email);
+
+        //Kiểm tra email đã đăng kí trong hệ thống chưa
+        if (!authService.isEmailExists(email)) {
+            model.addAttribute("error", "Email chưa được đăng kí trong hệ thống!");
+            return "forgotPass";
+        }
         String result = authService.sendPasswordResetOtp(email);
         model.addAttribute("message", result);
         model.addAttribute("email", email);
