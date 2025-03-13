@@ -13,8 +13,10 @@ import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xwpf.usermodel.*;
 
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
+
 import java.io.InputStream;
 import java.text.Normalizer;
 import java.text.SimpleDateFormat;
@@ -34,7 +36,7 @@ import java.util.stream.Collectors;
 @Service
 public class ExamService {
     private final Firestore db = FirestoreClient.getFirestore();
-
+    private final LeaderBoardService leaderBoardService = new LeaderBoardService();
     public List<Exam> getExamList(int page, int size) {
         List<Exam> exams = new ArrayList<>();
         try {
@@ -146,6 +148,7 @@ public class ExamService {
             }
             batch.commit().get();
             System.out.println("Questions batch committed");
+
             return true;
         } catch (Exception e) {
             System.out.println("Error in addExam: " + e.getMessage());
@@ -153,7 +156,6 @@ public class ExamService {
             return false;
         }
     }
-
 
     public boolean importExamFromExcel(InputStream inputStream, Map<String, Object> examData) {
         try {
@@ -313,10 +315,18 @@ public class ExamService {
                     List<Integer> correctAnswers = (List<Integer>) questions.get(i).get("correctAnswers");
                     correctAnswers.clear();
                     switch (correctAnswer) {
-                        case "A": correctAnswers.add(0); break;
-                        case "B": correctAnswers.add(1); break;
-                        case "C": correctAnswers.add(2); break;
-                        case "D": correctAnswers.add(3); break;
+                        case "A":
+                            correctAnswers.add(0);
+                            break;
+                        case "B":
+                            correctAnswers.add(1);
+                            break;
+                        case "C":
+                            correctAnswers.add(2);
+                            break;
+                        case "D":
+                            correctAnswers.add(3);
+                            break;
                     }
                     questions.get(i).put("correctAnswers", correctAnswers);
                 }
@@ -333,7 +343,6 @@ public class ExamService {
             return false;
         }
     }
-
 
     public boolean addExamSession(String examID, String username, long duration) {
         try {
@@ -359,7 +368,8 @@ public class ExamService {
             if (snapshot.exists()) {
                 if (snapshot.getBoolean("submitted") == true) {
                     return true;
-                };
+                }
+                ;
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -421,28 +431,6 @@ public class ExamService {
                 "username", userId
 
         ), SetOptions.merge());
-    }
-
-    public void updateUserScore(String username, double newScore) {
-        DocumentReference userScoreRef = db.collection("userScores").document(username);
-
-        try {
-            // Kiểm tra xem document có tồn tại không
-            if (userScoreRef.get().get().exists()) {
-                // Nếu tồn tại, cập nhật điểm số
-                userScoreRef.update("totalScore", FieldValue.increment(newScore)).get();
-                System.out.println("Cập nhật điểm thành công!");
-            } else {
-                // Nếu chưa có, tạo mới document
-                Map<String, Object> data = new HashMap<>();
-                data.put("username", username);
-                data.put("totalScore", newScore);
-                userScoreRef.set(data).get();
-                System.out.println("Tạo mới và cập nhật điểm thành công!");
-            }
-        } catch (Exception e) {
-            System.err.println("Lỗi khi cập nhật điểm: " + e.getMessage());
-        }
     }
 
     public List<ExamResult> getExamResultByUsername(String userId) {
@@ -547,7 +535,6 @@ public class ExamService {
         }
         return likedExams;
     }
-
     /**
      * Hàm helper để chia danh sách thành các nhóm nhỏ có kích thước batchSize
      */
@@ -559,8 +546,6 @@ public class ExamService {
         }
         return batches;
     }
-
-
 
     public List<Exam> getHtoryCreateExamsByUsername(String username) {
         List<Exam> exams = new ArrayList<>();
@@ -690,7 +675,6 @@ public class ExamService {
         return resultList;
     }
     // Phương thức lấy all đề thi
-
     public List<Exam> getAllExams() {
         Firestore firestore = FirestoreClient.getFirestore();
         List<Exam> examList = new ArrayList<>();
@@ -707,7 +691,6 @@ public class ExamService {
         }
         return examList;
     }
-
     // Xoá đề thi
     public void deleteExam(String examId) {
         Firestore firestore = FirestoreClient.getFirestore();
@@ -728,10 +711,6 @@ public class ExamService {
             System.out.println("Lỗi cập nhật trạng thái của exam " + examId);
             e.printStackTrace();
         }
-    }
-
-    public static void main(String[] args) {
-        System.out.println("ADD");
     }
 
     public List<ExamResult> getExamResultsByExamId(String examId) {

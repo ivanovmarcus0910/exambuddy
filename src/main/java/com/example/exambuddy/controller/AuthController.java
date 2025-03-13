@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 @Controller
 public class AuthController {
@@ -175,20 +176,6 @@ public class AuthController {
         return "login";
     }
 
-
-//    @RequestMapping("/logout")
-//    public String logout(HttpSession session, HttpServletResponse response, HttpServletRequest request) {
-//        System.out.println("Đã logout");
-//        session.removeAttribute("loggedInUser");
-//        session.removeAttribute("urlimg");
-//        session.invalidate();
-//        cookieService.removeCookie(response,"rememberedUsername");
-//        cookieService.removeCookie(response,"rememberedPassword");
-//        cookieService.removeCookie(response,"noname");
-//        System.out.println("Đã logout");
-//        return "redirect:/home";
-//    }
-
     @GetMapping("/forgotPass")
     public String forgotPasswordPage() {
         return "forgotPass";
@@ -197,6 +184,12 @@ public class AuthController {
     @PostMapping("/forgotPass")
     public String sendOtp(@RequestParam String email, Model model) {
         System.out.println("📩 Đã nhận yêu cầu gửi OTP cho email: " + email);
+
+        //Kiểm tra email đã đăng kí trong hệ thống chưa
+        if (!authService.isEmailExists(email)) {
+            model.addAttribute("error", "Email chưa được đăng kí trong hệ thống!");
+            return "forgotPass";
+        }
         String result = authService.sendPasswordResetOtp(email);
         model.addAttribute("message", result);
         model.addAttribute("email", email);
@@ -260,35 +253,27 @@ public class AuthController {
                          Model model) {
 
         boolean hasError = false;
-        // Kiểm tra nếu bất kỳ trường nào bị thiếu
-        if (email == null || username == null || password == null || confirmPassword == null) {
-            model.addAttribute("error", "Vui lòng nhập đầy đủ thông tin!");
-            hasError = true;
-        }
 
-        // Kiểm tra email hợp lệ
-        if (!email.matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
-            model.addAttribute("emailError", "Email không hợp lệ!");
-            hasError = true;
-        }
+        // Chạy kiểm tra tồn tại email và username song song
+        CompletableFuture<Boolean> emailExistsFuture = CompletableFuture.supplyAsync(() -> authService.isEmailExists(email));
+        CompletableFuture<Boolean> usernameExistsFuture = CompletableFuture.supplyAsync(() -> authService.isUsernameExists(username));
 
+        try {
+            boolean emailExists = emailExistsFuture.get();
+            boolean usernameExists = usernameExistsFuture.get();
 
-        // Kiểm tra mật khẩu xác nhận
-        if (!password.equals(confirmPassword)) {
-            model.addAttribute("passwordError", "Mật khẩu xác nhận không khớp!");
-            hasError = true;
-        }
-
-        // Kiểm tra xem email đã tồn tại chưa
-        if (authService.isEmailExists(email)) {
-            model.addAttribute("emailError", "Email này đã được sử dụng!");
-            hasError = true;
-        }
-
-        // Kiểm tra xem username đã tồn tại chưa
-        if (authService.isUsernameExists(username)) {
-            model.addAttribute("usernameError", "Tên đăng nhập này đã tồn tại!");
-            hasError = true;
+            if (emailExists) {
+                model.addAttribute("emailError2", "Email này đã được sử dụng!");
+                hasError = true;
+            }
+            if (usernameExists) {
+                model.addAttribute("usernameError2", "Tên đăng nhập này đã tồn tại!");
+                hasError = true;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            model.addAttribute("error", "Lỗi hệ thống. Vui lòng thử lại sau!");
+            return "signup";
         }
 
         // Nếu có lỗi, quay lại trang signup + giữ lại thông tin nhập vào

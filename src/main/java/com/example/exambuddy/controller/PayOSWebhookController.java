@@ -4,6 +4,7 @@ package com.example.exambuddy.controller;
 import com.example.exambuddy.config.PayOSConfig;
 import com.example.exambuddy.model.PayOSWebhookData;
 import com.example.exambuddy.model.PayOSWebhookRequest;
+import com.example.exambuddy.service.LeaderBoardService;
 import com.example.exambuddy.service.UserService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -23,6 +24,8 @@ public class PayOSWebhookController {
     private final PayOS payOS = new PayOSConfig().payOS();
     @Autowired
     private UserService userService;
+    @Autowired
+    private LeaderBoardService leaderBoardService;
     @PostMapping
     public ResponseEntity<String> handleWebhook(@RequestBody PayOSWebhookRequest request) {
         try {
@@ -34,6 +37,7 @@ public class PayOSWebhookController {
 
                 String username = userService.updatePaymentStatus(orderCode, amount, "PAID");
                 userService.changeCoinBalance(amount, username);
+                leaderBoardService.updateUserContribute(username, amount);
                 return ResponseEntity.ok("Success");
             } else {
                 String username = userService.updatePaymentStatus(orderCode, amount, "FAIL");

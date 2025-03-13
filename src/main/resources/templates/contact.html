@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liên hệ - Exam Buddy</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 800px;
+        }
+    </style>
+</head>
+<body>
+<div th:insert="~{fragments/header :: header}"></div>
+<div class="container py-5">
+    <h1 class="text-center text-primary mb-4">Liên hệ Exam Buddy</h1>
+    <section class="mb-5">
+        <h2 class="text-secondary">📌 Lý do phát triển</h2>
+        <p>Exam Buddy được tạo ra nhằm cung cấp một thư viện đề thi và kho câu hỏi phong phú dành cho học sinh trung học phổ thông. Chúng tôi mong muốn hỗ trợ học sinh ôn tập hiệu quả, chuẩn bị tốt nhất cho các kỳ thi quan trọng.</p>
+    </section>
+
+    <section class="mb-5">
+        <h2 class="text-secondary">🎯 Mục tiêu định hướng</h2>
+        <p>Chúng tôi đặt mục tiêu trở thành nền tảng luyện thi hàng đầu, giúp học sinh tiếp cận nguồn tài liệu chất lượng cao, phát triển tư duy và đạt thành tích tốt nhất.</p>
+    </section>
+
+    <section class="mb-5">
+        <h2 class="text-secondary">📞 Thông tin liên hệ</h2>
+        <ul class="list-group">
+            <li class="list-group-item"><strong>📧 Email:</strong> exambuddy.team@gmail.com</li>
+            <li class="list-group-item"><strong>📱 Hotline:</strong> 09243 09175</li>
+            <li class="list-group-item"><strong>🌍 Website:</strong> <a href="#">www.exambuddy.com</a></li>
+            <li class="list-group-item"><strong>📍 Địa chỉ:</strong>FPT University, Khu Đô Thị FPT, Hòa Hải, Ngũ Hành Sơn, Đà Nẵng</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2 class="text-secondary">📩 Gửi tin nhắn cho chúng tôi</h2>
+        <form>
+            <div class="mb-3">
+                <label class="form-label">Tên của bạn</label>
+                <input type="text" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input type="email" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Nội dung</label>
+                <textarea class="form-control" rows="4" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Gửi tin nhắn</button>
+        </form>
+    </section>
+</div>
+<div th:insert="~{fragments/footer :: footer}"></div>
+
+</body>
+</html>
