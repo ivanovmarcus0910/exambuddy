@@ -173,7 +173,6 @@ function openImageModal(imgElement) {
 
 function openPostModal(event, postId) {
     event.preventDefault();
-
     let modal = new bootstrap.Modal(document.getElementById('postModal'));
     modal.show();
 

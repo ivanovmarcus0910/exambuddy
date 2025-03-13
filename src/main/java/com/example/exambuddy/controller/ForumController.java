@@ -9,6 +9,7 @@ import com.example.exambuddy.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -30,42 +31,66 @@ public class ForumController {
     private PostService postService;
 
     @PostMapping("/create")
-    public String createPost(@RequestParam String content,
-                             @RequestParam("subject") String subject,
-                             @RequestParam(value = "grade", required = false, defaultValue = "Chung") String grade,
-                             @RequestParam("images") MultipartFile[] files,
-                             HttpServletRequest request,
-                             Model model) {
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> createPost(@RequestParam String content,
+                                                          @RequestParam("subject") String subject,
+                                                          @RequestParam(value = "grade", required = false, defaultValue = "Chung") String grade,
+                                                          @RequestParam("images") MultipartFile[] files,
+                                                          HttpServletRequest request) {
         HttpSession session = request.getSession();
         String username = (String) session.getAttribute("loggedInUser");
 
         if (username == null) {
-            return "redirect:/login";
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", "Chưa đăng nhập");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
         }
-        String avatarUrl = UserService.getAvatarUrlByUsername(username);
 
+        String avatarUrl = UserService.getAvatarUrlByUsername(username);
         List<String> imageUrls = new ArrayList<>();
+
         for (MultipartFile file : files) {
             if (!file.isEmpty()) {
                 String imageUrl = this.cloudinaryService.upLoadImg(file, "imgForum/imgPosts");
                 imageUrls.add(imageUrl);
             }
         }
-        subject = subject.trim().replace(",", "");
 
+        subject = subject.trim().replace(",", "");
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String date = formatter.format(new Date());
 
         // Lưu bài viết
         Post post = PostService.savePost(username, avatarUrl, content, subject, grade, date, imageUrls);
-        model.addAttribute("post", post);
 
-        return "redirect:/forum?subject=" + subject;
+        // Tạo response JSON
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("postId", post.getPostId());
+        response.put("username", username);
+        response.put("avatarUrl", avatarUrl);
+        response.put("content", content);
+        response.put("subject", subject);
+        response.put("grade", grade);
+        response.put("timeAgo", "Vừa xong"); // Có thể cần tính toán thời gian thực
+        response.put("imageUrls", imageUrls);
+        response.put("likeCount", 0);
+        response.put("liked", false);
+
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping
-    public String forumPage() {
-        return "forum"; // Trả về file forum.html (đặt trong thư mục templates)
+    public String forumPage(HttpServletRequest request, Model model) {
+        HttpSession session = request.getSession();
+        String username = (String) session.getAttribute("loggedInUser");
+
+        String avatarUrl = UserService.getAvatarUrlByUsername(username);
+
+        model.addAttribute("username", username);
+        model.addAttribute("avatarUrl", avatarUrl);
+        return "forum";
     }
 
     @GetMapping("/posts")
