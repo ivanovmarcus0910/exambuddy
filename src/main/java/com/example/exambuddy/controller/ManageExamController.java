@@ -351,9 +351,20 @@ public class ManageExamController {
             return "redirect:/exams/result-list";
         }
 
+        // Khởi tạo userAnswers với tất cả các câu hỏi
+        Map<String, List<String>> userAnswers = new HashMap<>();
+        if (exam.getQuestions() != null) {
+            for (int i = 0; i < exam.getQuestions().size(); i++) {
+                String key = "q" + i;
+                // Lấy đáp án từ examResult, nếu không có thì để danh sách rỗng
+                userAnswers.put(key, examResult.getAnswers() != null ?
+                        examResult.getAnswers().getOrDefault(key, Collections.emptyList()) : Collections.emptyList());
+            }
+        }
+
         model.addAttribute("exam", exam);  // Truyền danh sách câu hỏi vào Thymeleaf
         model.addAttribute("score", examResult.getScore());
-        model.addAttribute("userAnswers", examResult.getAnswers());
+        model.addAttribute("userAnswers", userAnswers);
         model.addAttribute("correctQuestions", examResult.getCorrectAnswers());
         model.addAttribute("userName", examResult.getUsername());
 

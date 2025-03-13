@@ -105,48 +105,7 @@
   </style>
 </head>
 <body class="bg-light">
-<!-- Sidebar -->
-<aside class="sidebar-fixed">
-  <div class="sidebar-header mb-4">
-    <div class="brand d-flex align-items-center gap-2">
-      <img src="https://res.cloudinary.com/dsuav027e/image/upload/v1740393796/favicon_iexkhg.png" alt="Exam Buddy Logo" class="brand-logo">
-      <div class="brand-text">
-        <div class="brand-name">Exam Buddy</div>
-        <small class="text-muted">E-learning</small>
-      </div>
-    </div>
-    <button class="btn btn-light border logout-btn"><i class="bi bi-box-arrow-right"></i></button>
-  </div>
-  <nav class="nav flex-column gap-3">
-    <a class="nav-link text-secondary" href="/profile"><i class="bi bi-person-fill me-2"></i><span class="menu-text">Thông tin cá nhân</span></a>
-    <a class="nav-link text-secondary" href="/payment-coin"><i class="bi bi-wallet-fill me-2"></i><span class="menu-text">Nạp Coin</span></a>
-    <a class="nav-link text-secondary" href="/statistics"><i class="bi bi-bar-chart-fill me-2"></i><span class="menu-text">Thống kê</span></a>
-    <a class="nav-link text-secondary" href="/exams/result-list"><i class="bi bi-clock-history me-2"></i><span class="menu-text">Lịch sử làm đề</span></a>
-    <a class="nav-link text-secondary" href="/exams/created"><i class="bi bi-file-earmark me-2"></i><span class="menu-text">Lịch sử tạo đề</span></a>
-    <a class="nav-link text-secondary" href="#!"><i class="bi bi-pencil-square me-2"></i><span class="menu-text">Lịch sử đăng bài</span></a>
-    <a class="nav-link text-secondary" href="/paymentHistory"><i class="bi bi-wallet2 me-2"></i><span class="menu-text">Lịch sử thanh toán</span></a>
-    <a class="nav-link text-danger" href="/logout"><i class="bi bi-box-arrow-right me-2"></i><span class="menu-text">Đăng xuất</span></a>
-  </nav>
-</aside>
-
-<!-- Header -->
-<header class="header-fixed">
-  <a href="/home" class="text-secondary home-link"><i class="bi bi-house-door me-2"></i>Trang chủ</a>
-  <div class="d-flex align-items-center gap-3">
-    <a href="#!" class="text-dark"><i class="bi bi-bell"></i></a>
-    <a href="#!" class="text-dark"><i class="bi bi-globe"></i></a>
-    <div class="dropdown">
-      <a href="#!" class="d-flex align-items-center text-dark dropdown-toggle" id="userDropdown" data-bs-toggle="dropdown">
-        <img th:src="${user.avatarUrl}" alt="Avatar" class="avatar">
-        <span th:text="${user.role}">Học viên</span>
-      </a>
-      <ul class="dropdown-menu dropdown-menu-end">
-        <li><a class="dropdown-item" href="#">Thông tin cá nhân</a></li>
-        <li><a class="dropdown-item" href="/logout">Đăng xuất</a></li>
-      </ul>
-    </div>
-  </div>
-</header>
+<div th:insert="~{fragments/headerProfile :: headerSidebar}"></div>
 
 <!-- Content Area -->
 <main class="content-area">
