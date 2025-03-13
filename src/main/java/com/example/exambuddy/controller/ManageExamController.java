@@ -3,6 +3,7 @@ package com.example.exambuddy.controller;
 import com.example.exambuddy.model.*;
 import com.example.exambuddy.service.CookieService;
 import com.example.exambuddy.service.ExamService;
+import com.example.exambuddy.service.LeaderBoardService;
 import com.example.exambuddy.service.UserService;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.*;
@@ -30,6 +31,8 @@ import java.util.concurrent.ExecutionException;
 @Controller
 public class ManageExamController {
     private Firestore db = FirestoreClient.getFirestore();
+    @Autowired
+    private LeaderBoardService leaderBoardService;
 
     public ManageExamController(ExamService examService) {
         this.examService = examService;
@@ -141,7 +144,7 @@ public class ManageExamController {
             String username = cookieService.getCookie(request, "noname");
             examService.submitExam(username, examId);
             examService.saveExamResult(username, examId, score, exam, userAnswers, correctQuestions);
-            examService.updateUserScore(username, score);
+            leaderBoardService.updateUserScore(username, score);
             model.addAttribute("exam", exam);
             model.addAttribute("score", score);
             model.addAttribute("totalQuestions", questions.size());
