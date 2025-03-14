@@ -142,6 +142,14 @@ public class AuthController {
                         if (rememberMe) {
                             cookieService.setCookie(response, "rememberedUsername", URLEncoder.encode(username, "UTF-8"));
                             cookieService.setCookie(response, "rememberedPassword", URLEncoder.encode(password, "UTF-8"));
+                            cookieService.setCookie(response, "noname", URLEncoder.encode(username, "UTF-8"));
+                        }
+                        else {
+                            // Xoá cookie nếu không chọn "Ghi nhớ đăng nhập"
+                            cookieService.setCookie(response, "noname", URLEncoder.encode(username, "UTF-8"));
+                            cookieService.removeCookie(response, "rememberedUsername");
+                            cookieService.removeCookie(response, "rememberedPassword");
+
                         }
 
                         long endTime = System.currentTimeMillis();

@@ -159,7 +159,9 @@ public class UserService {
     public User getUserByUsername(String username) {
         Firestore firestore = FirestoreClient.getFirestore();
         try {
-            DocumentSnapshot userSnapshot = firestore.collection("users").document(username).get().get();
+            DocumentSnapshot userSnapshot = firestore.collection("users").
+
+                    document(username).get().get();
             return userSnapshot.exists() ? userSnapshot.toObject(User.class) : null;
         } catch (Exception e) {
             e.printStackTrace();
