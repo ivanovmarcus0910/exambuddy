@@ -131,20 +131,27 @@
                             </div>
 
                             <!-- Form thông tin Giáo viên -->
-                            <form id="teacherForm" th:object="${user}" th:action="@{/profile/teacher/update}" method="post" enctype="multipart/form-data" class="mt-3">
+                            <form id="teacherForm" th:object="${user}" th:action="@{/profile/teacher/update}" method="post" enctype="multipart/form-data" class="mt-3 needs-validation" novalidate>
                                 <div class="row g-3">
                                     <!-- Hàng 1: Tên, Họ, Ngày sinh -->
                                     <div class="col-sm-3">
                                         <label class="form-label" style="color:#333; font-weight:650;">Tên <span class="text-danger">*</span></label>
                                         <input type="text" class="form-control custom-input"
                                                th:field="*{firstName}"
-                                               placeholder="Nhập tên" required>
+                                               placeholder="Nhập tên"  pattern="^[\p{L}\s]+$" required>
+                                        <div class="invalid-feedback">
+                                            Tên chỉ được chứa chữ và khoảng trắng, không chứa số hay ký tự đặc biệt.
+                                        </div>
                                     </div>
                                     <div class="col-sm-3">
                                         <label class="form-label" style="color:#333; font-weight:650;">Họ <span class="text-danger">*</span></label>
                                         <input type="text" class="form-control custom-input"
                                                th:field="*{lastName}"
-                                               placeholder="Nhập họ" required>
+                                               placeholder="Nhập họ"  pattern="^[\p{L}\s]+$"
+                                               required>
+                                        <div class="invalid-feedback">
+                                            Họ chỉ được chứa chữ và khoảng trắng, không chứa số hay ký tự đặc biệt.
+                                        </div>
                                     </div>
                                     <div class="col-sm-6">
                                         <label class="form-label" style="color:#333; font-weight:650;">Ngày sinh</label>
@@ -163,14 +170,16 @@
                                     </div>
                                     <div class="col-sm-4">
                                         <label class="form-label" style="color:#333; font-weight:650;">Số điện thoại</label>
-                                        <input type="text" class="form-control custom-input"
-                                               th:field="*{phone}"
-                                               placeholder="VD: 0123456789">
+                                        <input type="text" class="form-control custom-input" th:field="*{phone}" placeholder="VD: 0123456789"
+                                               pattern="^[0-9]+$" title="Số điện thoại chỉ được chứa số">
+                                        <div class="invalid-feedback">
+                                            Số điện thoại chỉ được chứa số.
+                                        </div>
                                     </div>
                                     <div class="col-sm-4">
-                                        <label class="form-label" style="color:#333; font-weight:650;">Tỉnh/Thành phố</label>
-                                        <select class="form-select custom-input" th:field="*{address}">
-                                            <option value="">-- Chọn Tỉnh/Thành phố --</option>
+                                        <label class="form-label" style="color:#333; font-weight:650;">Tỉnh/Thành phố <span class="text-danger">*</span></label>
+                                        <select class="form-select custom-input" th:field="*{address}" required>
+                                            <option value="">-- Chọn Tỉnh/Thành phố --</option >
                                             <option value="Hà Nội">Hà Nội</option>
                                             <option value="Hồ Chí Minh">Hồ Chí Minh</option>
                                             <option value="Đà Nẵng">Đà Nẵng</option>
@@ -235,6 +244,9 @@
                                             <option value="Vĩnh Phúc">Vĩnh Phúc</option>
                                             <option value="Yên Bái">Yên Bái</option>
                                         </select>
+                                        <div class="invalid-feedback">
+                                            Vui lòng chọn Tỉnh/Thành phố.
+                                        </div>
                                     </div>
                                 </div>
 
@@ -247,34 +259,46 @@
                                                placeholder="VD: GV123">
                                     </div>
                                     <div class="col-sm-6">
-                                        <label class="form-label" style="color:#333; font-weight:650;">Nơi làm việc</label>
+                                        <label class="form-label" style="color:#333; font-weight:650;">Nơi làm việc <span class="text-danger">*</span></label>
                                         <input type="text" class="form-control custom-input"
                                                th:field="*{school}"
-                                               placeholder="VD: Trường THPT FPT">
+                                               placeholder="VD: Trường THPT FPT" required>
+                                        <div class="invalid-feedback">
+                                            Vui lòng nhập Nơi làm việc.
+                                        </div>
                                     </div>
                                 </div>
 
                                 <!-- Hàng 4: Môn giảng dạy, Kinh nghiệm -->
                                 <div class="row g-3 mt-3">
                                     <div class="col-sm-6">
-                                        <label class="form-label" style="color:#333; font-weight:650;">Môn giảng dạy</label>
+                                        <label class="form-label" style="color:#333; font-weight:650;">Môn giảng dạy <span class="text-danger">*</span></label>
                                         <input type="text" class="form-control custom-input"
                                                th:field="*{speciality}"
-                                               placeholder="VD: Toán, Lý, Hóa">
+                                               placeholder="VD: Toán, Lý, Hóa" required>
+                                        <div class="invalid-feedback">
+                                            Vui lòng nhập Môn giảng dạy.
+                                        </div>
                                     </div>
                                     <div class="col-sm-6">
-                                        <label class="form-label" style="color:#333; font-weight:650;">Kinh nghiệm (năm)</label>
+                                        <label class="form-label" style="color:#333; font-weight:650;">Kinh nghiệm (năm) <span class="text-danger">*</span></label>
                                         <input type="number" class="form-control custom-input"
                                                th:field="*{experience}"
-                                               placeholder="VD: 1">
+                                               placeholder="VD: 1" required min="0" max="50">
+                                        <div class="invalid-feedback">
+                                            Vui lòng nhập kinh nghiệm trong khoảng từ 0 đến 50 năm.
+                                        </div>
                                     </div>
                                 </div>
 
                                 <!-- Hàng 5: Tải lên bằng cấp -->
                                 <div class="row g-3 mt-3">
                                     <div class="col-sm-12">
-                                        <label class="form-label" style="color:#333; font-weight:650;">Tải lên bằng cấp, chứng chỉ (Nếu có)</label>
-                                        <input type="file" name="degreeFile" class="form-control">
+                                        <label class="form-label" style="color:#333; font-weight:650;">Tải lên bằng cấp, chứng chỉ <span class="text-danger">*</span></label>
+                                        <input type="file" name="degreeFile" class="form-control" required>
+                                        <div class="invalid-feedback">
+                                            Vui lòng tải lên bằng cấp/chứng chỉ.
+                                        </div>
                                         <small class="text-muted">Admin sẽ kiểm duyệt tệp này</small>
                                     </div>
                                 </div>
@@ -354,12 +378,7 @@
                                 <!-- Nút cập nhật mật khẩu -->
                                 <button type="submit"
                                         class="btn btn-primary d-block mx-auto px-4 py-2"
-                                        style="
-                                            border-radius: 0.75rem;
-                                            font-size: 1rem;
-                                            font-weight: bold;
-                                            white-space: nowrap;
-                                        ">
+                                        style="border-radius: 0.75rem; font-size: 1rem; font-weight: bold; white-space: nowrap;">
                                     Lưu mật khẩu
                                 </button>
                             </form>
@@ -375,7 +394,7 @@
 <!-- Bootstrap Bundle JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-<!-- Script: Toggle mật khẩu & Validate form -->
+<!-- Script: Toggle mật khẩu & Validate form cho phần Mật khẩu -->
 <script>
     function togglePassword(fieldId, iconId) {
         const passwordField = document.getElementById(fieldId);
@@ -430,6 +449,27 @@
         document.querySelectorAll(".text-danger").forEach(e => e.style.display = "none");
     }
 </script>
+
+<!-- Script: Custom validation cho form thông tin Giáo viên -->
+<script>
+    (function() {
+        'use strict';
+        window.addEventListener('load', function() {
+            // Lấy tất cả các form có lớp needs-validation (ở đây có teacherForm)
+            var forms = document.getElementsByClassName('needs-validation');
+            Array.prototype.forEach.call(forms, function(form) {
+                form.addEventListener('submit', function(event) {
+                    if (!form.checkValidity()) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    form.classList.add('was-validated');
+                }, false);
+            });
+        }, false);
+    })();
+</script>
+
 <div th:insert="~{fragments/logoutModal :: logoutModal}"></div>
 </body>
 </html>

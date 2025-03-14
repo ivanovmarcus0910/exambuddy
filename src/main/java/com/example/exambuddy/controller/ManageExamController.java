@@ -84,7 +84,7 @@ public class ManageExamController {
 
             Exam exam = examService.getExam(examId);
             String username = cookieService.getCookie(request, "noname");
-            examService.addExamSession(examId, username, 1000 * 60 * 30);
+            examService.addExamSession(examId, username, 1000 * 60 * exam.getTimeduration());
             model.addAttribute("exam", exam);
             model.addAttribute("username", username);
             model.addAttribute("questions", exam.getQuestions()); // Gửi danh sách câu hỏi qua view
@@ -179,7 +179,7 @@ public class ManageExamController {
         }
 
         try {
-            boolean status = examService.addExam(examData);
+            boolean status = examService.addExam(examData, "");
             if (status)
                 return "Đề thi đã được lưu thành công!";
             else throw new Exception();
@@ -188,13 +188,13 @@ public class ManageExamController {
         }
     }
 
-
+    //Lấy tiến trình bài đang làm
     @GetMapping("exams/progress")
     public ResponseEntity<?> getProgress(@RequestParam String userId, @RequestParam String examId) {
         Map<String, Object> progress = examService.getProgress(userId, examId);
         return ResponseEntity.ok(progress);
     }
-
+    //Lưu tiến trình bài đang làm
     @PostMapping("exams/progress")
     public ResponseEntity<?> saveProgress(@RequestBody Map<String, Object> payload) {
         String userId = (String) payload.get("userId");
@@ -204,7 +204,7 @@ public class ManageExamController {
         examService.saveProgress(userId, examId, answers);
         return ResponseEntity.ok(Collections.singletonMap("status", "success"));
     }
-
+    //Lấy thời gian còn lại
     @GetMapping("exams/time-left")
     public ResponseEntity<?> getTimeLeft(@RequestParam String userId, @RequestParam String examId) {
         long x = System.currentTimeMillis();
@@ -212,7 +212,7 @@ public class ManageExamController {
         boolean submitted = examService.isSubmitted(userId, examId);
         return ResponseEntity.ok(Map.of("timeLeft", timeLeft / 1000, "submitted", submitted));
     }
-
+    //Lấy danh sách lịch sử làm bài
     @GetMapping("exams/result-list")
     public String getResultList(HttpServletRequest request, HttpSession session, Model model) {
         if (session.getAttribute("loggedInUser") == null) {
@@ -307,7 +307,7 @@ public class ManageExamController {
         return ResponseEntity.ok(response);
     }
 
-
+    //Created List
     @GetMapping("/exams/created")
     public String showCreatedExams(
             @RequestParam(value = "subject", required = false) String subject,
@@ -553,5 +553,43 @@ public class ManageExamController {
         model.addAttribute("user", user);
         return "likedExams";
     }
+
+    @GetMapping("/exams/edit/{examId}")
+    public String editExam(@PathVariable String examId, Model model, HttpServletRequest request, HttpSession session) {
+        Exam exam = examService.getExam(examId);
+        if (exam.getUsername().equals(session.getAttribute("loggedInUser"))) {
+            model.addAttribute("username", session.getAttribute("loggedInUser"));
+            model.addAttribute("exam", exam);
+            model.addAttribute("examId", examId);
+            return "editExam";
+        }
+        else {
+            return "redirect:/login";
+        }
+    }
+    @ResponseBody
+    @PostMapping("/exams/edit/{examId}")
+    public ResponseEntity<String> updateExam(@PathVariable String examId, @RequestBody Map<String, Object> examData, HttpSession session, HttpServletRequest request) {
+        // Lấy username từ session
+        String username = (String) session.getAttribute("loggedInUser");
+        if (username == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Chưa đăng nhập!");
+        }
+
+        // Lấy thông tin user từ UserService
+        User user = userService.getUserByUsername(username);
+        if (user == null || (user.getRole() != User.Role.ADMIN && user.getRole() != User.Role.TEACHER)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Bạn không có quyền sửa đề thi!");
+        }
+
+        try {
+            examService.addExam(examData, examId);
+            return ResponseEntity.ok("Đã cập nhật đề thi thành công!");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Lỗi khi cập nhật đề thi!");
+
+        }
+    }
+
 }
 
