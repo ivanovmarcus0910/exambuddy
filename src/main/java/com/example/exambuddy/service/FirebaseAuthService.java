@@ -1,8 +1,10 @@
 package com.example.exambuddy.service;
 
 import com.example.exambuddy.model.User;
+import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.*;
 import com.google.firebase.cloud.FirestoreClient;
+import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -12,6 +14,8 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -95,35 +99,59 @@ public class FirebaseAuthService {
     /**
      * Gửi lại mã OTP khác
      */
-    public String resendOtp(String email, String actionType) {
+    public CompletableFuture<String> resendOtp(String email, String actionType) {
         Firestore firestore = FirestoreClient.getFirestore();
         String collectionName = actionType.equals("register") ? ACCOUNT_OTP_COLLECTION : OTP_COLLECTION;
-
         String newOtp = emailService.generateOtp();
         long expiryTime = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(1);
 
-        try {
-            DocumentSnapshot existingOtp = firestore.collection(collectionName).document(email).get().get();
+        DocumentReference docRef = firestore.collection(collectionName).document(email);
+        ApiFuture<DocumentSnapshot> snapshotApiFuture = docRef.get();
 
-            if (existingOtp.exists()) {
-                firestore.collection(collectionName).document(email).update("otp", newOtp, "expiryTime", expiryTime);
-            } else {
-                firestore.collection(collectionName).document(email).set(new OtpRecord(newOtp, expiryTime));
+        return toCompletableFuture(snapshotApiFuture)
+                .thenCompose(existingOtp -> {
+                    CompletableFuture<WriteResult> updateFuture;
+                    if (existingOtp.exists()) {
+                        ApiFuture<WriteResult> updateApiFuture = docRef.update("otp", newOtp, "expiryTime", expiryTime);
+                        updateFuture = toCompletableFuture(updateApiFuture);
+                    } else {
+                        ApiFuture<WriteResult> setApiFuture = docRef.set(new OtpRecord(newOtp, expiryTime));
+                        updateFuture = toCompletableFuture(setApiFuture);
+                    }
+                    return updateFuture.thenApply(writeResult -> {
+                        if (actionType.equals("register")) {
+                            System.out.println("📧 Gửi lại OTP xác thực tài khoản đến: " + email);
+                            try {
+                                emailService.sendOtpEmailAccount(email, newOtp);
+                            } catch (MessagingException e) {
+                                throw new RuntimeException(e);
+                            }
+                        } else {
+                            System.out.println("📧 Gửi lại OTP đặt lại mật khẩu đến: " + email);
+                            try {
+                                emailService.sendOtpEmail(email, newOtp);
+                            } catch (MessagingException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
+                        return "Mã OTP mới đã được gửi!";
+                    });
+                })
+                .exceptionally(ex -> "Lỗi khi gửi lại OTP: " + ex.getMessage());
+    }
+    /**
+     * Chuyển đổi ApiFuture<T> thành CompletableFuture<T>
+     */
+    private <T> CompletableFuture<T> toCompletableFuture(ApiFuture<T> apiFuture) {
+        CompletableFuture<T> completableFuture = new CompletableFuture<>();
+        apiFuture.addListener(() -> {
+            try {
+                completableFuture.complete(apiFuture.get());
+            } catch (Exception e) {
+                completableFuture.completeExceptionally(e);
             }
-
-            // ✅ Gửi đúng OTP theo loại yêu cầu
-            if (actionType.equals("register")) {
-                System.out.println("📧 Gửi lại OTP xác thực tài khoản đến: " + email);
-                emailService.sendOtpEmailAccount(email, newOtp);
-            } else {
-                System.out.println("📧 Gửi lại OTP đặt lại mật khẩu đến: " + email);
-                emailService.sendOtpEmail(email, newOtp);
-            }
-
-            return "Mã OTP mới đã được gửi!";
-        } catch (Exception e) {
-            return "Lỗi khi gửi lại OTP: " + e.getMessage();
-        }
+        }, Executors.newSingleThreadExecutor());
+        return completableFuture;
     }
 
     /**
@@ -203,48 +231,82 @@ public class FirebaseAuthService {
     }
 
     //Kiểm tra xem email đã xác thực chưa
-    public boolean isEmailVerified(String username) {
+    public boolean isEmailVerified(String email) {
         Firestore firestore = FirestoreClient.getFirestore();
         try {
-            DocumentSnapshot userSnapshot = firestore.collection(COLLECTION_NAME).document(username).get().get();
-            return userSnapshot.exists() && userSnapshot.getBoolean("verified");
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    // Xác thực đăng nhập bằng username & password
-    public boolean authenticate(String username, String password) {
-        Firestore firestore = FirestoreClient.getFirestore();
-        try {
-            // ✅ Lấy mật khẩu mã hóa từ Firestore
-            String hashedPasswordFromDB = passService.getPasswordByUsername(username);
-            if (hashedPasswordFromDB == null) {
-                return false; // Không tìm thấy user
-            }
-
-
-            boolean match = passService.matches(password, hashedPasswordFromDB);
-            return match;
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    // Kiểm tra xem email đã tồn tại chưa
-    public boolean isEmailExists(String email) {
-        Firestore firestore = FirestoreClient.getFirestore();
-        try {
+            // 🔍 Truy vấn Firestore để tìm user theo email
             Query query = firestore.collection(COLLECTION_NAME).whereEqualTo("email", email);
             QuerySnapshot querySnapshot = query.get().get();
-            return !querySnapshot.isEmpty();
+
+            // Kiểm tra xem có user nào với email này không
+            if (querySnapshot.isEmpty()) {
+                System.out.println("❌ Không tìm thấy user nào với email: " + email);
+                return false;
+            }
+
+            // Lấy document đầu tiên (nếu có nhiều kết quả, Firestore lấy kết quả đầu tiên)
+            DocumentSnapshot userSnapshot = querySnapshot.getDocuments().get(0);
+            Boolean verified = userSnapshot.getBoolean("verified");
+
+            // In ra để debug
+            System.out.println("🔍 Giá trị verified từ Firestore cho " + email + ": " + verified);
+
+            // Xử lý nếu trường "verified" bị null (chưa tồn tại)
+            if (verified == null) {
+                System.out.println("⚠️ Trường verified không tồn tại hoặc bị null!");
+                return false;
+            }
+
+            return verified;  // Trả về true nếu đã xác thực
         } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
+    }
+
+
+    // Xác thực đăng nhập bằng username & password
+    public CompletableFuture<Boolean> authenticate(String username, String password) {
+        CompletableFuture<Boolean> future = new CompletableFuture<>();
+        Firestore firestore = FirestoreClient.getFirestore();
+
+        // Giả sử passService.getPasswordByUsernameAsync trả về ApiFuture<String>
+        ApiFuture<String> hashedPasswordFuture = passService.getPasswordByUsername(username);
+
+        hashedPasswordFuture.addListener(() -> {
+            try {
+                String hashedPasswordFromDB = hashedPasswordFuture.get();
+                if (hashedPasswordFromDB == null) {
+                    future.complete(false);
+                } else {
+                    boolean match = passService.matches(password, hashedPasswordFromDB);
+                    future.complete(match);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                future.complete(false);
+            }
+        }, Executors.newSingleThreadExecutor());
+
+        return future;
+    }
+
+
+    // Kiểm tra xem email đã tồn tại chưa
+    public CompletableFuture<Boolean> isEmailExists(String email) {
+        Firestore firestore = FirestoreClient.getFirestore();
+        Query query = firestore.collection(COLLECTION_NAME).whereEqualTo("email", email);
+        ApiFuture<QuerySnapshot> queryFuture = query.get();
+
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                QuerySnapshot snapshot = queryFuture.get();
+                return !snapshot.isEmpty();
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
+        });
     }
 
     // Kiểm tra xem username đã tồn tại chưa

@@ -132,7 +132,7 @@
                 <i class="bi bi-wallet2 me-2" style="font-size:1.2rem;"></i>
                 <span class="menu-text">Lịch sử thanh toán</span>
             </a>
-            <a class="d-flex align-items-center px-2 py-1 text-danger" href="/logout" style="border-radius:8px;">
+            <a class="d-flex align-items-center px-2 py-1 text-danger" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal" style="border-radius:8px;">
                 <i class="bi bi-box-arrow-right me-2" style="font-size:1.2rem;"></i>
                 <span class="menu-text">Đăng xuất</span>
             </a>
@@ -168,11 +168,15 @@
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                     <li><a class="dropdown-item" href="/profile">Thông tin cá nhân</a></li>
-                    <li><a class="dropdown-item" href="/logout">Đăng xuất</a></li>
+                    <li>
+                        <a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">
+                        Đăng xuất
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>
     </div>
     <!-- /HEADER -->
-
+    <div th:insert="~{fragments/logoutModal :: logoutModal}"></div>
 </div><!-- /th:fragment="headerSidebar" -->

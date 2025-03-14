@@ -152,7 +152,7 @@
         let icon = button.querySelector("i");
 
         // Kiểm tra trạng thái like khi trang tải
-        fetch(`/exams/${examId}/isLiked`) // Dùng backtick ``
+        fetch('/exams/${examId}/isLiked') // Dùng backtick ``
             .then(response => response.json())
             .then(data => {
                 if (data.liked) {
@@ -166,25 +166,24 @@
         button.addEventListener("click", function () {
             let isLiked = button.classList.contains("liked");
 
-            fetch(`/exams/${examId}/like`, { // Dùng backtick ``
-                method: isLiked ? "DELETE" : "POST"
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.message === "Bạn cần đăng nhập để like.") {
-                        if (confirm("Bạn cần đăng nhập để like. Chuyển đến trang đăng nhập?")) {
-                            window.location.href = "/login";
-                        }
-                        return;
+            fetch('/exams/${examId}/like') // Dùng backtick ``
+            method: isLiked ? "DELETE" : "POST"
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message === "Bạn cần đăng nhập để like.") {
+                    if (confirm("Bạn cần đăng nhập để like. Chuyển đến trang đăng nhập?")) {
+                        window.location.href = "/login";
                     }
+                    return;
+                }
 
-                    // Chỉ thay đổi giao diện, không hiện thông báo
-                    button.classList.toggle("liked");
-                    icon.classList.toggle("fa-solid");
-                    icon.classList.toggle("fa-regular");
-                })
-                .catch(error => console.error("Lỗi:", error));
-        });
+                // Chỉ thay đổi giao diện, không hiện thông báo
+                button.classList.toggle("liked");
+                icon.classList.toggle("fa-solid");
+                icon.classList.toggle("fa-regular");
+            })
+            .catch(error => console.error("Lỗi:", error));
     });
     async function updateLeaderboard() {
         try {
@@ -195,7 +194,7 @@
             leaderboard.innerHTML = ""; // Xóa dữ liệu cũ
 
             data.forEach(user => {
-                let row = `<li class="list-group-item">${user.username} - ${user.totalScore} Điểm</li>`;
+                let row = <li class="list-group-item">${user.username} - ${user.totalScore} Điểm</li>;
                 leaderboard.innerHTML += row;
             });
         } catch (error) {
@@ -212,7 +211,7 @@
             contributionBoard.innerHTML = ""; // Xóa dữ liệu cũ
 
             data.forEach(user => {
-                let row = `<li class="list-group-item">${user.username} - ${user.contributionScore} Điểm</li>`;
+                let row = <li class="list-group-item">${user.username} - ${user.contributionScore} Điểm</li>;
                 contributionBoard.innerHTML += row;
             });
         } catch (error) {
@@ -230,7 +229,7 @@
     setInterval(updateLeaderboard, 5000);
     setInterval(updateContributionBoard, 5000);
 </script>
-
+<div th:insert="~{fragments/logoutModal :: logoutModal}"></div>
 <div th:insert="~{fragments/footer :: footer}"></div>
 
 </body>

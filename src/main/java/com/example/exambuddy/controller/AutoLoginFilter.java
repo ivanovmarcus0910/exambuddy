@@ -41,7 +41,7 @@ public class AutoLoginFilter extends OncePerRequestFilter {
                 String username = cookieService.getCookie(request, "rememberedUsername");
                 String password = cookieService.getCookie(request, "rememberedPassword");
                 if (username != null && password != null) {
-                    if (authService.authenticate(URLDecoder.decode(username, "UTF-8"), URLDecoder.decode(password, "UTF-8"))) {
+                    if (authService.authenticate(URLDecoder.decode(username, "UTF-8"), URLDecoder.decode(password, "UTF-8")).join()) {
                         cookieService.setCookie(response, "noname", URLEncoder.encode(username, "UTF-8"));
                         session = request.getSession(true);
                         session.setAttribute("loggedInUser", username);

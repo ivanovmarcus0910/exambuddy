@@ -23,7 +23,7 @@ public class OtpController {
     public String resendOtp(@RequestParam String email, @RequestParam String actionType, Model model) {
         System.out.println("📩 Đang gửi lại OTP cho email: " + email);
 
-        if (!authService.isEmailExists(email)) {
+        if (!authService.isEmailExists(email).join()) {
             model.addAttribute("error", "Email chưa được đăng ký trong hệ thống!");
             return "supportVerification";
         }
@@ -33,7 +33,7 @@ public class OtpController {
             return "supportVerification";
         }
 
-        String result = authService.resendOtp(email, actionType);
+        String result = String.valueOf(authService.resendOtp(email, actionType));
         model.addAttribute("message", result);
         model.addAttribute("email", email);
         model.addAttribute("actionType", actionType);
