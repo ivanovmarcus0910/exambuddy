@@ -22,6 +22,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import java.util.concurrent.ExecutionException;
@@ -254,16 +255,19 @@ public class ManageExamController {
 
     @GetMapping("/exams/{id}/isLiked")
     @ResponseBody
-    public ResponseEntity<?> isLiked(@PathVariable String id, HttpServletRequest request, HttpSession session) {
+    public CompletableFuture<ResponseEntity<Map<String, Boolean>>> isLiked(
+            @PathVariable String id, HttpServletRequest request, HttpSession session) {
+
         if (session.getAttribute("loggedInUser") == null) {
-            return ResponseEntity.ok(Map.of("liked", false)); // Nếu chưa đăng nhập, coi như chưa like
+            return CompletableFuture.completedFuture(ResponseEntity.ok(Map.of("liked", false)));
         }
 
         String username = cookieService.getCookie(request, "noname");
-        boolean isLiked = examService.isExamLiked(username, id);
 
-        return ResponseEntity.ok(Map.of("liked", isLiked));
+        return examService.isExamLikedAsync(username, id)
+                .thenApplyAsync(isLiked -> ResponseEntity.ok(Map.of("liked", isLiked)));
     }
+
 
     @GetMapping("/exams/liked")
     public ResponseEntity<List<Map<String, Object>>> showLikedExams(

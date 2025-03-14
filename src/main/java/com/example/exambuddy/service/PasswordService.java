@@ -1,6 +1,9 @@
 package com.example.exambuddy.service;
 
+import com.google.api.core.ApiFuture;
+import com.google.api.core.ApiFutures;
 import com.google.cloud.firestore.*;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.firebase.auth.hash.Bcrypt;
 import com.google.firebase.cloud.FirestoreClient;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -92,18 +95,24 @@ public class PasswordService {
     /**
      * Lấy mật khẩu mã hóa từ Firestore dựa trên username
      */
-    public String getPasswordByUsername(String username) {
+    public ApiFuture<String> getPasswordByUsername(String username) {
         Firestore firestore = FirestoreClient.getFirestore();
-        try {
-            DocumentSnapshot userSnapshot = firestore.collection(COLLECTION_NAME).document(username).get().get();
-            if (!userSnapshot.exists()) {
-                System.out.println("❌ Không tìm thấy user với username: " + username);
-                return null;
-            }
-            return userSnapshot.getString("password"); // Trả về mật khẩu đã mã hóa
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
+        DocumentReference docRef = firestore.collection(COLLECTION_NAME).document(username);
+
+        // Lấy ApiFuture<DocumentSnapshot> từ Firestore (không block)
+        ApiFuture<DocumentSnapshot> futureSnapshot = docRef.get();
+
+        // Chuyển đổi sang ApiFuture<String> với hàm transform
+        return ApiFutures.transform(
+                futureSnapshot,
+                (DocumentSnapshot userSnapshot) -> {
+                    if (!userSnapshot.exists()) {
+                        System.out.println("❌ Không tìm thấy user với username: " + username);
+                        return null;
+                    }
+                    return userSnapshot.getString("password");
+                },
+                MoreExecutors.directExecutor()
+        );
     }
 }

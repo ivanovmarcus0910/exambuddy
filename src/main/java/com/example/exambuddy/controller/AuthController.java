@@ -96,85 +96,89 @@ public class AuthController {
 
     // Điều hướng trang Home
 
-    // ✅ Xử lý đăng nhập trong Spring Boot với session & cookie
+
     @PostMapping("/login")
-    public String login(@RequestParam String username,
-                        @RequestParam String password,
-                        @RequestParam(required = false) boolean rememberMe,
-                        Model model,
-                        HttpSession session,
-                        HttpServletResponse response,
-                        HttpServletRequest request) throws UnsupportedEncodingException {
+    public CompletableFuture<String> login(@RequestParam String username,
+                                           @RequestParam String password,
+                                           @RequestParam(required = false) boolean rememberMe,
+                                           Model model,
+                                           HttpSession session,
+                                           HttpServletResponse response) throws UnsupportedEncodingException {
 
-        if (username.isEmpty() || password.isEmpty()) {
-            model.addAttribute("error", "Vui lòng nhập đầy đủ thông tin đăng nhập!");
-            return "login";
-        }
+        long startTime = System.currentTimeMillis();
 
-        // Kiểm tra xem tài khoản có tồn tại không
-        User user = userService.getUserByUsername(username);
-        if (user == null) {
-            model.addAttribute("error", "Tài khoản không tồn tại trong hệ thống!");
-            return "login";
-        }
-        // Kiểm tra xác thực email
-        if (!authService.isEmailVerified(username)) {
-            model.addAttribute("error", "Tài khoản chưa được xác thực. Vui lòng kiểm tra email.");
-            model.addAttribute("actionType", "register");  // Xác thực tài khoản
-            return "login";
-        }
+        // Lấy thông tin user theo username
+        CompletableFuture<User> userFuture = CompletableFuture.supplyAsync(() -> userService.getUserByUsername(username));
 
-        // Kiểm tra nếu mật khẩu không đúng
-        if (!authService.authenticate(username, password)) {
-            model.addAttribute("error", "Mật khẩu không đúng. Vui lòng thử lại!");
-            return "login";
-        }
-        // Xác thực tài khoản
-        if (authService.authenticate(username, password)) {
-            // Lấy đối tượng người dùng
-            if (user == null) {
-                model.addAttribute("error", "Không tìm thấy người dùng!");
-                return "login";
-            }
-            // Kiểm tra trạng thái active của tài khoản
-            if (!user.isActive()) {
-                model.addAttribute("error", "Tài khoản của bạn đã bị vô hiệu hóa!");
-                return "login";
-            }
+        // Kiểm tra xác thực mật khẩu
+        CompletableFuture<Boolean> authenticatedFuture = authService.authenticate(username, password);
 
-            // Lưu thông tin đăng nhập vào session
-            session.setAttribute("loggedInUser", username);
-            session.setAttribute("urlimg", UserService.getAvatarUrlByUsername(username));
-            System.out.println("Người dùng đăng nhập: " + username);
 
-            // 🔥 Thêm role vào session
-            if (user != null) {
-                session.setAttribute("role", user.getRole().toString()); // 🔥 Lưu role vào session
-                System.out.println("Đã lưu role vào session: " + user.getRole());
-            }
+        return CompletableFuture.allOf(userFuture, authenticatedFuture)
+                .thenApplyAsync(ignored -> {
+                    try {
+                        User user = userFuture.get();
+                        boolean authenticated = authenticatedFuture.get();
 
-            // Nếu là admin thi chuyển trang
-//            if (authService.isAdmin(username)) {
-//                System.out.println("✅ Gọi isAdmin() thành công.");
-//                return "redirect:/adminDashboard/dashboard";
-//            }
-            if (rememberMe) {
-                cookieService.setCookie(response, "rememberedUsername", URLEncoder.encode(username, "UTF-8"));
-                cookieService.setCookie(response, "rememberedPassword", URLEncoder.encode(password, "UTF-8"));
-                cookieService.setCookie(response, "noname", URLEncoder.encode(username, "UTF-8"));
-            } else {
-                // Xoá cookie nếu không chọn "Ghi nhớ đăng nhập"
-                cookieService.setCookie(response, "noname", URLEncoder.encode(username, "UTF-8"));
-                cookieService.removeCookie(response, "rememberedUsername");
-                cookieService.removeCookie(response, "rememberedPassword");
+                        if (user == null) {
+                            model.addAttribute("error", "Tài khoản không tồn tại!");
+                            return "login";
+                        }
 
-            }
+                        // Giả sử User có trường verified
+                        if (!user.isVerified()) {
+                            model.addAttribute("error", "Tài khoản chưa xác thực. Vui lòng kiểm tra email.");
+                            return "login";
+                        }
 
-            return "redirect:/home";
-        }
-        model.addAttribute("error", "Tên đăng nhập hoặc mật khẩu không đúng!");
-        return "login";
+                        if (!authenticated) {
+                            model.addAttribute("error", "Mật khẩu không đúng. Vui lòng thử lại!");
+                            return "login";
+                        }
+
+                        // Kiểm tra trạng thái active của tài khoản
+                        if (!user.isActive()) {
+                            model.addAttribute("error", "Tài khoản của bạn đã bị vô hiệu hóa!");
+                            return "login";
+                        }
+
+                        // Lưu thông tin đăng nhập vào session
+                        session.setAttribute("loggedInUser", username);
+                        session.setAttribute("urlimg", UserService.getAvatarUrlByUsername(username));
+                        System.out.println("Người dùng đăng nhập: " + username);
+
+                        // 🔥 Thêm role vào session
+                        if (user != null) {
+                            session.setAttribute("role", user.getRole().toString()); // 🔥 Lưu role vào session
+                            System.out.println("Đã lưu role vào session: " + user.getRole());
+                        }
+
+                        if (rememberMe) {
+                            cookieService.setCookie(response, "rememberedUsername", URLEncoder.encode(username, "UTF-8"));
+                            cookieService.setCookie(response, "rememberedPassword", URLEncoder.encode(password, "UTF-8"));
+                            cookieService.setCookie(response, "noname", URLEncoder.encode(username, "UTF-8"));
+                        }
+                        else {
+                            // Xoá cookie nếu không chọn "Ghi nhớ đăng nhập"
+                            cookieService.setCookie(response, "noname", URLEncoder.encode(username, "UTF-8"));
+                            cookieService.removeCookie(response, "rememberedUsername");
+                            cookieService.removeCookie(response, "rememberedPassword");
+
+                        }
+
+                        long endTime = System.currentTimeMillis();
+                        System.out.println("⏳ Tổng thời gian xử lý login: " + (endTime - startTime) + "ms");
+
+                        return "redirect:/home";
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        model.addAttribute("error", "Lỗi hệ thống. Vui lòng thử lại sau!");
+                        return "login";
+                    }
+                });
     }
+
 
     @GetMapping("/forgotPass")
     public String forgotPasswordPage() {
@@ -182,19 +186,22 @@ public class AuthController {
     }
 
     @PostMapping("/forgotPass")
-    public String sendOtp(@RequestParam String email, Model model) {
+    public CompletableFuture<String> sendOtp(@RequestParam String email, Model model) {
         System.out.println("📩 Đã nhận yêu cầu gửi OTP cho email: " + email);
 
-        //Kiểm tra email đã đăng kí trong hệ thống chưa
-        if (!authService.isEmailExists(email)) {
-            model.addAttribute("error", "Email chưa được đăng kí trong hệ thống!");
-            return "forgotPass";
-        }
-        String result = authService.sendPasswordResetOtp(email);
-        model.addAttribute("message", result);
-        model.addAttribute("email", email);
-        return "verifyOTP";
+        return authService.isEmailExists(email).thenApply(emailExists -> {
+            if (!emailExists) {
+                model.addAttribute("error", "Email chưa được đăng kí trong hệ thống!");
+                return "forgotPass";
+            }
+            // Giả sử bạn đã có phương thức bất đồng bộ cho gửi OTP
+            String result = authService.sendPasswordResetOtp(email);
+            model.addAttribute("message", result);
+            model.addAttribute("email", email);
+            return "verifyOTP";
+        });
     }
+
 
     @GetMapping("/resetPass")
     public String resetPassPage(@RequestParam(required = false) String email,
@@ -255,7 +262,7 @@ public class AuthController {
         boolean hasError = false;
 
         // Chạy kiểm tra tồn tại email và username song song
-        CompletableFuture<Boolean> emailExistsFuture = CompletableFuture.supplyAsync(() -> authService.isEmailExists(email));
+        CompletableFuture<Boolean> emailExistsFuture = authService.isEmailExists(email);
         CompletableFuture<Boolean> usernameExistsFuture = CompletableFuture.supplyAsync(() -> authService.isUsernameExists(username));
 
         try {

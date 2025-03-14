@@ -20,57 +20,6 @@
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
         /* ========== HEADER & SIDEBAR ========== */
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', sans-serif;
-            background: #f5f6fa;
-        }
-        a {
-            text-decoration: none;
-        }
-        .sidebar-fixed {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 240px;
-            height: 100vh;
-            background: #fff;
-            padding: 1.5rem 1rem;
-            border-right: 1px solid #eee;
-            z-index: 998;
-            transition: width 0.3s ease;
-        }
-        .header-fixed {
-            position: fixed;
-            top: 0;
-            left: 240px; /* trừ chiều rộng sidebar */
-            right: 0;
-            height: 70px;
-            background: #fff;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 1rem;
-            z-index: 999;
-            transition: left 0.3s ease;
-        }
-        @media (max-width: 768px) {
-            .sidebar-fixed {
-                width: 70px;
-                padding: 1rem 0.5rem;
-            }
-            .header-fixed {
-                left: 70px;
-            }
-            .brand-text {
-                display: none !important;
-            }
-            .sidebar-fixed .nav.flex-column a span.menu-text {
-                display: none !important;
-            }
-        }
 
         /* ========== CONTENT AREA ========== */
         .content-area {
