@@ -30,6 +30,7 @@
                         </button>
                     </div>
                 </div>
+
                 <!-- Hình ảnh -->
                 <div class="col-12 col-md-4 text-center">
                     <img src="/img/studentVR.png" alt="Học viên VR" class="img-fluid rounded">
@@ -151,7 +152,7 @@
         let icon = button.querySelector("i");
 
         // Kiểm tra trạng thái like khi trang tải
-        fetch('/exams/${examId}/isLiked') // Dùng backtick ``
+        fetch(`/exams/${examId}/isLiked`)
             .then(response => response.json())
             .then(data => {
                 if (data.liked) {
@@ -161,39 +162,40 @@
             })
             .catch(error => console.error("Lỗi kiểm tra like:", error));
 
-        // Toggle Like/Unlike
+        // Toggle Like/Unlike chỉ thay đổi giao diện, không lưu đề
         button.addEventListener("click", function () {
-            let isLiked = button.classList.contains("liked");
+            // Chỉ cập nhật giao diện
+            button.classList.toggle("liked");
+            icon.classList.toggle("fa-solid");
+            icon.classList.toggle("fa-regular");
 
-            fetch('/exams/${examId}/like') // Dùng backtick ``
-            method: isLiked ? "DELETE" : "POST"
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data.message === "Bạn cần đăng nhập để like.") {
-                    if (confirm("Bạn cần đăng nhập để like. Chuyển đến trang đăng nhập?")) {
-                        window.location.href = "/login";
-                    }
-                    return;
-                }
-
-                // Chỉ thay đổi giao diện, không hiện thông báo
-                button.classList.toggle("liked");
-                icon.classList.toggle("fa-solid");
-                icon.classList.toggle("fa-regular");
+            // Nếu bạn không muốn gửi yêu cầu lưu đề, hãy comment hoặc xóa đoạn fetch dưới đây
+            /*
+            fetch(`/exams/${examId}/like`, {
+                method: button.classList.contains("liked") ? "POST" : "DELETE"
             })
-            .catch(error => console.error("Lỗi:", error));
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message === "Bạn cần đăng nhập để like.") {
+                        if (confirm("Bạn cần đăng nhập để like. Chuyển đến trang đăng nhập?")) {
+                            window.location.href = "/login";
+                        }
+                        return;
+                    }
+                })
+                .catch(error => console.error("Lỗi:", error));
+            */
+        });
     });
+
     async function updateLeaderboard() {
         try {
-            let response = await fetch("/top-score"); // Gọi API lấy dữ liệu
+            let response = await fetch("/top-score");
             let data = await response.json();
-
             let leaderboard = document.querySelector("#leaderboard");
-            leaderboard.innerHTML = ""; // Xóa dữ liệu cũ
-
+            leaderboard.innerHTML = "";
             data.forEach(user => {
-                let row = '<li class="list-group-item">${user.username} - ${user.totalScore} Điểm</li>';
+                let row = `<li class="list-group-item">${user.username} - ${user.totalScore} Điểm</li>`;
                 leaderboard.innerHTML += row;
             });
         } catch (error) {
@@ -203,14 +205,12 @@
 
     async function updateContributionBoard() {
         try {
-            let response = await fetch("/top-contribute"); // API lấy BXH đóng góp
+            let response = await fetch("/top-contribute");
             let data = await response.json();
-
             let contributionBoard = document.querySelector("#contribution-board");
-            contributionBoard.innerHTML = ""; // Xóa dữ liệu cũ
-
+            contributionBoard.innerHTML = "";
             data.forEach(user => {
-                let row = <li class="list-group-item">${user.username} - ${user.contributionScore} Điểm</li>;
+                let row = `<li class="list-group-item">${user.username} - ${user.contributionScore} Điểm</li>`;
                 contributionBoard.innerHTML += row;
             });
         } catch (error) {
@@ -222,11 +222,11 @@
     document.addEventListener("DOMContentLoaded", () => {
         updateLeaderboard();
         updateContributionBoard();
-    });
 
-    // Tự động cập nhật BXH mỗi 5 giây
-    setInterval(updateLeaderboard, 5000);
-    setInterval(updateContributionBoard, 5000);
+        // Tự động cập nhật BXH mỗi 5 giây
+        setInterval(updateLeaderboard, 5000);
+        setInterval(updateContributionBoard, 5000);
+    });
 </script>
 <div th:insert="~{fragments/logoutModal :: logoutModal}"></div>
 <div th:insert="~{fragments/footer :: footer}"></div>

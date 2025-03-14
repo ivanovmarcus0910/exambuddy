@@ -327,4 +327,26 @@ public class PostService {
 
         return latestComments;
     }
+
+    public static List<Post> getPostsByUsername(String username) {
+        List<Post> userPosts = new ArrayList<>();
+        try {
+            // Truy vấn Firestore, lấy các post có trường "username" == username
+            Query query = db.collection(COLLECTION_NAME)
+                    .whereEqualTo("username", username);
+            List<QueryDocumentSnapshot> documents = query.get().get().getDocuments();
+
+            for (DocumentSnapshot doc : documents) {
+                Post post = doc.toObject(Post.class);
+                if (post != null) {
+                    post.setPostId(doc.getId()); // gán ID tài liệu cho post
+                    userPosts.add(post);
+                }
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
+        return userPosts;
+    }
+
 }
