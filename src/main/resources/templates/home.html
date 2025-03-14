@@ -30,7 +30,6 @@
                         </button>
                     </div>
                 </div>
-
                 <!-- Hình ảnh -->
                 <div class="col-12 col-md-4 text-center">
                     <img src="/img/studentVR.png" alt="Học viên VR" class="img-fluid rounded">
@@ -194,7 +193,7 @@
             leaderboard.innerHTML = ""; // Xóa dữ liệu cũ
 
             data.forEach(user => {
-                let row = <li class="list-group-item">${user.username} - ${user.totalScore} Điểm</li>;
+                let row = '<li class="list-group-item">${user.username} - ${user.totalScore} Điểm</li>';
                 leaderboard.innerHTML += row;
             });
         } catch (error) {

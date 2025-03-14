@@ -84,13 +84,18 @@
 
     <div class="mt-4">
         <button type="button" id="addBtn" class="btn btn-primary" onclick="addQuestion()">Lưu câu hỏi</button>
-        <button type="button" id="saveEditBtn" class="btn btn-warning" style="display: none;" onclick="saveEdit()">Lưu chỉnh sửs</button>
+        <button type="button" id="saveEditBtn" class="btn btn-warning" style="display: none;" onclick="saveEdit()">Lưu chỉnh sửa</button>
         <button type="button" class="btn btn-danger" onclick="submitQuestions()">Lưu Đề</button>
     </div>
 
     <h3 class="text-primary mt-4">Danh sách câu hỏi:</h3>
     <ul id="questionList" class="list-group"></ul>
 </div>
+<main class="d-flex flex-column align-items-center justify-content-center">
+    <section class="text-center bg-white rounded shadow-lg">
+        <a href="/home" class="btn btn-primary">Trở về trang chủ</a>
+    </section>
+</main>
 <div th:replace="fragments/footer :: footer"></div>
 <script src="/js/editExam.js"></script>
 
