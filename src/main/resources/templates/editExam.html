@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thêm câu hỏi</title>
+    <title>Chỉnh sửa đề thi</title>
     <link rel="icon" type="image/x-icon"
           href="https://res.cloudinary.com/dsuav027e/image/upload/v1740393796/favicon_llcueu.ico">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -14,6 +14,13 @@
 </head>
 <body class="bg-white">
 <div th:insert="fragments/header :: header"></div>
+<script th:inline="javascript">
+    var examData = /*[[${exam}]]*/ {};
+    var examId = /*[[${examId}]]*/ "";
+    var name = /*[[${username}]]*/ "";
+
+    console.log("Dữ liệu đề thi:", examData);
+</script>
 <div class="container mt-4">
     <h2 class="text-primary">Thông tin đề thi</h2>
 
@@ -62,21 +69,6 @@
             <option value="">Chọn thành phố</option>
         </select>
     </div>
-    <h2 class="text-primary mt-4">Import từ Excel</h2>
-    <form id="importExcelForm" enctype="multipart/form-data">
-        <div class="form-group">
-            <label for="excelFile">Chọn file Excel:</label>
-            <input type="file" id="excelFile" name="file" class="form-control" accept=".xls,.xlsx" onchange="importFromExcel()">
-        </div>
-    </form>
-
-    <h2 class="text-primary mt-4">Import từ DOCX</h2>
-    <form id="importDocxForm" enctype="multipart/form-data">
-        <div class="form-group">
-            <label for="docxFile">Chọn file DOCX:</label>
-            <input type="file" id="docxFile" name="file" class="form-control" accept=".docx" onchange="importFromDocx()">
-        </div>
-    </form>
 
     <h2 class="text-primary mt-4">Thêm câu hỏi mới</h2>
 
@@ -92,16 +84,15 @@
 
     <div class="mt-4">
         <button type="button" id="addBtn" class="btn btn-primary" onclick="addQuestion()">Lưu câu hỏi</button>
-        <button type="button" id="saveEditBtn" class="btn btn-warning"  style="display: none;" onclick="saveEdit()">Lưu chỉnh sửa
-        </button>
-        <button type="button" class="btn btn-danger" onclick="submitQuestions()">Đăng đề</button>
+        <button type="button" id="saveEditBtn" class="btn btn-warning" style="display: none;" onclick="saveEdit()">Lưu chỉnh sửs</button>
+        <button type="button" class="btn btn-danger" onclick="submitQuestions()">Lưu Đề</button>
     </div>
 
     <h3 class="text-primary mt-4">Danh sách câu hỏi:</h3>
     <ul id="questionList" class="list-group"></ul>
 </div>
 <div th:replace="fragments/footer :: footer"></div>
-<script src="/js/addExam.js"></script>
+<script src="/js/editExam.js"></script>
 
 </body>
 </html>

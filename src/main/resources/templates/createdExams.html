@@ -171,9 +171,13 @@
                             <form th:action="@{/exams/{id}/detail(id=${exam.examID})}" method="get">
                                 <button type="submit" class="btn btn-primary">Xem chi tiết</button>
                             </form>
-                            <form th:action="@{/exams/{id}/statistics(id=${exam.examID})}" method="get">
-                                <button type="submit" class="btn btn-success">Thống kê</button>
+                            <form th:action="@{/exams/edit/{id}(id=${exam.examID})}" method="get">
+                                <button type="submit" class="btn  btn-warning ">Chỉnh sửa</button>
                             </form>
+                            <form th:action="@{/exams/{id}/statistics(id=${exam.examID})}" method="get">
+                                <button type="submit" class="btn btn-danger">Thống kê</button>
+                            </form>
+
                         </div>
                     </td>
                 </tr>

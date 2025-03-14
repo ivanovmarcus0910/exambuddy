@@ -114,9 +114,26 @@ public class ExamService {
 
     }
 
-    public boolean addExam(Map<String, Object> examData) {
+    public boolean addExam(Map<String, Object> examData, String id) {
         try {
-            String examId = UUID.randomUUID().toString();
+            String examId;
+            if (id.isEmpty()){
+                examId = UUID.randomUUID().toString();
+            }
+            else {
+                examId = id;
+                DocumentReference examRef = db.collection("exams").document(examId);
+                ApiFuture<DocumentSnapshot> future = examRef.get();
+                DocumentSnapshot document = future.get();
+                if (document.exists()) {
+                    CollectionReference questionsRef = examRef.collection("questions");
+                    ApiFuture<QuerySnapshot> questionsQuery = questionsRef.get();
+                    for (DocumentSnapshot questionDoc : questionsQuery.get().getDocuments()) {
+                        questionDoc.getReference().delete();
+                    }
+                    examRef.delete().get();
+                }
+            }
             System.out.println("Creating exam with ID: " + examId);
             Object tags = examData.get("tags");
             if (tags instanceof String[]) {
@@ -219,7 +236,7 @@ public class ExamService {
 
 
             // Lưu dữ liệu vào Firestore
-            return addExam(examData);
+            return addExam(examData,"");
 
 
         } catch (Exception e) {
@@ -336,7 +353,7 @@ public class ExamService {
 
             examData.put("questions", questions);
             examData.put("date", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(new Date()));
-            return addExam(examData);
+            return addExam(examData,"");
 
 
         } catch (Exception e) {
