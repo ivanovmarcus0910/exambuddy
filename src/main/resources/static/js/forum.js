@@ -254,32 +254,29 @@ document.getElementById('edit-post-form').addEventListener('submit', function(ev
 document.addEventListener("DOMContentLoaded", function () {
     const hiddenPosts = JSON.parse(localStorage.getItem("hiddenPosts")) || [];
 
-    // Ẩn bài viết đã lưu trong LocalStorage
+    // Ẩn các bài viết đã bị ẩn trước đó
     hiddenPosts.forEach(postId => {
-        const postElement = document.querySelector(`[data-post-id="${postId}"]`).closest(".post");
+        const postElement = document.querySelector(`[data-post-id="${postId}"]`)?.closest(".post");
         if (postElement) postElement.style.display = "none";
     });
 
-    // Xử lý sự kiện khi nhấn "Ẩn bài viết"
-    document.querySelectorAll(".hide-post-btn").forEach(button => {
-        button.addEventListener("click", function (event) {
-            event.preventDefault();
-            const postId = this.getAttribute("data-post-id");
+    // Hàm ẩn bài viết
+    window.hidePost = function (event, postId) {
+        event.preventDefault();
+        const confirmHide = confirm("Bạn có chắc chắn muốn ẩn bài viết này không?");
+        if (!confirmHide) return;
 
-            const confirmHide = confirm("Bạn có chắc chắn muốn ẩn bài viết này không?");
-            if (!confirmHide) return;
+        // Lưu vào LocalStorage
+        let hiddenPosts = JSON.parse(localStorage.getItem("hiddenPosts")) || [];
+        if (!hiddenPosts.includes(postId)) {
+            hiddenPosts.push(postId);
+            localStorage.setItem("hiddenPosts", JSON.stringify(hiddenPosts));
+        }
 
-            // Lưu postId vào danh sách ẩn
-            let hiddenPosts = JSON.parse(localStorage.getItem("hiddenPosts")) || [];
-            if (!hiddenPosts.includes(postId)) {
-                hiddenPosts.push(postId);
-                localStorage.setItem("hiddenPosts", JSON.stringify(hiddenPosts));
-            }
-            // Ẩn bài viết trên giao diện
-            const postElement = this.closest(".post");
-            if (postElement) postElement.style.display = "none";
-        });
-    });
+        // Ẩn bài viết trên giao diện
+        const postElement = document.querySelector(`[data-post-id="${postId}"]`)?.closest(".post");
+        if (postElement) postElement.style.display = "none";
+    };
 });
 
 function confirmDeletePost(button) {
@@ -370,6 +367,12 @@ function setReplyForm(commentId, username, parentCommentId) {
     let replyInfo = document.getElementById("reply-info");
     let replyUsername = document.getElementById("reply-username");
 
+    // Nếu commentId là temp_xxx, kiểm tra xem có ID thật chưa
+    let actualCommentEl = document.getElementById("comment-" + commentId);
+    if (actualCommentEl && actualCommentEl.id.startsWith("comment-temp_")) {
+        commentId = actualCommentEl.getAttribute("data-comment-id") || commentId;
+    }
+
     // Nếu có parentCommentId (tức là đang phản hồi vào reply), thì lấy comment gốc làm parent
     if (parentCommentId) {
         parentInput.value = parentCommentId;
@@ -383,7 +386,11 @@ function setReplyForm(commentId, username, parentCommentId) {
 
     // Hiển thị form ngay dưới comment chính
     let commentElement = document.getElementById("comment-" + (parentCommentId ? parentCommentId : commentId));
-    commentElement.appendChild(form);
+    if (commentElement) {
+        commentElement.appendChild(form);
+    } else {
+        console.warn("⚠ Không tìm thấy comment để gán form reply:", commentId);
+    }
 
     // Focus vào ô nhập nội dung
     contentInput.focus();
@@ -407,6 +414,60 @@ function cancelReply() {
     // Reset nội dung nhập vào
     contentInput.value = "";
 }
+
+document.addEventListener("DOMContentLoaded", function () {
+    const reportModal = new bootstrap.Modal(document.getElementById("reportModal"));
+    let selectedPostId = "";
+
+    // Hàm mở modal báo cáo
+    window.openReportModal = function (event, postId) {
+        event.preventDefault(); // Ngăn chặn load lại trang
+        selectedPostId = postId;
+        document.getElementById("reportPostId").value = selectedPostId;
+        reportModal.show();
+    };
+
+    // Xử lý submit báo cáo
+    document.getElementById("submitReportBtn").addEventListener("click", function (event) {
+        event.preventDefault(); // Ngăn chặn hành vi mặc định của button submit
+
+        const reasons = Array.from(document.querySelectorAll('input[name="reportReason"]:checked'))
+            .map(checkbox => checkbox.value); // Lấy danh sách lý do đã chọn
+        const description = document.getElementById("reportDescription").value;
+
+        if (!selectedPostId) {
+            alert("Lỗi: Không tìm thấy bài viết để báo cáo.");
+            return;
+        }
+
+        if (reasons.length === 0) {
+            alert("Vui lòng chọn ít nhất một lý do báo cáo.");
+            return;
+        }
+
+        // Gửi request đến backend
+        fetch("/reportPost", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                postId: selectedPostId,
+                reasons: reasons, // Gửi danh sách lý do thay vì một chuỗi đơn lẻ
+                description: description
+            })
+        })
+            .then(response => response.text()) // Đổi sang text vì ResponseEntity trả về String
+            .then(data => {
+                alert(data); // Hiển thị thông báo từ server
+                reportModal.hide();
+                document.getElementById("reportForm").reset(); // Xóa dữ liệu sau khi gửi
+            })
+            .catch(error => {
+                console.error("Lỗi khi gửi báo cáo:", error);
+                alert("Có lỗi xảy ra, vui lòng thử lại!");
+            });
+    });
+});
+
 
 
 

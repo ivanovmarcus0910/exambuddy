@@ -1,6 +1,7 @@
 <div th:fragment="post">
     <div class="post card mb-3">
         <input type="hidden" name="username" th:value="${username}">
+        <input type="hidden" name="avatarUrl" th:value="${avatarUrl}">
         <div class="card-body">
             <div class="d-flex justify-content-between mb-2">
                 <div class="d-flex align-items-center">
@@ -26,14 +27,19 @@
                                    th:attr="data-post-id=${post.postId}, data-post-username=${post.username},
                                             data-post-content=${post.content},
                                             data-post-images=${#strings.arrayJoin(post.imageUrls, ',')}">
-                                    <i class="bi bi-pencil me-2"></i> Chỉnh sửa bài viết
+                                    <i class="bi bi-pencil me-2"></i>Chỉnh sửa bài viết
                                 </a>
                             </li>
-                            <li><a class="dropdown-item" href="#" onclick="confirmDeletePost(this)"
+                            <li>
+                                <a class="dropdown-item" href="#" onclick="confirmDeletePost(this)"
                                    th:attr="data-post-id=${post.postId}, data-post-username=${post.username}">
-                                <i class="bi bi-trash me-2"></i>Xoá bài viết</a></li>
-                            <li><a class="dropdown-item" href="#"><i class="bi bi-flag me-2"></i>Báo cáo bài
-                                viết</a></li>
+                                <i class="bi bi-trash me-2"></i>Xoá bài viết</a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="#" onclick="openReportModal(event, '${post.postId}')">
+                                    <i class="bi bi-flag me-2"></i>Báo cáo bài viết
+                                </a>
+                            </li>
                         </ul>
                     </div>
                 </div>
@@ -121,7 +127,7 @@
                                     <div class="col-auto">
                                         <input type="file" name="commentImages" class="form-control mt-2" multiple>
                                     </div>
-                                    <button type="submit" class="btn btn-primary mt-2">Bình luận</button>
+                                    <button type="submit" class="btn btn-primary mt-2" id="submitCommentBtn">Bình luận</button>
                                 </div>
                             </div>
                         </div>
