@@ -6,6 +6,8 @@ import com.example.exambuddy.service.ExamService;
 import com.example.exambuddy.service.LeaderBoardService;
 import com.example.exambuddy.service.UserService;
 import com.google.api.core.ApiFuture;
+import com.example.exambuddy.service.*;
+import com.example.exambuddy.model.User;
 import com.google.cloud.firestore.*;
 import com.google.firebase.cloud.FirestoreClient;
 import jakarta.servlet.http.HttpServletRequest;
@@ -26,6 +28,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import java.util.concurrent.ExecutionException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 
 @Slf4j
@@ -45,7 +49,8 @@ public class ManageExamController {
     private ExamService examService;
     @Autowired
     private UserService userService;
-
+    @Autowired
+    private FeedbackService feedbackService;
     @GetMapping("/exams")
     public String listExams(Model model) {
         try {
@@ -59,15 +64,31 @@ public class ManageExamController {
     }
 
     @GetMapping("/exams/{examId}/detail")
-    public String getExamDetail(@PathVariable String examId, Model model) {
+    public String getExamDetail(@PathVariable String examId,Model model, HttpServletRequest request, HttpSession session) {
+
         try {
             Exam exam = examService.getExam(examId);
             if (exam == null) {
                 model.addAttribute("error", "Không tìm thấy đề thi với ID: " + examId);
                 return "error";
             }
+            String username = (String) session.getAttribute("loggedInUser");
+            if (username == null) {
+                username = cookieService.getCookie(request, "noname");
+            }
+            boolean isLoggedIn = username != null && !username.trim().isEmpty();
+            boolean hasCommented = isLoggedIn && feedbackService.hasUserCommented(examId, username);
+            boolean isExamCreator = isLoggedIn && userService.isExamCreator(examId, username);
+            List<Feedback> feedbacks = feedbackService.getFeedbacksByExamId(examId);
+
             model.addAttribute("exam", exam);
             model.addAttribute("questions", exam.getQuestions());
+            model.addAttribute("feedbacks", feedbacks);
+            model.addAttribute("username", username);
+            model.addAttribute("isLoggedIn", isLoggedIn);
+            model.addAttribute("hasCommented", hasCommented);
+            model.addAttribute("isExamCreator", isExamCreator);
+
             return "examDetail"; // Trả về trang HTML hiển thị đề thi
         } catch (Exception e) {
             model.addAttribute("error", "Lỗi khi tải đề thi: " + e.getMessage());
@@ -590,6 +611,128 @@ public class ManageExamController {
 
         }
     }
+    @PostMapping("/exams/{examId}/feedback")
+    public String submitFeedback(
+            @PathVariable String examId,
+            @RequestParam String content,
+            @RequestParam(value = "rate", defaultValue = "0") int rate,
+            HttpSession session,
+            Model model) {
+        String username = (String) session.getAttribute("loggedInUser");
+        if (username == null) {
+            session.setAttribute("error", "Bạn cần đăng nhập để gửi feedback.");
+            return "redirect:/login";
+        }
+        Exam exam = examService.getExam(examId);
+        if (exam == null) {
+            session.setAttribute("error", "Không tìm thấy đề thi.");
+            return "redirect:/exams";
+        }
+        // Kiểm tra nếu là người tạo đề
+        if (exam.getUsername().equals(username)) {
+            session.setAttribute("error", "Người tạo đề không thể gửi feedback riêng.");
+            return "redirect:/exams/" + examId + "/detail";
+        }
+        // Kiểm tra xem người dùng đã gửi feedback chưa
+        if (feedbackService.hasUserCommented(examId, username)) {
+            session.setAttribute("error", "Bạn chỉ có thể gửi feedback một lần.");
+            return "redirect:/exams/" + examId + "/detail";
+        }
+        User user = userService.getUserByUsername(username);
+        String avatarUrl = user != null ? user.getAvatarUrl() : "";
+        String date = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        Feedback feedback = feedbackService.saveFeedback(examId, username, avatarUrl, content, date, rate);
+        session.setAttribute(feedback != null ? "success" : "error",
+                feedback != null ? "Feedback đã được gửi thành công!" : "Lỗi khi gửi feedback.");
+        return "redirect:/exams/" + examId + "/detail";
+    }
 
+    @GetMapping("/exams/{examId}/feedbacks")
+    public ResponseEntity<List<Feedback>> getFeedbacks(@PathVariable String examId) {
+        List<Feedback> feedbacks = feedbackService.getFeedbacksByExamId(examId);
+        return ResponseEntity.ok(feedbacks);
+    }
+
+    @PostMapping("/exams/{examId}/feedback/edit")
+    public String editFeedback(
+            @PathVariable String examId,
+            @RequestParam String content,
+            @RequestParam(value = "rate", defaultValue = "0") int rate,
+            @RequestParam String feedbackId,
+            HttpSession session) {
+        String username = (String) session.getAttribute("loggedInUser");
+        if (username == null) {
+            session.setAttribute("error", "Bạn cần đăng nhập để chỉnh sửa feedback.");
+            return "redirect:/login";
+        }
+        List<Feedback> feedbacks = feedbackService.getFeedbacksByExamId(examId);
+        Feedback feedbackToUpdate = feedbacks.stream()
+                .filter(f -> f.getFeedbackId().equals(feedbackId) && f.getUsername().equals(username))
+                .findFirst()
+                .orElse(null);
+        if (feedbackToUpdate == null) {
+            session.setAttribute("error", "Feedback không tồn tại hoặc bạn không có quyền chỉnh sửa.");
+            return "redirect:/exams/" + examId + "/detail";
+        }
+        feedbackToUpdate.setContent(content);
+        feedbackToUpdate.setRate(rate);
+        feedbackToUpdate.setDate(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        Feedback updatedFeedback = feedbackService.updateFeedback(examId, feedbackToUpdate);
+        session.setAttribute(updatedFeedback != null ? "success" : "error",
+                updatedFeedback != null ? "Cập nhật feedback thành công!" : "Lỗi khi cập nhật feedback!");
+        return "redirect:/exams/" + examId + "/detail";
+    }
+
+    @DeleteMapping("/exams/{examId}/feedback/delete/{feedbackId}")
+    @ResponseBody
+    public ResponseEntity<?> deleteFeedback(
+            @PathVariable String examId,
+            @PathVariable String feedbackId,
+            HttpSession session) {
+        String username = (String) session.getAttribute("loggedInUser");
+        if (username == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Bạn cần đăng nhập để xóa feedback."));
+        }
+        log.info("Xóa feedback - examId: {}, feedbackId: {}, username: {}", examId, feedbackId, username);
+        List<Feedback> feedbacks = feedbackService.getFeedbacksByExamId(examId);
+        log.info("Danh sách feedbacks: {}", feedbacks);
+        Feedback feedbackToDelete = feedbacks.stream()
+                .filter(f -> f.getFeedbackId().equals(feedbackId) && f.getUsername().equals(username))
+                .findFirst()
+                .orElse(null);
+        if (feedbackToDelete == null) {
+            log.warn("Không tìm thấy feedback với feedbackId: {} và username: {}", feedbackId, username);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "Feedback không tồn tại hoặc bạn không có quyền xóa."));
+        }
+        try {
+            feedbackService.deleteFeedback(examId, feedbackId);
+            log.info("Xóa feedback thành công: {}", feedbackId);
+            return ResponseEntity.ok(Map.of("message", "Feedback đã xóa thành công!"));
+        } catch (Exception e) {
+            log.error("Lỗi khi xóa feedback: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", "Lỗi khi xóa feedback: " + e.getMessage()));
+        }
+    }
+    @PostMapping("/exams/{examId}/feedback/{feedbackId}/reply")
+    public String submitReply(
+            @PathVariable String examId,
+            @PathVariable String feedbackId,
+            @RequestParam String content,
+            HttpSession session) {
+        String username = (String) session.getAttribute("loggedInUser");
+        if (username == null) {
+            session.setAttribute("error", "Bạn cần đăng nhập để trả lời feedback.");
+            return "redirect:/login";
+        }
+        if (!userService.isExamCreator(examId, username)) {
+            session.setAttribute("error", "Chỉ người tạo đề mới có thể trả lời feedback.");
+            return "redirect:/exams/" + examId + "/detail";
+        }
+        String date = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        Feedback reply = feedbackService.saveReply(examId, feedbackId, username, content, date);
+        session.setAttribute(reply != null ? "success" : "error",
+                reply != null ? "Trả lời feedback thành công!" : "Lỗi khi trả lời feedback.");
+        return "redirect:/exams/" + examId + "/detail";
+    }
 }
 

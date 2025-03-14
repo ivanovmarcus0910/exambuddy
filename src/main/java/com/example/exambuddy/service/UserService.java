@@ -20,7 +20,7 @@ import java.util.concurrent.ExecutionException;
 @Service
 public class UserService {
     private static final String COLLECTION_NAME = "users";
-
+    private static final String EXAM_COLLECTION_NAME = "exams";
     public static User getUserData(String username) {
         Firestore firestore = FirestoreClient.getFirestore();
 
@@ -304,6 +304,26 @@ public class UserService {
             return false;
         }
     }
+    public boolean isExamCreator(String examId, String username) {
+        Firestore firestore = FirestoreClient.getFirestore();
+        try {
+            DocumentSnapshot examSnapshot = firestore.collection(EXAM_COLLECTION_NAME)
+                    .document(examId)
+                    .get()
+                    .get();
+            if (!examSnapshot.exists()) {
+                System.out.println("Exam not found: " + examId);
+                return false;
+            }
+            String creator = examSnapshot.getString("username");
+            return username != null && username.equals(creator);
+        } catch (InterruptedException | ExecutionException e) {
+            System.out.println("Error checking exam creator for examId: " + examId);
+            e.printStackTrace();
+            return false;
+        }
+    }
+
 //    public boolean updatePremiumExp(long time, String username) {
 //        Firestore firestore = FirestoreClient.getFirestore();
 //        DocumentReference userRef = firestore.collection("users").document(username);
