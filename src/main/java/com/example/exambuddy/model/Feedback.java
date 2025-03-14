@@ -130,6 +130,4 @@ public class Feedback {
         }
     }
 
-    // Xóa setter không cần thiết cho timeAgo vì nó là giá trị tính toán
-    // public void setTimeAgo(String timeAgo) { }
 }
