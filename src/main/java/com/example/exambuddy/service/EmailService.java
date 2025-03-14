@@ -11,8 +11,8 @@ import java.util.Random;
 @Service
 public class EmailService {
 
-    private final String senderEmail = "apartmentprovjp@gmail.com"; // Email gửi
-    private final String senderPassword = "ijws suhs qiwz zmuk"; // Mật khẩu ứng dụng (App Password)
+    private final String senderEmail = "exambuddy.team@gmail.com"; // Email gửi
+    private final String senderPassword = "nkax uvpp nblb lsoj" ; // Mật khẩu ứng dụng (App Password)
 
     public String generateOtp() {
         Random random = new Random();

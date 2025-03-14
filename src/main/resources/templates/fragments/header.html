@@ -63,7 +63,11 @@
                             <li><a class="dropdown-item" href="#">Thông báo</a></li>
                             <li><a class="dropdown-item" href="/exams/liked">Bài kiểm tra yêu thích</a></li>
                             <li><a class="dropdown-item" href="/exams/result-list">Lịch sử làm bài</a></li>
-                            <li><a class="dropdown-item text-danger" href="/logout">Đăng xuất</a></li>
+                            <li>
+                                <a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">
+                                    <i class="bi bi-box-arrow-right me-2"></i> Đăng xuất
+                                </a>
+                            </li>
                         </ul>
                     </div>
                 </th:block>
@@ -76,6 +80,8 @@
             </div>
         </div>
     </div>
+    <div th:insert="~{fragments/logoutModal :: logoutModal}"></div>
+
 </header>
 
 
