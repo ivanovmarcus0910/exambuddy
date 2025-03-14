@@ -50,7 +50,7 @@ public class HomeController {
     @ResponseBody
     @GetMapping("/top-contribute")
     public CompletableFuture<List<RecordTopUser>> getTopUserContribute() {
-        return leaderBoardService.getTopUserScore();
+        return leaderBoardService.getTopUserContribute();
     }
     @RequestMapping("/signup")
     public String signupPage() {

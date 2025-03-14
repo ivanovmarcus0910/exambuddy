@@ -84,7 +84,7 @@ public class ManageExamController {
 
             Exam exam = examService.getExam(examId);
             String username = cookieService.getCookie(request, "noname");
-            examService.addExamSession(examId, username, 1000 * 60 * 30);
+            examService.addExamSession(examId, username, 1000 * 60 * exam.getTimeduration());
             model.addAttribute("exam", exam);
             model.addAttribute("username", username);
             model.addAttribute("questions", exam.getQuestions()); // Gửi danh sách câu hỏi qua view

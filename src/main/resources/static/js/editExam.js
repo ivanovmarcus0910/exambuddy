@@ -17,6 +17,7 @@ function loadExamData(exam) {
     document.getElementById("tags").value = exam.tags ? exam.tags.join(", ") : "";
     document.getElementById("examType").value = exam.examType || "";
     document.getElementById("city").value = exam.city || "";
+    document.getElementById("timeduration").value = exam.timeduration || "";
 
     // Gán lại danh sách câu hỏi
     questions = exam.questions.map(q => ({
@@ -205,7 +206,9 @@ function submitQuestions() {
         city: document.getElementById("city").value, // Đúng id "city"
         username: name,
         date: new Date().toISOString(),
-        questions: questions
+        questions: questions,
+        timeduration: document.getElementById("timeduration").value
+
     };
 
 

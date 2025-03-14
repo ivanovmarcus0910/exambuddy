@@ -176,7 +176,8 @@ function submitQuestions() {
         city: document.getElementById("city").value, // Đúng id "city"
         username: username,
         date: new Date().toISOString(),
-        questions: questions
+        questions: questions,
+        timeduration: document.getElementById("timeduration").value
     };
 
 

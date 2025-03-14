@@ -153,6 +153,7 @@ public class ExamService {
                     "tags", examData.get("tags"),
                     "username", examData.get("username"),
                     "date", examData.get("date"),
+                    "timeduration", Long.parseLong((String) examData.get("timeduration")) ,
                     "questionCount", x
             )).get();
             System.out.println("Exam document set");
