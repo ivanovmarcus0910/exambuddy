@@ -297,6 +297,34 @@ public class TheoryService {
     }
 
 
+
+
+    public void updateSubject(String classId, String subjectId, Subject updatedSubject) throws ExecutionException, InterruptedException {
+        System.out.println("Updating subjectId: " + subjectId + " with name: " + updatedSubject.getName());
+        DocumentReference subjectRef = getFirestore().collection("classes").document(classId)
+                .collection("subjects").document(subjectId);
+
+        DocumentSnapshot subjectSnapshot = subjectRef.get().get();
+        if (!subjectSnapshot.exists()) {
+            throw new RuntimeException("Môn học không tồn tại!");
+        }
+
+        subjectRef.update("name", updatedSubject.getName()).get();
+    }
+
+    public void updateChapter(String classId, String subjectId, String chapterId, Chapter updatedChapter) throws ExecutionException, InterruptedException {
+        System.out.println("Updating chapterId: " + chapterId + " with name: " + updatedChapter.getName());
+        DocumentReference chapterRef = getFirestore().collection("classes").document(classId)
+                .collection("subjects").document(subjectId)
+                .collection("chapters").document(chapterId);
+
+        DocumentSnapshot chapterSnapshot = chapterRef.get().get();
+        if (!chapterSnapshot.exists()) {
+            throw new RuntimeException("Chương không tồn tại!");
+        }
+
+        chapterRef.update("name", updatedChapter.getName()).get();
+    }
 }
 
 
