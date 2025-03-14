@@ -22,6 +22,7 @@ document.addEventListener("DOMContentLoaded", function () {
         modal.show();
     }
 
+
     // Xử lý đánh giá sao (form gửi mới)
     const stars = document.querySelectorAll('#feedback-form .star-rating .fa-star');
     const rateInput = document.getElementById('rate');
