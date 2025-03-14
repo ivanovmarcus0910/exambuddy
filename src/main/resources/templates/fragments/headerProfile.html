@@ -14,7 +14,6 @@
         a {
             text-decoration: none;
         }
-
         /* Sidebar cố định cho desktop */
         .sidebar-fixed {
             position: fixed;
@@ -91,7 +90,7 @@
         </div>
 
         <!-- Menu items -->
-        <nav class="nav flex-column" style="gap: 0.5rem;">
+        <nav class="nav flex-column" style="gap: 0.75rem;">
             <!-- Gắn class="menu-text" cho phần text -->
             <a class="d-flex align-items-center px-2 py-1 text-secondary" href="/profile" style="border-radius:8px;">
                 <i class="bi bi-person-fill me-2" style="font-size:1.2rem;"></i>
@@ -101,10 +100,12 @@
                 <i class="bi bi-wallet-fill me-2" style="font-size:1.2rem;"></i>
                 <span class="menu-text">Nạp Coin</span>
             </a>
+            <th:block th:if="${#strings.equalsIgnoreCase(user.role, 'STUDENT')}">
             <a class="d-flex align-items-center px-2 py-1 text-secondary" href="/upgrade" style="border-radius:8px;">
                 <i class="bi bi-arrow-up-circle-fill me-2" style="font-size:1.2rem;"></i>
                 <span class="menu-text">Nâng cấp/ Gia hạn Premium</span>
             </a>
+            </th:block>
             <a class="d-flex align-items-center px-2 py-1 text-secondary" href="/statistics" style="border-radius:8px;">
                 <i class="bi bi-bar-chart-fill me-2" style="font-size:1.2rem;"></i>
                 <span class="menu-text">Thống kê</span>

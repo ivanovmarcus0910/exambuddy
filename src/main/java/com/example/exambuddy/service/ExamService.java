@@ -22,7 +22,7 @@ import java.io.InputStream;
 import java.text.Normalizer;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.*;
 import java.util.Date;
 import java.util.TimeZone;
 import java.util.ArrayList;
@@ -36,6 +36,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class ExamService {
+    private final ExecutorService executor = Executors.newCachedThreadPool();
     private final Firestore db = FirestoreClient.getFirestore();
     private final LeaderBoardService leaderBoardService = new LeaderBoardService();
     public List<Exam> getExamList(int page, int size) {
@@ -504,13 +505,18 @@ public class ExamService {
         docRef.delete(); // Xóa like khỏi Firestore
     }
 
-    public boolean isExamLiked(String userId, String examId) {
-        DocumentReference docRef = db.collection("likedExams").document(userId + "_" + examId);
-        try {
-            return docRef.get().get().exists();
-        } catch (Exception e) {
-            return false;
-        }
+    public CompletableFuture<Boolean> isExamLikedAsync(String userId, String examId) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                DocumentSnapshot snapshot = db.collection("likedExams")
+                        .document(userId + "_" + examId)
+                        .get()
+                        .get(); // Chờ kết quả trong luồng khác
+                return snapshot.exists();
+            } catch (Exception e) {
+                return false;
+            }
+        }, executor);
     }
 
     public List<Exam> getLikedExamsByUser(String userId) {

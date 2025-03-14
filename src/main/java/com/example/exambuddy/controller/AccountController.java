@@ -147,10 +147,13 @@ public class AccountController {
     @GetMapping("/upgrade")
     public String upgrage(HttpSession session, Model model) {
         String username = (String) session.getAttribute("loggedInUser");
+        System.out.println("username=" + username);
         if (username == null) {
             return "redirect:/login";
         }
         User user = userService.getUserByUsername(username);
+
+        model.addAttribute("user", user);
         if (user != null &&( (user.getRole() == User.Role.STUDENT) || (user.getRole() == User.Role.UPGRADED_STUDENT))) {
             model.addAttribute("level", chargeLevel);
             return "upgrade";
