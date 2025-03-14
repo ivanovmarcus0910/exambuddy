@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kho Câu Hỏi - ExamBuddy</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { padding: 20px; }
+        .question-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .question-table th, .question-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        .question-table th { background-color: #f2f2f2; }
+        .question-table tr:nth-child(even) { background-color: #f9f9f9; }
+        .question-table tr:hover { background-color: #f5f5f5; }
+        .option-container { margin-bottom: 10px; }
+        .remove-question-btn { margin-top: 5px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1 class="mb-4">Kho Câu Hỏi</h1>
+    <ul class="nav nav-tabs mb-3" id="repoTabs" role="tablist">
+        <li class="nav-item">
+            <a class="nav-link active" id="shared-tab" data-bs-toggle="tab" href="#shared" role="tab">Kho Chung</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="private-tab" data-bs-toggle="tab" href="#private" role="tab">Kho Cá Nhân</a>
+        </li>
+    </ul>
+    <div class="tab-content" id="repoTabContent">
+        <!-- Kho Chung -->
+        <div class="tab-pane fade show active" id="shared" role="tabpanel">
+            <h3>Kho Câu Hỏi Chung</h3>
+            <div class="row mb-3">
+                <div class="col">
+                    <label for="sharedBookType" class="form-label">Loại Sách</label>
+                    <select class="form-control" id="sharedBookType">
+                        <option value="">Tất cả</option>
+                        <option value="Cánh Diều">Cánh Diều</option>
+                        <option value="Kết Nối Tri Thức">Kết Nối Tri Thức</option>
+                        <option value="Chân Trời Sáng Tạo">Chân Trời Sáng Tạo</option>
+                    </select>
+                </div>
+                <div class="col">
+                    <label for="sharedClassGrade" class="form-label">Lớp</label>
+                    <select class="form-control" id="sharedClassGrade">
+                        <option value="">Tất cả</option>
+                        <option value="10">10</option>
+                        <option value="11">11</option>
+                        <option value="12">12</option>
+                    </select>
+                </div>
+                <div class="col">
+                    <label for="sharedSubjectName" class="form-label">Môn Học</label>
+                    <select class="form-control" id="sharedSubjectName">
+                        <option value="">Tất cả</option>
+                        <option value="Toán">Toán</option>
+                        <option value="Văn">Văn</option>
+                        <option value="Anh">Anh</option>
+                        <option value="Lý">Lý</option>
+                        <option value="Hóa">Hóa</option>
+                        <option value="Sinh">Sinh</option>
+                        <option value="Sử">Sử</option>
+                        <option value="Địa">Địa</option>
+                        <option value="GDCD">GDCD</option>
+                    </select>
+                </div>
+                <div class="col">
+                    <label for="sharedChapterName" class="form-label">Chương</label>
+                    <input type="text" class="form-control" id="sharedChapterName" placeholder="Nhập chương">
+                </div>
+                <div class="col">
+                    <label for="sharedLessonName" class="form-label">Bài</label>
+                    <input type="text" class="form-control" id="sharedLessonName" placeholder="Nhập bài">
+                </div>
+                <div class="col d-flex align-items-end">
+                    <button class="btn btn-primary" onclick="loadQuestions('shared', 1, true)">Tìm Kiếm</button>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col">
+                    <button class="btn btn-success" id="addToPrivateBtn">Lấy Về Kho Cá Nhân</button>
+                </div>
+            </div>
+            <div id="shared-question-list" class="question-list"></div>
+        </div>
+        <!-- Kho Cá Nhân -->
+        <div class="tab-pane fade" id="private" role="tabpanel">
+            <h3>Kho Câu Hỏi Cá Nhân</h3>
+            <div class="row mb-3">
+                <div class="col">
+                    <label for="privateBookType" class="form-label">Loại Sách</label>
+                    <select class="form-control" id="privateBookType">
+                        <option value="">Tất cả</option>
+                        <option value="Cánh Diều">Cánh Diều</option>
+                        <option value="Kết Nối Tri Thức">Kết Nối Tri Thức</option>
+                        <option value="Chân Trời Sáng Tạo">Chân Trời Sáng Tạo</option>
+                    </select>
+                </div>
+                <div class="col">
+                    <label for="privateClassGrade" class="form-label">Lớp</label>
+                    <select class="form-control" id="privateClassGrade">
+                        <option value="">Tất cả</option>
+                        <option value="10">10</option>
+                        <option value="11">11</option>
+                        <option value="12">12</option>
+                    </select>
+                </div>
+                <div class="col">
+                    <label for="privateSubjectName" class="form-label">Môn Học</label>
+                    <select class="form-control" id="privateSubjectName">
+                        <option value="">Tất cả</option>
+                        <option value="Toán">Toán</option>
+                        <option value="Văn">Văn</option>
+                        <option value="Anh">Anh</option>
+                        <option value="Lý">Lý</option>
+                        <option value="Hóa">Hóa</option>
+                        <option value="Sinh">Sinh</option>
+                        <option value="Sử">Sử</option>
+                        <option value="Địa">Địa</option>
+                        <option value="GDCD">GDCD</option>
+                    </select>
+                </div>
+                <div class="col">
+                    <label for="privateChapterName" class="form-label">Chương</label>
+                    <input type="text" class="form-control" id="privateChapterName" placeholder="Nhập chương">
+                </div>
+                <div class="col">
+                    <label for="privateLessonName" class="form-label">Bài</label>
+                    <input type="text" class="form-control" id="privateLessonName" placeholder="Nhập bài">
+                </div>
+                <div class="col d-flex align-items-end">
+                    <button class="btn btn-primary" onclick="loadQuestions('private', 1, true)">Tìm Kiếm</button>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col">
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addQuestionModal" data-repo="private">Thêm Câu Hỏi</button>
+                    <button class="btn btn-success" id="shareToSharedBtn">Chia Sẻ Lên Kho Chung</button>
+                    <a href="/api/question-bank/create-test" class="btn btn-success">Tạo Đề Thi</a>
+                </div>
+            </div>
+            <div id="private-question-list" class="question-list"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Thêm Câu Hỏi -->
+<div class="modal fade" id="addQuestionModal" tabindex="-1" aria-labelledby="addQuestionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addQuestionModalLabel">Thêm Câu Hỏi Mới</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addQuestionForm">
+                    <div class="mb-3">
+                        <label for="bookType" class="form-label">Loại Sách</label>
+                        <select class="form-control" id="bookType" required>
+                            <option value="Cánh Diều">Cánh Diều</option>
+                            <option value="Kết Nối Tri Thức">Kết Nối Tri Thức</option>
+                            <option value="Chân Trời Sáng Tạo">Chân Trời Sáng Tạo</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="classGrade" class="form-label">Lớp</label>
+                        <select class="form-control" id="classGrade" required>
+                            <option value="10">10</option>
+                            <option value="11">11</option>
+                            <option value="12">12</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="subjectName" class="form-label">Môn Học</label>
+                        <select class="form-control" id="subjectName" required>
+                            <option value="Toán">Toán</option>
+                            <option value="Văn">Văn</option>
+                            <option value="Anh">Anh</option>
+                            <option value="Lý">Lý</option>
+                            <option value="Hóa">Hóa</option>
+                            <option value="Sinh">Sinh</option>
+                            <option value="Sử">Sử</option>
+                            <option value="Địa">Địa</option>
+                            <option value="GDCD">GDCD</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="chapterName" class="form-label">Chương</label>
+                        <input type="text" class="form-control" id="chapterName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="lessonName" class="form-label">Bài</label>
+                        <input type="text" class="form-control" id="lessonName" required>
+                    </div>
+                    <div id="questionGroups"></div>
+                    <button type="button" class="btn btn-primary mt-2" id="addQuestionBtn">Thêm Câu Hỏi</button>
+                    <input type="hidden" id="repoType">
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-primary" id="saveQuestions">Lưu Tất Cả</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const BASE_URL = '/api/question-bank';
+    const QUESTIONS_PER_PAGE = 20;
+    let questionCount = 0;
+    let selectedQuestions = [];
+    const cache = new Map();
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadQuestions('shared', 1, true);
+        loadQuestions('private', 1, true);
+
+        document.getElementById('shared-tab').addEventListener('shown.bs.tab', () => loadQuestions('shared', 1, true));
+        document.getElementById('private-tab').addEventListener('shown.bs.tab', () => loadQuestions('private', 1, true));
+
+        document.getElementById('addQuestionModal').addEventListener('show.bs.modal', (event) => {
+            const button = event.relatedTarget;
+            const repoType = button.getAttribute('data-repo');
+            document.getElementById('repoType').value = repoType;
+            document.getElementById('questionGroups').innerHTML = '';
+            questionCount = 0;
+            addNewQuestionGroup();
+        });
+
+        document.getElementById('addQuestionBtn').addEventListener('click', addNewQuestionGroup);
+        document.getElementById('addToPrivateBtn').addEventListener('click', addToPrivate);
+        document.getElementById('shareToSharedBtn').addEventListener('click', shareToShared);
+        document.getElementById('saveQuestions').addEventListener('click', saveQuestions);
+    });
+
+    function addNewQuestionGroup() {
+        const index = questionCount++;
+        const questionGroup = document.createElement('div');
+        questionGroup.className = 'question-group mb-4';
+        questionGroup.innerHTML = `
+            <div class="mb-3">
+                <label class="form-label">Nội Dung Câu Hỏi</label>
+                <textarea class="form-control questionText" data-index="${index}" rows="3" required></textarea>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Đáp Án</label>
+                <div class="optionsContainer" data-index="${index}">
+                    <div class="option-container">
+                        <label class="form-label">a.</label>
+                        <input type="text" class="form-control d-inline-block option" style="width: 80%;" data-index="${index}" required>
+                    </div>
+                    <div class="option-container">
+                        <label class="form-label">b.</label>
+                        <input type="text" class="form-control d-inline-block option" style="width: 80%;" data-index="${index}" required>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-secondary mt-2 addOptionBtn" data-index="${index}">Thêm Đáp Án</button>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Đáp Án Đúng (a, b, c, d,...)</label>
+                <input type="text" class="form-control correctAnswer" data-index="${index}" pattern="[a-z]" placeholder="Ví dụ: a" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Độ Khó</label>
+                <select class="form-control difficulty" data-index="${index}" required>
+                    <option value="easy">Dễ</option>
+                    <option value="medium">Trung bình</option>
+                    <option value="hard">Khó</option>
+                </select>
+            </div>
+            <button type="button" class="btn btn-danger remove-question-btn">Xóa Câu Hỏi</button>
+        `;
+        document.getElementById('questionGroups').appendChild(questionGroup);
+
+        questionGroup.querySelector(`.addOptionBtn[data-index="${index}"]`).addEventListener('click', () => {
+            const optionIndex = questionGroup.querySelectorAll(`.optionsContainer[data-index="${index}"] .option-container`).length;
+            const nextLabel = String.fromCharCode(97 + optionIndex);
+            const optionContainer = document.createElement('div');
+            optionContainer.className = 'option-container';
+            optionContainer.innerHTML = `
+                <label class="form-label">${nextLabel}.</label>
+                <input type="text" class="form-control d-inline-block option" style="width: 80%;" data-index="${index}" required>
+            `;
+            questionGroup.querySelector(`.optionsContainer[data-index="${index}"]`).appendChild(optionContainer);
+        });
+
+        questionGroup.querySelector('.remove-question-btn').addEventListener('click', () => {
+            questionGroup.remove();
+            questionCount--;
+        });
+    }
+
+    function loadQuestions(repoType, page = 1, clearList = false) {
+        let url;
+        if (repoType === 'shared') {
+            const bookType = document.getElementById('sharedBookType').value || 'all';
+            const classGrade = document.getElementById('sharedClassGrade').value || 'all';
+            const subjectName = document.getElementById('sharedSubjectName').value || 'all';
+            const chapterName = document.getElementById('sharedChapterName').value || 'all';
+            const lessonName = document.getElementById('sharedLessonName').value || 'all';
+            url = `${BASE_URL}/${repoType}/${bookType}/${classGrade}/${subjectName}/${chapterName}/${lessonName}?page=${page}&limit=${QUESTIONS_PER_PAGE}`;
+        } else if (repoType === 'private') {
+            const bookType = document.getElementById('privateBookType').value || 'all';
+            const classGrade = document.getElementById('privateClassGrade').value || 'all';
+            const subjectName = document.getElementById('privateSubjectName').value || 'all';
+            const chapterName = document.getElementById('privateChapterName').value || 'all';
+            const lessonName = document.getElementById('privateLessonName').value || 'all';
+            url = `${BASE_URL}/${repoType}/${bookType}/${classGrade}/${subjectName}/${chapterName}/${lessonName}?page=${page}&limit=${QUESTIONS_PER_PAGE}`;
+        }
+
+        fetch(url)
+            .then(response => response.ok ? response.json() : response.text().then(text => { throw new Error(text || 'Lỗi server'); }))
+            .then(data => {
+                cache.set(url, data);
+                renderQuestions(repoType, data, page, clearList);
+            })
+            .catch(err => showNotification('Lỗi khi tải câu hỏi: ' + err.message, false));
+    }
+
+    function renderQuestions(repoType, data, page, clearList) {
+        const list = document.getElementById(`${repoType}-question-list`);
+        if (clearList) list.innerHTML = '';
+
+        if (!Array.isArray(data) || data.length === 0) {
+            list.innerHTML = '<p>Không tìm thấy câu hỏi nào.</p>';
+            return;
+        }
+
+        const table = document.createElement('table');
+        table.className = 'question-table';
+        table.innerHTML = repoType === 'shared' ? `
+            <thead>
+                <tr>
+                    <th>Chọn</th>
+                    <th>STT</th>
+                    <th>Câu Hỏi</th>
+                    <th>Đáp Án</th>
+                    <th>Đáp Án Đúng</th>
+                    <th>Môn</th>
+                    <th>Chương</th>
+                    <th>Bài</th>
+                    <th>Độ Khó</th>
+                    <th>Loại Sách</th>
+                    <th>Người Tạo</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        ` : `
+            <thead>
+                <tr>
+                    <th>Chọn</th>
+                    <th>STT</th>
+                    <th>Câu Hỏi</th>
+                    <th>Đáp Án</th>
+                    <th>Đáp Án Đúng</th>
+                    <th>Môn</th>
+                    <th>Chương</th>
+                    <th>Bài</th>
+                    <th>Độ Khó</th>
+                    <th>Loại Sách</th>
+                    <th>Hành Động</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        `;
+
+        const tbody = table.querySelector('tbody');
+        data.forEach((q, index) => {
+            const rowIndex = (page - 1) * QUESTIONS_PER_PAGE + index + 1;
+            const optionsHtml = q.options.map((opt, idx) => `${String.fromCharCode(97 + idx)}. ${opt}`).join('<br>');
+            const correctAnswerLabel = String.fromCharCode(97 + q.correctAnswers[0]);
+            const difficultyText = { easy: 'Dễ', medium: 'Trung bình', hard: 'Khó' }[q.difficulty] || 'Không xác định';
+
+            const row = document.createElement('tr');
+            row.innerHTML = repoType === 'shared' ? `
+                <td><input type="checkbox" class="question-checkbox" data-id="${q.questionId}"></td>
+                <td>${rowIndex}</td>
+                <td>${q.questionText}</td>
+                <td>${optionsHtml}</td>
+                <td>${correctAnswerLabel}</td>
+                <td>${q.subjectName || 'Không xác định'}</td>
+                <td>${q.chapterName || 'Không xác định'}</td>
+                <td>${q.lessonName || 'Không xác định'}</td>
+                <td>${difficultyText}</td>
+                <td>${q.bookType || 'Không xác định'}</td>
+                <td>${q.createdBy || 'Không xác định'}</td>
+            ` : `
+                <td><input type="checkbox" class="question-checkbox" data-id="${q.questionId}"></td>
+                <td>${rowIndex}</td>
+                <td>${q.questionText}</td>
+                <td>${optionsHtml}</td>
+                <td>${correctAnswerLabel}</td>
+                <td>${q.subjectName || 'Không xác định'}</td>
+                <td>${q.chapterName || 'Không xác định'}</td>
+                <td>${q.lessonName || 'Không xác định'}</td>
+                <td>${difficultyText}</td>
+                <td>${q.bookType || 'Không xác định'}</td>
+                <td>
+                    <button class="btn btn-danger btn-sm" onclick="deleteQuestion('private', '${q.questionId}')">Xóa</button>
+                    <button class="btn btn-warning btn-sm" onclick="updateQuestion('private', '${q.questionId}')">Sửa</button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+
+        list.appendChild(table);
+
+        if (data.length === QUESTIONS_PER_PAGE) {
+            const loadMoreBtn = document.createElement('button');
+            loadMoreBtn.className = 'btn btn-secondary load-more-btn mt-2';
+            loadMoreBtn.textContent = 'Xem thêm';
+            loadMoreBtn.onclick = () => loadQuestions(repoType, page + 1, false);
+            list.appendChild(loadMoreBtn);
+        }
+    }
+
+    function addToPrivate() {
+        selectedQuestions = Array.from(document.querySelectorAll('#shared .question-checkbox:checked')).map(cb => cb.getAttribute('data-id'));
+        if (selectedQuestions.length === 0) {
+            showNotification('Vui lòng chọn ít nhất một câu hỏi!', false);
+            return;
+        }
+        showConfirmation(`Bạn có chắc chắn muốn lấy ${selectedQuestions.length} câu hỏi về kho cá nhân không?`, () => {
+            const addButton = document.getElementById('addToPrivateBtn');
+            addButton.disabled = true;
+            addButton.textContent = 'Đang xử lý...';
+
+            const bookType = document.getElementById('sharedBookType').value || 'all';
+            const classGrade = document.getElementById('sharedClassGrade').value || 'all';
+            const subjectName = document.getElementById('sharedSubjectName').value || 'all';
+            const chapterName = document.getElementById('sharedChapterName').value || 'all';
+            const lessonName = document.getElementById('sharedLessonName').value || 'all';
+            const url = `${BASE_URL}/shared-to-private/${bookType}/${classGrade}/${subjectName}/${chapterName}/${lessonName}`;
+
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ questionIds: selectedQuestions })
+            })
+                .then(response => response.ok ? response.json() : Promise.reject('Lỗi khi lấy câu hỏi'))
+                .then(() => {
+                    showNotification('Đã lấy câu hỏi về kho cá nhân!');
+                    loadQuestions('private', 1, true);
+                    document.querySelectorAll('#shared .question-checkbox:checked').forEach(cb => cb.checked = false);
+                })
+                .catch(err => showNotification('Lỗi: ' + err, false))
+                .finally(() => {
+                    addButton.disabled = false;
+                    addButton.textContent = 'Lấy Về Kho Cá Nhân';
+                });
+        });
+    }
+
+    function shareToShared() {
+        selectedQuestions = Array.from(document.querySelectorAll('#private .question-checkbox:checked')).map(cb => cb.getAttribute('data-id'));
+        if (selectedQuestions.length === 0) {
+            showNotification('Vui lòng chọn ít nhất một câu hỏi để chia sẻ!', false);
+            return;
+        }
+        showConfirmation(`Bạn có chắc chắn muốn chia sẻ ${selectedQuestions.length} câu hỏi lên kho chung không?`, () => {
+            const shareButton = document.getElementById('shareToSharedBtn');
+            shareButton.disabled = true;
+            shareButton.textContent = 'Đang xử lý...';
+
+            const bookType = document.getElementById('privateBookType').value || 'all';
+            const classGrade = document.getElementById('privateClassGrade').value || 'all';
+            const subjectName = document.getElementById('privateSubjectName').value || 'all';
+            const chapterName = document.getElementById('privateChapterName').value || 'all';
+            const lessonName = document.getElementById('privateLessonName').value || 'all';
+            const url = `${BASE_URL}/private-to-shared/${bookType}/${classGrade}/${subjectName}/${chapterName}/${lessonName}`;
+
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ questionIds: selectedQuestions })
+            })
+                .then(response => response.ok ? response.json() : Promise.reject('Lỗi khi chia sẻ câu hỏi'))
+                .then(() => {
+                    showNotification('Đã chia sẻ câu hỏi lên kho chung!');
+                    loadQuestions('shared', 1, true);
+                    document.querySelectorAll('#private .question-checkbox:checked').forEach(cb => cb.checked = false);
+                })
+                .catch(err => showNotification('Lỗi: ' + err, false))
+                .finally(() => {
+                    shareButton.disabled = false;
+                    shareButton.textContent = 'Chia Sẻ Lên Kho Chung';
+                });
+        });
+    }
+
+    function saveQuestions() {
+        const repoType = document.getElementById('repoType').value;
+        const bookType = document.getElementById('bookType').value;
+        const classGrade = document.getElementById('classGrade').value;
+        const subjectName = document.getElementById('subjectName').value;
+        const chapterName = document.getElementById('chapterName').value;
+        const lessonName = document.getElementById('lessonName').value;
+
+        if (!bookType || !classGrade || !subjectName || !chapterName || !lessonName) {
+            showNotification('Vui lòng điền đầy đủ thông tin cơ bản!', false);
+            return;
+        }
+
+        const questions = [];
+        let hasError = false;
+
+        document.querySelectorAll('.question-group').forEach(group => {
+            const index = group.querySelector('.questionText').getAttribute('data-index');
+            const questionText = group.querySelector(`.questionText[data-index="${index}"]`).value.trim();
+            const options = Array.from(group.querySelectorAll(`.option[data-index="${index}"]`)).map(input => input.value.trim());
+            const correctAnswerLetter = group.querySelector(`.correctAnswer[data-index="${index}"]`).value.trim().toLowerCase();
+            const difficulty = group.querySelector(`.difficulty[data-index="${index}"]`).value;
+
+            if (!questionText || options.length < 2 || options.some(opt => !opt) || !correctAnswerLetter || !/^[a-z]$/.test(correctAnswerLetter)) {
+                showNotification('Thông tin câu hỏi không hợp lệ!', false);
+                hasError = true;
+                return;
+            }
+            const correctAnswerIndex = correctAnswerLetter.charCodeAt(0) - 97;
+            if (correctAnswerIndex >= options.length) {
+                showNotification('Đáp án đúng không hợp lệ!', false);
+                hasError = true;
+                return;
+            }
+
+            questions.push({
+                questionText,
+                options,
+                correctAnswers: [correctAnswerIndex],
+                difficulty,
+                bookType,
+                classGrade,
+                subjectName,
+                chapterName,
+                lessonName
+            });
+        });
+
+        if (hasError) return;
+
+        const url = `${BASE_URL}/${repoType}/${bookType}/${classGrade}/${subjectName}/${chapterName}/${lessonName}`;
+        Promise.all(questions.map(question =>
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(question)
+            }).then(response => response.ok ? response.json() : Promise.reject('Lỗi khi lưu câu hỏi'))
+        ))
+            .then(() => {
+                showNotification('Đã lưu tất cả câu hỏi!');
+                bootstrap.Modal.getInstance(document.getElementById('addQuestionModal')).hide();
+                cache.clear();
+                loadQuestions(repoType, 1, true);
+            })
+            .catch(err => showNotification('Lỗi khi lưu: ' + err, false));
+    }
+
+    function deleteQuestion(repoType, questionId) {
+        showConfirmation('Bạn có chắc chắn muốn xóa câu hỏi này?', () => {
+            fetch(`${BASE_URL}/${repoType}/delete/${questionId}`, { method: 'DELETE' })
+                .then(response => response.ok ? response.json() : Promise.reject('Lỗi khi xóa câu hỏi'))
+                .then(() => {
+                    showNotification('Đã xóa câu hỏi!');
+                    loadQuestions(repoType, 1, true);
+                })
+                .catch(err => showNotification('Lỗi: ' + err, false));
+        });
+    }
+
+    function updateQuestion(repoType, questionId) {
+        const newText = prompt('Nhập nội dung câu hỏi mới:');
+        if (!newText) return;
+        fetch(`${BASE_URL}/${repoType}/update/${questionId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ questionText: newText })
+        })
+            .then(response => response.ok ? response.json() : Promise.reject('Lỗi khi cập nhật câu hỏi'))
+            .then(() => {
+                showNotification('Đã cập nhật câu hỏi!');
+                loadQuestions(repoType, 1, true);
+            })
+            .catch(err => showNotification('Lỗi: ' + err, false));
+    }
+
+    function showNotification(message, isSuccess = true) {
+        const modal = new bootstrap.Modal(document.getElementById('notificationModal'));
+        const messageElement = document.getElementById('notificationMessage');
+        const titleElement = document.getElementById('notificationModalLabel');
+        messageElement.textContent = message;
+        titleElement.textContent = isSuccess ? 'Thành Công' : 'Lỗi';
+        messageElement.style.color = isSuccess ? '#28a745' : '#dc3545';
+        modal.show();
+    }
+
+    function showConfirmation(message, callback) {
+        const modal = new bootstrap.Modal(document.getElementById('confirmationModal'));
+        document.getElementById('confirmationMessage').textContent = message;
+        const confirmButton = document.getElementById('confirmAction');
+        const newConfirmButton = confirmButton.cloneNode(true);
+        confirmButton.parentNode.replaceChild(newConfirmButton, confirmButton);
+        newConfirmButton.addEventListener('click', () => {
+            callback();
+            modal.hide();
+        });
+        modal.show();
+    }
+</script>
+
+<!-- Modal Thông Báo -->
+<div class="modal fade" id="notificationModal" tabindex="-1" aria-labelledby="notificationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="notificationModalLabel">Thông Báo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="notificationMessage"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Xác Nhận -->
+<div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmationModalLabel">Xác Nhận</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="confirmationMessage"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" id="confirmAction">Xác Nhận</button>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
