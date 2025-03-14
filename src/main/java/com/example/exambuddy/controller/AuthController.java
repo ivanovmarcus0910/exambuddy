@@ -136,12 +136,34 @@ public class AuthController {
                             return "login";
                         }
 
+                        // Kiểm tra trạng thái active của tài khoản
+                        if (!user.isActive()) {
+                            model.addAttribute("error", "Tài khoản của bạn đã bị vô hiệu hóa!");
+                            return "login";
+                        }
+
+                        // Lưu thông tin đăng nhập vào session
                         session.setAttribute("loggedInUser", username);
                         session.setAttribute("urlimg", UserService.getAvatarUrlByUsername(username));
+                        System.out.println("Người dùng đăng nhập: " + username);
+
+                        // 🔥 Thêm role vào session
+                        if (user != null) {
+                            session.setAttribute("role", user.getRole().toString()); // 🔥 Lưu role vào session
+                            System.out.println("Đã lưu role vào session: " + user.getRole());
+                        }
 
                         if (rememberMe) {
                             cookieService.setCookie(response, "rememberedUsername", URLEncoder.encode(username, "UTF-8"));
                             cookieService.setCookie(response, "rememberedPassword", URLEncoder.encode(password, "UTF-8"));
+                            cookieService.setCookie(response, "noname", URLEncoder.encode(username, "UTF-8"));
+                        }
+                        else {
+                            // Xoá cookie nếu không chọn "Ghi nhớ đăng nhập"
+                            cookieService.setCookie(response, "noname", URLEncoder.encode(username, "UTF-8"));
+                            cookieService.removeCookie(response, "rememberedUsername");
+                            cookieService.removeCookie(response, "rememberedPassword");
+
                         }
 
                         long endTime = System.currentTimeMillis();
@@ -156,8 +178,6 @@ public class AuthController {
                     }
                 });
     }
-
-
 
 
     @GetMapping("/forgotPass")

@@ -29,7 +29,6 @@ public class ProfileController {
         }
         User user = UserService.getUserData(username);
         model.addAttribute("user", user);
-
         if("TEACHER".equalsIgnoreCase(user.getRole().toString())){
             return "profileTeacher"; // file profileTeacher.html
         } else {

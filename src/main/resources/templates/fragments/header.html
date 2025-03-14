@@ -31,6 +31,12 @@
                         <li class="nav-item">
                             <a class="nav-link text-white fw-bold" href="/contact">Liên hệ </a>
                         </li>
+                        <th:block th:if="${session.role != null and (session.role == 'TEACHER' or session.role == 'ADMIN')}">
+                            <li class="nav-item">
+                                <a class="nav-link text-white fw-bold" href="/questionBank">QuestionBank</a>
+                            </li>
+                        </th:block>
+
                     </ul>
                 </div>
             </nav>

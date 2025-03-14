@@ -14,6 +14,10 @@ public class Exam {
     private String date;
     private int questionCount; // Số lượng câu hỏi
     private List<Question> questions; // Danh sách câu hỏi
+
+
+
+    private long timeduration;
     private boolean active = true;
 
     // Constructors
@@ -21,7 +25,7 @@ public class Exam {
     }
 
     public Exam(String examID, String examName, String grade, String subject, String examType, String city,
-                List<String> tags, String username, String date, int questionCount, List<Question> questions) {
+                List<String> tags, String username, String date, int questionCount, List<Question> questions, long timeduration) {
         this.examID = examID;
         this.examName = examName;
         this.grade = grade;
@@ -33,6 +37,7 @@ public class Exam {
         this.date = date;
         this.questionCount = questionCount;
         this.questions = questions;
+        this.timeduration = timeduration;
         this.active = true; // Người dùng mới mặc định hoạt động
     }
 
@@ -130,5 +135,12 @@ public class Exam {
 
     public void setQuestions(List<Question> questions) {
         this.questions = questions;
+    }
+    public long getTimeduration() {
+        return timeduration;
+    }
+
+    public void setTimeduration(long timeduration) {
+        this.timeduration = timeduration;
     }
 }

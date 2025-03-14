@@ -2,6 +2,7 @@ package com.example.exambuddy.controller;
 
 import com.example.exambuddy.model.Comment;
 import com.example.exambuddy.model.Post;
+import com.example.exambuddy.model.User;
 import com.example.exambuddy.service.CloudinaryService;
 import com.example.exambuddy.service.PostService;
 import com.example.exambuddy.service.UserService;
@@ -33,15 +34,15 @@ public class PostController {
 //        return "postDetail"; // Trả về template Thymeleaf
 //    }
 
+    @Autowired
+    private UserService userService;
     @GetMapping("/{postId}")
     public String getPostDetail(@PathVariable String postId,
                                 @RequestParam(value = "modal", required = false, defaultValue = "false") boolean isModal,
                                 Model model, HttpSession session) {
         String username = (String) session.getAttribute("loggedInUser");
-
         // Lấy bài viết theo postId
         Post post = postService.getPostById(postId);
-
         // Kiểm tra xem user đã like post hay chưa
         post.setLiked(post.getLikedUsernames() != null && post.getLikedUsernames().contains(username));
 
@@ -88,4 +89,36 @@ public class PostController {
 //        List<Comment> comments = postService.getCommentsByPostId(postId, username);
 //        return ResponseEntity.ok(comments);
 //    }
+    @GetMapping("/post-History")
+    public String getUserPostHistory(HttpServletRequest request, Model model) {
+        HttpSession session = request.getSession();
+        String username = (String) session.getAttribute("loggedInUser");
+
+        // Nếu chưa đăng nhập thì chuyển hướng sang trang login
+        if (username == null) {
+            return "redirect:/login";
+        }
+
+        // Lấy danh sách bài đăng của người dùng
+        List<Post> userPosts = PostService.getPostsByUsername(username);
+
+        // Lấy đối tượng User từ session
+        User user = (User) session.getAttribute("user");
+        if (user == null) {
+            // Nếu chưa có, hãy lấy đối tượng user từ cơ sở dữ liệu
+            user = userService.getUserByUsername(username);
+            session.setAttribute("user", user);
+        }
+        // Debug: in ra đối tượng user
+        System.out.println("User trong session: " + user);
+
+        model.addAttribute("user", user);
+        model.addAttribute("username", username);
+        model.addAttribute("userPosts", userPosts);
+
+        return "postHistory";
+    }
+
+
+
 }

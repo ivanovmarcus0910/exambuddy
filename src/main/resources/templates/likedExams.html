@@ -98,24 +98,14 @@
             margin-bottom: 20px;
             flex-wrap: wrap;
         }
-
-
     </style>
 </head>
 <body class="bg-light">
 <!-- Nếu bạn có header/sidebar dạng Thymeleaf, có thể chèn ở đây -->
 <div th:insert="~{fragments/headerProfile :: headerSidebar}"></div>
-
-
-
-
 <div class="content-area">
     <div class="container mt-4">
         <h2 class="text-center text-primary mb-4">Bài kiểm tra yêu thích</h2>
-
-
-
-
         <!-- Form lọc (chỉ HTML, không dùng Thymeleaf cho dữ liệu) -->
         <form id="filterForm" class="filter-form">
             <!-- Thanh tìm kiếm -->
@@ -125,10 +115,6 @@
                     <i class="bi bi-search"></i>
                 </button>
             </div>
-
-
-
-
             <!-- Dropdown lọc theo môn học -->
             <div class="form-group">
                 <select class="form-select" id="subject">
@@ -139,10 +125,6 @@
                     <!-- Thêm môn học khác nếu cần -->
                 </select>
             </div>
-
-
-
-
             <!-- Dropdown lọc theo grade -->
             <div class="form-group">
                 <select class="form-select" id="grade">
@@ -153,10 +135,6 @@
                     <!-- Thêm lớp khác nếu cần -->
                 </select>
             </div>
-
-
-
-
             <!-- Nút Lọc -->
             <div class="form-group">
                 <button type="submit" class="btn btn-success">
@@ -164,10 +142,6 @@
                 </button>
             </div>
         </form>
-
-
-
-
         <!-- Bảng hiển thị dữ liệu lấy từ API -->
         <div class="table-responsive">
 
@@ -188,10 +162,6 @@
         </div>
     </div>
 </div>
-
-
-
-
 <!-- JavaScript -->
 <script>
     // Hàm gọi API để lấy danh sách bài kiểm tra yêu thích
@@ -286,10 +256,6 @@
                     }
                 })
                 .catch(error => console.error("Lỗi kiểm tra like:", error));
-
-
-
-
             // Toggle Like/Unlike khi nhấn nút
             button.addEventListener('click', () => {
                 const isLiked = button.classList.contains('liked');
@@ -314,25 +280,16 @@
             });
         });
     }
-
-
-
-
     // Khi trang tải xong, tự động gọi loadLikedExams
     document.addEventListener('DOMContentLoaded', () => {
         loadLikedExams();
     });
-
-
-
-
     // Khi submit form lọc, ngăn submit thật, chỉ gọi loadLikedExams
     document.getElementById('filterForm').addEventListener('submit', event => {
         event.preventDefault();
         loadLikedExams();
     });
 </script>
-
 <!-- Bootstrap Bundle JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>

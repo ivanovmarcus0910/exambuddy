@@ -147,10 +147,12 @@ public class AccountController {
     @GetMapping("/upgrade")
     public String upgrage(HttpSession session, Model model) {
         String username = (String) session.getAttribute("loggedInUser");
+        System.out.println("username=" + username);
         if (username == null) {
             return "redirect:/login";
         }
         User user = userService.getUserByUsername(username);
+        model.addAttribute("user", user);
         if (user != null &&( (user.getRole() == User.Role.STUDENT) || (user.getRole() == User.Role.UPGRADED_STUDENT))) {
             model.addAttribute("level", chargeLevel);
             return "upgrade";
@@ -186,26 +188,27 @@ public class AccountController {
             {
                 if (userService.updateUserPremium(username, timer))
                 {
-                    return "redirect:/profile";
+                    model.addAttribute("user", user);
+                    return "redirect:/upgrade";
                 }
                 else
                 {
 
-                    model.addAttribute("err", "Lỗi giao dịch, vui lòng thử lại!");
-                    return "upgrade";
+                    redirectAttributes.addFlashAttribute("err", "Lỗi giao dịch, vui lòng thử lại!");
+                    return "redirect:/upgrade";
                 }
 
             }
             else
             {
-                model.addAttribute("err", "Lỗi giao dịch, vui lòng thử lại!");
-                return "upgrade";
+                redirectAttributes.addFlashAttribute("err", "Lỗi giao dịch, vui lòng thử lại!");
+                return "redirect:/upgrade";
 
             }
         }
         else{
-            model.addAttribute("err", "Không đủ coin vui lòng nạp và thử lại!");
-            return "upgrade";
+            redirectAttributes.addFlashAttribute("err", "Không đủ coin vui lòng nạp và thử lại!");
+            return "redirect:/upgrade";
         }
 
     }

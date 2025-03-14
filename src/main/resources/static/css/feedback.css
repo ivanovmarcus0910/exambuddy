@@ -1,0 +1,113 @@
+/* CSS hiện tại */
+.star-rating .fa-star {
+    color: #ddd; /* Màu mặc định cho sao chưa chọn */
+    cursor: pointer;
+    transition: color 0.2s; /* Hiệu ứng chuyển màu mượt mà */
+}
+
+.star-rating .fa-star.checked {
+    color: #ffc107 !important; /* Màu vàng cho sao đã chọn */
+}
+
+.feedback-item .fa-star.fas {
+    color: #ffc107; /* Màu vàng cho sao đầy trong danh sách feedback */
+}
+
+.feedback-item .fa-star.far {
+    color: #ddd; /* Màu xám cho sao rỗng trong danh sách feedback */
+}
+
+/* Style cho các nút trong feedback-item */
+.feedback-item .btn {
+    margin-left: 5px;
+    padding: 2px 6px;
+    font-size: 0.8rem;
+    line-height: 1;
+}
+
+.feedback-item .btn-warning {
+    background-color: #ffc107; /* Màu vàng cho nút Edit */
+    border-color: #ffc107;
+}
+
+.feedback-item .btn-warning:hover {
+    background-color: #e0a800; /* Màu khi hover */
+    border-color: #e0a800;
+}
+
+.feedback-item .btn-danger {
+    background-color: #dc3545; /* Màu đỏ cho nút Delete */
+    border-color: #dc3545;
+}
+
+.feedback-item .btn-danger:hover {
+    background-color: #c82333; /* Màu khi hover */
+    border-color: #c82333;
+}
+
+/* Style cho form chỉnh sửa inline */
+.edit-feedback-inline {
+    margin-top: 10px;
+}
+
+.edit-feedback-inline .form-control {
+    width: 100%;
+}
+
+.edit-feedback-inline .btn-primary {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.edit-feedback-inline .btn-primary:hover {
+    background-color: #0b5ed7;
+    border-color: #0b5ed7;
+}
+
+.edit-feedback-inline .btn-secondary {
+    background-color: #6c757d;
+    border-color: #6c757d;
+}
+
+.edit-feedback-inline .btn-secondary:hover {
+    background-color: #5c636a;
+    border-color: #5c636a;
+}
+
+/* Style cho dấu 3 chấm và menu hành động */
+.feedback-actions {
+    position: relative;
+}
+
+.more-options {
+    color: #666;
+    padding: 0 5px;
+}
+
+.more-options:hover {
+    color: #000;
+}
+
+.action-menu {
+    z-index: 10;
+}
+
+.action-menu button {
+    display: block;
+    width: 100%;
+    text-align: left;
+    margin: 2px 0;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .feedback-item .btn {
+        margin-left: 3px;
+        padding: 1px 4px;
+        font-size: 0.7rem;
+    }
+
+    .edit-feedback-inline {
+        padding: 5px;
+    }
+}

@@ -22,7 +22,7 @@ import java.io.InputStream;
 import java.text.Normalizer;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.*;
 import java.util.Date;
 import java.util.TimeZone;
 import java.util.ArrayList;
@@ -36,6 +36,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class ExamService {
+    private final ExecutorService executor = Executors.newCachedThreadPool();
     private final Firestore db = FirestoreClient.getFirestore();
     private final LeaderBoardService leaderBoardService = new LeaderBoardService();
     public List<Exam> getExamList(int page, int size) {
@@ -114,9 +115,26 @@ public class ExamService {
 
     }
 
-    public boolean addExam(Map<String, Object> examData) {
+    public boolean addExam(Map<String, Object> examData, String id) {
         try {
-            String examId = UUID.randomUUID().toString();
+            String examId;
+            if (id.isEmpty()){
+                examId = UUID.randomUUID().toString();
+            }
+            else {
+                examId = id;
+                DocumentReference examRef = db.collection("exams").document(examId);
+                ApiFuture<DocumentSnapshot> future = examRef.get();
+                DocumentSnapshot document = future.get();
+                if (document.exists()) {
+                    CollectionReference questionsRef = examRef.collection("questions");
+                    ApiFuture<QuerySnapshot> questionsQuery = questionsRef.get();
+                    for (DocumentSnapshot questionDoc : questionsQuery.get().getDocuments()) {
+                        questionDoc.getReference().delete();
+                    }
+                    examRef.delete().get();
+                }
+            }
             System.out.println("Creating exam with ID: " + examId);
             Object tags = examData.get("tags");
             if (tags instanceof String[]) {
@@ -135,6 +153,7 @@ public class ExamService {
                     "tags", examData.get("tags"),
                     "username", examData.get("username"),
                     "date", examData.get("date"),
+                    "timeduration", Long.parseLong((String) examData.get("timeduration")) ,
                     "questionCount", x
             )).get();
             System.out.println("Exam document set");
@@ -219,7 +238,7 @@ public class ExamService {
 
 
             // Lưu dữ liệu vào Firestore
-            return addExam(examData);
+            return addExam(examData,"");
 
 
         } catch (Exception e) {
@@ -336,7 +355,7 @@ public class ExamService {
 
             examData.put("questions", questions);
             examData.put("date", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(new Date()));
-            return addExam(examData);
+            return addExam(examData,"");
 
 
         } catch (Exception e) {
@@ -504,13 +523,18 @@ public class ExamService {
         docRef.delete(); // Xóa like khỏi Firestore
     }
 
-    public boolean isExamLiked(String userId, String examId) {
-        DocumentReference docRef = db.collection("likedExams").document(userId + "_" + examId);
-        try {
-            return docRef.get().get().exists();
-        } catch (Exception e) {
-            return false;
-        }
+    public CompletableFuture<Boolean> isExamLikedAsync(String userId, String examId) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                DocumentSnapshot snapshot = db.collection("likedExams")
+                        .document(userId + "_" + examId)
+                        .get()
+                        .get(); // Chờ kết quả trong luồng khác
+                return snapshot.exists();
+            } catch (Exception e) {
+                return false;
+            }
+        }, executor);
     }
 
     public List<Exam> getLikedExamsByUser(String userId) {
