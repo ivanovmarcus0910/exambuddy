@@ -74,5 +74,8 @@ public class HomeController {
     @GetMapping("/participant")
     public String participant() {
         return "examStatistics";}
-
+    @GetMapping("/contact")
+    public String contact() {
+        return "contact";
+    }
 }

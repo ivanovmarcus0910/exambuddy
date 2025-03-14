@@ -48,7 +48,7 @@
                     <span class="heart-count" th:text="${comment.likeCount}">0</span>
                 </button>
                 <button class="btn btn-sm btn-link text-dark text-decoration-none ms-2"
-                        th:attr="onclick='setReplyForm(\'' + ${comment.commentId} + '\', \'' + ${comment.username} + '\')'">
+                        th:attr="onclick='setReplyForm(\'' + ${comment.commentId} + '\', \'' + ${comment.username} + '\', \'' + (${comment.parentCommentId} != null ? ${comment.parentCommentId} : '') + '\')'">
                     Phản hồi
                 </button>
                 <span style="font-size: 11px; color: gray" th:text="${comment.timeAgo}"></span>

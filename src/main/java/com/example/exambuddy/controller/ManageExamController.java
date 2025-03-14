@@ -3,6 +3,7 @@ package com.example.exambuddy.controller;
 import com.example.exambuddy.model.*;
 import com.example.exambuddy.service.CookieService;
 import com.example.exambuddy.service.ExamService;
+import com.example.exambuddy.service.LeaderBoardService;
 import com.example.exambuddy.service.UserService;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.*;
@@ -30,6 +31,8 @@ import java.util.concurrent.ExecutionException;
 @Controller
 public class ManageExamController {
     private Firestore db = FirestoreClient.getFirestore();
+    @Autowired
+    private LeaderBoardService leaderBoardService;
 
     public ManageExamController(ExamService examService) {
         this.examService = examService;
@@ -141,7 +144,7 @@ public class ManageExamController {
             String username = cookieService.getCookie(request, "noname");
             examService.submitExam(username, examId);
             examService.saveExamResult(username, examId, score, exam, userAnswers, correctQuestions);
-            examService.updateUserScore(username, score);
+            leaderBoardService.updateUserScore(username, score);
             model.addAttribute("exam", exam);
             model.addAttribute("score", score);
             model.addAttribute("totalQuestions", questions.size());
@@ -263,34 +266,41 @@ public class ManageExamController {
     }
 
     @GetMapping("/exams/liked")
-    public String showLikedExams(
+    public ResponseEntity<List<Map<String, Object>>> showLikedExams(
             @RequestParam(value = "subject", required = false) String subject,
             @RequestParam(value = "grade", required = false) String grade,
             @RequestParam(value = "searchQuery", required = false) String searchQuery,
-            Model model, HttpServletRequest request, HttpSession session) {
+            HttpServletRequest request, HttpSession session) {
+
         if (session.getAttribute("loggedInUser") == null) {
-            return "redirect:/login"; // Nếu chưa đăng nhập, chuyển hướng về home
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
+
         String username = cookieService.getCookie(request, "noname");
-        long x = System.currentTimeMillis();
         List<Exam> likedExams = examService.getLikedExamsByUser(username);
-        User user =userService.getUserByUsername(username);
-        model.addAttribute("user", user);
 
         if (searchQuery != null && !searchQuery.trim().isEmpty()) {
             likedExams = likedExams.stream()
-                    .filter(exam -> exam.getExamName() != null && exam.getExamName().toLowerCase().contains(searchQuery.toLowerCase()))
+                    .filter(exam -> exam.getExamName() != null &&
+                            exam.getExamName().toLowerCase().contains(searchQuery.toLowerCase()))
                     .collect(Collectors.toList());
         }
-        // Áp dụng bộ lọc theo môn học và grade
+
         likedExams = examService.filterExamsBySubject(likedExams, subject);
         likedExams = examService.filterExamsByClass(likedExams, grade);
 
-        model.addAttribute("likedExams", likedExams);
-        model.addAttribute("selectedSubject", subject);
-        model.addAttribute("selectedGrade", grade);
-        model.addAttribute("searchQuery", searchQuery);
-        return "likedExams"; // Trả về giao diện liked-exams.html
+        // Chuyển đổi danh sách Exam thành JSON đơn giản
+        List<Map<String, Object>> response = likedExams.stream().map(exam -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("examName", exam.getExamName());
+            map.put("subject", exam.getSubject());
+            map.put("grade", exam.getGrade());
+            map.put("examID", exam.getExamID());
+            map.put("createdDate", exam.getDate());
+            return map;
+        }).collect(Collectors.toList());
+
+        return ResponseEntity.ok(response);
     }
 
 
@@ -351,9 +361,20 @@ public class ManageExamController {
             return "redirect:/exams/result-list";
         }
 
+        // Khởi tạo userAnswers với tất cả các câu hỏi
+        Map<String, List<String>> userAnswers = new HashMap<>();
+        if (exam.getQuestions() != null) {
+            for (int i = 0; i < exam.getQuestions().size(); i++) {
+                String key = "q" + i;
+                // Lấy đáp án từ examResult, nếu không có thì để danh sách rỗng
+                userAnswers.put(key, examResult.getAnswers() != null ?
+                        examResult.getAnswers().getOrDefault(key, Collections.emptyList()) : Collections.emptyList());
+            }
+        }
+
         model.addAttribute("exam", exam);  // Truyền danh sách câu hỏi vào Thymeleaf
         model.addAttribute("score", examResult.getScore());
-        model.addAttribute("userAnswers", examResult.getAnswers());
+        model.addAttribute("userAnswers", userAnswers);
         model.addAttribute("correctQuestions", examResult.getCorrectAnswers());
         model.addAttribute("userName", examResult.getUsername());
 
@@ -516,6 +537,17 @@ public class ManageExamController {
         model.addAttribute("results", results);
 
         return "examStatistics";
+    }
+
+    @GetMapping("/exams/liked-page")
+    public String showLikedExamsPage(  Model model, HttpServletRequest request, HttpSession session) {
+        if (session.getAttribute("loggedInUser") == null) {
+            return "redirect:/login"; // Nếu chưa đăng nhập, chuyển hướng về home
+        }
+        String username = cookieService.getCookie(request, "noname");
+        User user =userService.getUserByUsername(username);
+        model.addAttribute("user", user);
+        return "likedExams";
     }
 }
 

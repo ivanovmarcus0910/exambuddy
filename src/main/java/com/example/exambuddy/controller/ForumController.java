@@ -9,6 +9,8 @@ import com.example.exambuddy.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -29,78 +31,102 @@ public class ForumController {
     private PostService postService;
 
     @PostMapping("/create")
-    public String createPost(@RequestParam String content,
-                             @RequestParam("subject") String subject,
-                             @RequestParam(value = "grade", required = false, defaultValue = "Chung") String grade,
-                             @RequestParam("images") MultipartFile[] files,
-                             HttpServletRequest request,
-                             Model model) {
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> createPost(@RequestParam String content,
+                                                          @RequestParam("subject") String subject,
+                                                          @RequestParam(value = "grade", required = false, defaultValue = "Chung") String grade,
+                                                          @RequestParam("images") MultipartFile[] files,
+                                                          HttpServletRequest request) {
         HttpSession session = request.getSession();
         String username = (String) session.getAttribute("loggedInUser");
 
         if (username == null) {
-            return "redirect:/login";
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", "Chưa đăng nhập");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
         }
-        String avatarUrl = UserService.getAvatarUrlByUsername(username);
 
+        String avatarUrl = UserService.getAvatarUrlByUsername(username);
         List<String> imageUrls = new ArrayList<>();
+
         for (MultipartFile file : files) {
             if (!file.isEmpty()) {
                 String imageUrl = this.cloudinaryService.upLoadImg(file, "imgForum/imgPosts");
                 imageUrls.add(imageUrl);
             }
         }
-        subject = subject.trim().replace(",", "");
 
+        subject = subject.trim().replace(",", "");
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String date = formatter.format(new Date());
 
         // Lưu bài viết
         Post post = PostService.savePost(username, avatarUrl, content, subject, grade, date, imageUrls);
-        model.addAttribute("post", post);
 
-        return "redirect:/forum?subject=" + subject;
+        // Tạo response JSON
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("postId", post.getPostId());
+        response.put("username", username);
+        response.put("avatarUrl", avatarUrl);
+        response.put("content", content);
+        response.put("subject", subject);
+        response.put("grade", grade);
+        response.put("timeAgo", "Vừa xong"); // Có thể cần tính toán thời gian thực
+        response.put("imageUrls", imageUrls);
+        response.put("likeCount", 0);
+        response.put("liked", false);
+
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping
-    public String getForum(@RequestParam(value = "subject", required = false) String subject,
-                           @RequestParam(value = "grade", required = false) String grade,
-                           Model model, HttpServletRequest request) {
-        long x = System.currentTimeMillis();
+    public String forumPage(HttpServletRequest request, Model model) {
         HttpSession session = request.getSession();
         String username = (String) session.getAttribute("loggedInUser");
-        // Lấy tất cả bài viết ban đầu (trang forum chung)
-        List<Post> posts = postService.getPostsFromFirestore();
-        System.out.println("Time 1 : "+(System.currentTimeMillis() - x));
 
-        // Nếu có subject, lọc bài viết theo môn học
+        String avatarUrl = UserService.getAvatarUrlByUsername(username);
+
+        model.addAttribute("username", username);
+        model.addAttribute("avatarUrl", avatarUrl);
+        return "forum";
+    }
+
+    @GetMapping("/posts")
+    public ResponseEntity<List<Map<String, Object>>> getPosts(@RequestParam(value = "subject", required = false) String subject,
+                                                              @RequestParam(value = "grade", required = false) String grade) {
+        List<Post> posts = postService.getPostsFromFirestore();
+
         if (subject != null && !subject.isEmpty()) {
             posts = posts.stream()
                     .filter(post -> subject.trim().replace(",", "").equalsIgnoreCase(post.getSubject()))
                     .collect(Collectors.toList());
         }
-        System.out.println("Time 2 : "+(System.currentTimeMillis() - x));
 
-        // Nếu có chọn lớp học, lọc tiếp
         if (grade != null && !grade.isEmpty()) {
             posts = posts.stream()
                     .filter(post -> grade.equals(post.getGrade()))
                     .collect(Collectors.toList());
         }
-        System.out.println("Time 3 : "+(System.currentTimeMillis() - x));
 
-        String avatarUrl = UserService.getAvatarUrlByUsername(username);
-        List<Comment> latestComments = postService.getUserLatestComments(username);
+        // Chuyển đổi danh sách bài viết thành danh sách Map (JSON)
+        List<Map<String, Object>> response = posts.stream().map(post -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("postId", post.getPostId());
+            map.put("avatarUrl", post.getAvatarUrl());
+            map.put("username", post.getUsername());
+            map.put("timeAgo", post.getTimeAgo());
+            map.put("content", post.getContent());
+            map.put("subject", post.getSubject());
+            map.put("grade", post.getGrade());
+            map.put("likeCount", post.getLikeCount());
+            map.put("liked", post.isLiked());
+            map.put("imageUrls", post.getImageUrls()); // Trả về danh sách ảnh
+            return map;
+        }).collect(Collectors.toList());
 
-        model.addAttribute("userComments", latestComments);
-        model.addAttribute("posts", posts);
-        model.addAttribute("username", username);
-        model.addAttribute("avatarUrl", avatarUrl);
-        model.addAttribute("selectedSubject", subject);
-        model.addAttribute("selectedGrade", grade);
-        System.out.println("Time 5   : "+(System.currentTimeMillis() - x));
-
-        return "forum"; // Hiển thị trang forum chung nếu không có subject
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/comment")

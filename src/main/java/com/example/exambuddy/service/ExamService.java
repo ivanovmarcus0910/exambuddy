@@ -6,6 +6,7 @@ import com.example.exambuddy.model.ExamResult;
 import com.example.exambuddy.model.ExamStatistics;
 import com.example.exambuddy.model.Question;
 import com.google.api.core.ApiFuture;
+import com.google.api.core.ApiFutures;
 import com.google.cloud.firestore.*;
 import com.google.common.collect.Table;
 import com.google.firebase.cloud.FirestoreClient;
@@ -13,8 +14,10 @@ import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xwpf.usermodel.*;
 
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
+
 import java.io.InputStream;
 import java.text.Normalizer;
 import java.text.SimpleDateFormat;
@@ -34,7 +37,7 @@ import java.util.stream.Collectors;
 @Service
 public class ExamService {
     private final Firestore db = FirestoreClient.getFirestore();
-
+    private final LeaderBoardService leaderBoardService = new LeaderBoardService();
     public List<Exam> getExamList(int page, int size) {
         List<Exam> exams = new ArrayList<>();
         try {
@@ -146,6 +149,7 @@ public class ExamService {
             }
             batch.commit().get();
             System.out.println("Questions batch committed");
+
             return true;
         } catch (Exception e) {
             System.out.println("Error in addExam: " + e.getMessage());
@@ -153,7 +157,6 @@ public class ExamService {
             return false;
         }
     }
-
 
     public boolean importExamFromExcel(InputStream inputStream, Map<String, Object> examData) {
         try {
@@ -313,10 +316,18 @@ public class ExamService {
                     List<Integer> correctAnswers = (List<Integer>) questions.get(i).get("correctAnswers");
                     correctAnswers.clear();
                     switch (correctAnswer) {
-                        case "A": correctAnswers.add(0); break;
-                        case "B": correctAnswers.add(1); break;
-                        case "C": correctAnswers.add(2); break;
-                        case "D": correctAnswers.add(3); break;
+                        case "A":
+                            correctAnswers.add(0);
+                            break;
+                        case "B":
+                            correctAnswers.add(1);
+                            break;
+                        case "C":
+                            correctAnswers.add(2);
+                            break;
+                        case "D":
+                            correctAnswers.add(3);
+                            break;
                     }
                     questions.get(i).put("correctAnswers", correctAnswers);
                 }
@@ -333,7 +344,6 @@ public class ExamService {
             return false;
         }
     }
-
 
     public boolean addExamSession(String examID, String username, long duration) {
         try {
@@ -359,7 +369,8 @@ public class ExamService {
             if (snapshot.exists()) {
                 if (snapshot.getBoolean("submitted") == true) {
                     return true;
-                };
+                }
+                ;
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -423,28 +434,6 @@ public class ExamService {
         ), SetOptions.merge());
     }
 
-    public void updateUserScore(String username, double newScore) {
-        DocumentReference userScoreRef = db.collection("userScores").document(username);
-
-        try {
-            // Kiểm tra xem document có tồn tại không
-            if (userScoreRef.get().get().exists()) {
-                // Nếu tồn tại, cập nhật điểm số
-                userScoreRef.update("totalScore", FieldValue.increment(newScore)).get();
-                System.out.println("Cập nhật điểm thành công!");
-            } else {
-                // Nếu chưa có, tạo mới document
-                Map<String, Object> data = new HashMap<>();
-                data.put("username", username);
-                data.put("totalScore", newScore);
-                userScoreRef.set(data).get();
-                System.out.println("Tạo mới và cập nhật điểm thành công!");
-            }
-        } catch (Exception e) {
-            System.err.println("Lỗi khi cập nhật điểm: " + e.getMessage());
-        }
-    }
-
     public List<ExamResult> getExamResultByUsername(String userId) {
         List<ExamResult> results = new ArrayList<>();
 
@@ -472,12 +461,42 @@ public class ExamService {
     }
 
     public void likeExam(String userId, String examId) {
-        DocumentReference docRef = db.collection("likedExams").document(userId + "_" + examId);
-        docRef.set(Map.of(
-                "userId", userId,
-                "examId", examId,
-                "likedAt", System.currentTimeMillis()
-        ), SetOptions.merge());
+        try {
+            // 1. Lấy thông tin bài thi từ collection "exams"
+            DocumentReference examRef = db.collection("exams").document(examId);
+            DocumentSnapshot examSnapshot = examRef.get().get();
+
+            if (!examSnapshot.exists()) {
+                System.out.println("Bài thi không tồn tại: " + examId);
+                return;
+            }
+
+            // 2. Lấy các trường cần thiết từ bài thi
+            Map<String, Object> examData = examSnapshot.getData();
+            // Giả sử các trường được lưu trữ với các tên sau:
+            String examName = (String) examData.get("examName");
+            String subject = (String) examData.get("subject");
+            String grade = (String) examData.get("grade");
+            String createdDate = (String) examData.get("date"); // Có thể là timestamp hoặc string tùy thiết kế
+
+            // 3. Tạo map dữ liệu để lưu vào likedExams
+            Map<String, Object> likeData = new HashMap<>();
+            likeData.put("username", userId);
+            likeData.put("examID", examId);
+            likeData.put("examName", examName);
+            likeData.put("subject", subject);
+            likeData.put("grade", grade);
+            likeData.put("date", createdDate);
+
+            // 4. Lưu vào collection "likedExams"
+            // Bạn có thể để Firestore tự sinh doc ID hoặc dùng userId_examId
+            DocumentReference docRef = db.collection("likedExams").document(userId + "_" + examId);
+            docRef.set(likeData, SetOptions.merge());
+
+            System.out.println("Like thành công cho exam " + examId);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void unlikeExam(String userId, String examId) {
@@ -497,56 +516,27 @@ public class ExamService {
     public List<Exam> getLikedExamsByUser(String userId) {
         List<Exam> likedExams = new ArrayList<>();
         try {
-            // Tạo prefix dựa trên userId (ví dụ: "LamHai_")
-            String prefix = userId + "_";
-
-            // Truy vấn collection "likedExams" theo khoảng của document ID
+            // Truy vấn collection "likedExams" theo trường "userId"
             CollectionReference likedExamsCollection = db.collection("likedExams");
             ApiFuture<QuerySnapshot> future = likedExamsCollection
-                    .whereGreaterThanOrEqualTo(FieldPath.documentId(), prefix)
-                    .whereLessThanOrEqualTo(FieldPath.documentId(), prefix + "\uf8ff")
+                    .whereEqualTo("username", userId)
                     .get();
 
             List<QueryDocumentSnapshot> documents = future.get().getDocuments();
-            List<String> examIds = new ArrayList<>();
-
-            // Lấy examId từ document ID, giả sử định dạng là: userId_examId
             for (DocumentSnapshot doc : documents) {
-                String docId = doc.getId();
-                int index = docId.indexOf('_');
-                if (index != -1 && index < docId.length() - 1) {
-                    String examId = docId.substring(index + 1);
-                    examIds.add(examId);
-                }
-            }
-
-            // Nếu có examIds, truy vấn collection "exams" để lấy thông tin bài thi
-            if (!examIds.isEmpty()) {
-                CollectionReference examCollection = db.collection("exams");
-                final int batchSize = 10; // Giới hạn của toán tử whereIn
-                List<List<String>> batches = splitList(examIds, batchSize);
-
-                for (List<String> batch : batches) {
-                    ApiFuture<QuerySnapshot> examFuture = examCollection
-                            .whereIn(FieldPath.documentId(), batch)
-                            .get();
-
-                    List<QueryDocumentSnapshot> examDocs = examFuture.get().getDocuments();
-                    for (DocumentSnapshot examDoc : examDocs) {
-                        Exam exam = examDoc.toObject(Exam.class);
-                        exam.setExamID(examDoc.getId());
-                        if (exam.getDate() != null) {
-                            exam.setDate(formatDate(exam.getDate()));
-                        }
-                        likedExams.add(exam);
-                    }
-                }
+                // Chuyển document sang đối tượng Exam.
+                // Lưu ý: Đảm bảo lớp Exam có các trường phù hợp với dữ liệu đã lưu (examName, subject, grade, createdDate, examId, ...)
+                Exam exam = doc.toObject(Exam.class);
+                // Nếu cần, có thể set examID từ field examId hoặc từ document id
+                exam.setExamID(doc.getString("examID"));
+                likedExams.add(exam);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
         return likedExams;
     }
+
 
     /**
      * Hàm helper để chia danh sách thành các nhóm nhỏ có kích thước batchSize
@@ -559,8 +549,6 @@ public class ExamService {
         }
         return batches;
     }
-
-
 
     public List<Exam> getHtoryCreateExamsByUsername(String username) {
         List<Exam> exams = new ArrayList<>();
@@ -690,7 +678,6 @@ public class ExamService {
         return resultList;
     }
     // Phương thức lấy all đề thi
-
     public List<Exam> getAllExams() {
         Firestore firestore = FirestoreClient.getFirestore();
         List<Exam> examList = new ArrayList<>();
@@ -707,7 +694,6 @@ public class ExamService {
         }
         return examList;
     }
-
     // Xoá đề thi
     public void deleteExam(String examId) {
         Firestore firestore = FirestoreClient.getFirestore();
@@ -728,10 +714,6 @@ public class ExamService {
             System.out.println("Lỗi cập nhật trạng thái của exam " + examId);
             e.printStackTrace();
         }
-    }
-
-    public static void main(String[] args) {
-        System.out.println("ADD");
     }
 
     public List<ExamResult> getExamResultsByExamId(String examId) {

@@ -165,25 +165,14 @@ public class PostService {
                 }
             }
 
-            // Gán danh sách reply vào từng comment cha
+            // Gán danh sách reply chỉ 1 cấp vào từng comment cha (bỏ đệ quy)
             for (Comment comment : comments) {
-                comment.setReplies(getRepliesRecursive(comment.getCommentId(), replyMap));
+                comment.setReplies(replyMap.getOrDefault(comment.getCommentId(), new ArrayList<>()));
             }
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
         }
         return comments;
-    }
-
-    private static List<Comment> getRepliesRecursive(String parentId, Map<String, List<Comment>> replyMap) {
-        List<Comment> replies = replyMap.getOrDefault(parentId, new ArrayList<>());
-
-        for (Comment reply : replies) {
-            // Đệ quy để lấy phản hồi con của phản hồi hiện tại
-            reply.setReplies(getRepliesRecursive(reply.getCommentId(), replyMap));
-        }
-
-        return replies;
     }
 
     public static Comment getCommentById(String postId, String commentId) {
