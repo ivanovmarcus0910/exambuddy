@@ -100,4 +100,37 @@ public class TheoryController {
         return theoryService.extractContentFromFile(file);
     }
 
+    @PutMapping("/subjects/{classId}/{subjectId}")
+    public ResponseEntity<String> updateSubject(
+            @PathVariable String classId,
+            @PathVariable String subjectId,
+            @RequestBody Subject updatedSubject) {
+        try {
+            theoryService.updateSubject(classId, subjectId, updatedSubject);
+            return ResponseEntity.ok("Môn học đã được cập nhật thành công!");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Lỗi khi cập nhật môn học: " + e.getMessage());
+        }
+    }
+
+    @PutMapping("/chapters/{classId}/{subjectId}/{chapterId}")
+    public ResponseEntity<String> updateChapter(
+            @PathVariable String classId,
+            @PathVariable String subjectId,
+            @PathVariable String chapterId,
+            @RequestBody Chapter updatedChapter) {
+        try {
+            theoryService.updateChapter(classId, subjectId, chapterId, updatedChapter);
+            return ResponseEntity.ok("Chương đã được cập nhật thành công!");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Lỗi khi cập nhật chương: " + e.getMessage());
+        }
+    }
+
 }
