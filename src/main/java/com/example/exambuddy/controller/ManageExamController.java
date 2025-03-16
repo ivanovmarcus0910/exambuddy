@@ -31,7 +31,6 @@ import java.util.concurrent.ExecutionException;
 @Slf4j
 @Controller
 public class ManageExamController {
-    private Firestore db = FirestoreClient.getFirestore();
     @Autowired
     private LeaderBoardService leaderBoardService;
 

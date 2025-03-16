@@ -115,10 +115,9 @@ public class AccountController {
 
 
     @GetMapping("/paymentHistory")
-    public String listPayments(@RequestParam(defaultValue = "0") int page, HttpServletRequest request, Model model) {
+    public String listPayments(@RequestParam(defaultValue = "0") int page, HttpServletRequest request, Model model, HttpSession session) {
         try {
-            String username = cookieService.getCookie(request, "noname");
-            System.out.println("username=" + username);
+            String username = session.getAttribute("loggedInUser").toString();
             User user = userService.getUserByUsername(username);
             model.addAttribute("user", user);
             int pageSize = 10; // Số bản ghi trên mỗi trang
