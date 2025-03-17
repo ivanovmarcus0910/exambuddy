@@ -382,9 +382,17 @@ public class ManageExamController {
         // Lấy danh sách câu hỏi từ Firestore
         Exam exam = examService.getExam(examId);
         if (exam == null) {
-            return "redirect:/exams/result-list";
-        }
+            model.addAttribute("exam", new Exam());  // Truyền danh sách câu hỏi vào Thymeleaf
 
+            model.addAttribute("score", examResult.getScore());
+            model.addAttribute("userName", examResult.getUsername());
+            model.addAttribute("userAnswers", null);
+            model.addAttribute("correctQuestions", examResult.getCorrectAnswers());
+
+            model.addAttribute("err", "Lỗi đề thi đã bị vô hiệu hóa, chân thành xin lỗi!");
+            return "fragments/ResultDetail :: detailFragment";
+        }
+        System.out.println(exam.getExamID());
         // Khởi tạo userAnswers với tất cả các câu hỏi
         Map<String, List<String>> userAnswers = new HashMap<>();
         if (exam.getQuestions() != null) {
@@ -395,6 +403,7 @@ public class ManageExamController {
                         examResult.getAnswers().getOrDefault(key, Collections.emptyList()) : Collections.emptyList());
             }
         }
+        System.out.println(exam.getExamID());
 
         model.addAttribute("exam", exam);  // Truyền danh sách câu hỏi vào Thymeleaf
         model.addAttribute("score", examResult.getScore());
