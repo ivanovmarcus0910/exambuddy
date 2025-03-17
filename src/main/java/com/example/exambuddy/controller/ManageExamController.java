@@ -108,7 +108,7 @@ public class ManageExamController {
             model.addAttribute("exam", exam);
             model.addAttribute("username", username);
             model.addAttribute("questions", exam.getQuestions()); // Gửi danh sách câu hỏi qua view
-            model.addAttribute("timeduration", 60 * 30);
+            model.addAttribute("timeduration", exam.getTimeduration());
             return "examDo";
         } catch (Exception e) {
             model.addAttribute("error", "Lỗi khi lấy đề thi: " + e.getMessage());
@@ -329,7 +329,7 @@ public class ManageExamController {
 
     //Created List
     @GetMapping("/exams/created")
-    public String showCreatedExams(
+        public String showCreatedExams(
             @RequestParam(value = "subject", required = false) String subject,
             @RequestParam(value = "grade", required = false) String grade,
             @RequestParam(value = "searchQuery", required = false) String searchQuery,
