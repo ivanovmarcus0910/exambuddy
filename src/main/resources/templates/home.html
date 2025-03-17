@@ -194,8 +194,9 @@
             let data = await response.json();
             let leaderboard = document.querySelector("#leaderboard");
             leaderboard.innerHTML = "";
-            data.forEach(user => {
-                let row = `<li class="list-group-item">${user.username} - ${user.totalScore} Điểm</li>`;
+            data.forEach(record => {
+                let formattedScore = record.totalScore.toFixed(1);
+                let row = `<li class="list-group-item">${record.username} - ${formattedScore} Điểm</li>`;
                 leaderboard.innerHTML += row;
             });
         } catch (error) {
@@ -209,8 +210,10 @@
             let data = await response.json();
             let contributionBoard = document.querySelector("#contribution-board");
             contributionBoard.innerHTML = "";
-            data.forEach(user => {
-                let row = `<li class="list-group-item">${user.username} - ${user.contributionScore} Điểm</li>`;
+            data.forEach(record => {
+                let formattedScore = record.totalScore.toFixed(1);
+
+                let row = `<li class="list-group-item">${record.username} - ${formattedScore} Điểm</li>`;
                 contributionBoard.innerHTML += row;
             });
         } catch (error) {

@@ -143,7 +143,7 @@ public class AccountController {
         return null;
     }
 
-    @GetMapping("/upgrade")
+    @RequestMapping("/upgrade")
     public String upgrage(HttpSession session, Model model) {
         String username = (String) session.getAttribute("loggedInUser");
         System.out.println("username=" + username);
@@ -188,7 +188,7 @@ public class AccountController {
                 if (userService.updateUserPremium(username, timer))
                 {
                     model.addAttribute("user", user);
-                    return "redirect:/upgrade";
+                    return "redirect:/profile";
                 }
                 else
                 {

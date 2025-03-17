@@ -36,6 +36,7 @@ public class CloudinaryService {
         try{
         String publicId = folder + "/" + username;  // Tạo public_id cố định cho user
         Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap(
+                "folder", folder,
                 "public_id", publicId,  // Giữ nguyên ID để ghi đè ảnh cũ
                 "overwrite", true,      // Bật ghi đè
                 "invalidate", true,     // Xóa cache ảnh cũ

@@ -647,7 +647,20 @@ public class ManageExamController {
                 feedback != null ? "Feedback đã được gửi thành công!" : "Lỗi khi gửi feedback.");
         return "redirect:/exams/" + examId + "/detail";
     }
-
+    @PostMapping("/exams/delete/{examId}")
+    public String deleteExam(@PathVariable String examId,
+                             HttpSession session) {
+        String username = (String) session.getAttribute("loggedInUser");
+        if (username == null) {
+            session.setAttribute("error", "Bạn cần đăng nhập.");
+            return "redirect:/login";
+        }
+        Exam exam = examService.getExam(examId);
+        if (exam.getUsername().equals(username)) {
+            examService.deleteExam(examId);
+        }
+        return "redirect:/exams/created";
+    }
     @GetMapping("/exams/{examId}/feedbacks")
     public ResponseEntity<List<Feedback>> getFeedbacks(@PathVariable String examId) {
         List<Feedback> feedbacks = feedbackService.getFeedbacksByExamId(examId);

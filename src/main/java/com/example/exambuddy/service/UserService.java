@@ -113,7 +113,7 @@ public class UserService {
         } catch (Exception e) {
             System.out.println("Lỗi khi lấy avatar của: " + username);
         }
-        return "http://res.cloudinary.com/dsuav027e/image/upload/v1739939318/dkm6iw7ujnsja8z9d3ek.png"; // Trả về avatar mặc định nếu không tìm thấy
+        return "https://res.cloudinary.com/dsuav027e/image/upload/v1740403342/imgAvatar/sp9pms05th5guermrcve.png"; // Trả về avatar mặc định nếu không tìm thấy
     }
 
     public static void updateUserField(String username, String field, Object value) {

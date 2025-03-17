@@ -50,7 +50,7 @@ public class User {
         this.username = username;
         this.password = password;
         this.verified = false; // Mặc định chưa xác thực
-        this.avatarUrl = "https://res.cloudinary.com/dsuav027e/image/upload/v1739367972/halnqohla5mqr3seve3d.png";
+        this.avatarUrl = "https://res.cloudinary.com/dsuav027e/image/upload/v1740403342/imgAvatar/sp9pms05th5guermrcve.png";
         this.role = role.name();
         this.coin = 0;
         this.joinTime = System.currentTimeMillis();
