@@ -35,7 +35,6 @@ import java.time.format.DateTimeFormatter;
 @Slf4j
 @Controller
 public class ManageExamController {
-    private Firestore db = FirestoreClient.getFirestore();
     @Autowired
     private LeaderBoardService leaderBoardService;
 
@@ -109,7 +108,7 @@ public class ManageExamController {
             model.addAttribute("exam", exam);
             model.addAttribute("username", username);
             model.addAttribute("questions", exam.getQuestions()); // Gửi danh sách câu hỏi qua view
-            model.addAttribute("timeduration", 60 * 30);
+            model.addAttribute("timeduration", exam.getTimeduration());
             return "examDo";
         } catch (Exception e) {
             model.addAttribute("error", "Lỗi khi lấy đề thi: " + e.getMessage());
@@ -330,7 +329,7 @@ public class ManageExamController {
 
     //Created List
     @GetMapping("/exams/created")
-    public String showCreatedExams(
+        public String showCreatedExams(
             @RequestParam(value = "subject", required = false) String subject,
             @RequestParam(value = "grade", required = false) String grade,
             @RequestParam(value = "searchQuery", required = false) String searchQuery,
@@ -648,7 +647,20 @@ public class ManageExamController {
                 feedback != null ? "Feedback đã được gửi thành công!" : "Lỗi khi gửi feedback.");
         return "redirect:/exams/" + examId + "/detail";
     }
-
+    @PostMapping("/exams/delete/{examId}")
+    public String deleteExam(@PathVariable String examId,
+                             HttpSession session) {
+        String username = (String) session.getAttribute("loggedInUser");
+        if (username == null) {
+            session.setAttribute("error", "Bạn cần đăng nhập.");
+            return "redirect:/login";
+        }
+        Exam exam = examService.getExam(examId);
+        if (exam.getUsername().equals(username)) {
+            examService.deleteExam(examId);
+        }
+        return "redirect:/exams/created";
+    }
     @GetMapping("/exams/{examId}/feedbacks")
     public ResponseEntity<List<Feedback>> getFeedbacks(@PathVariable String examId) {
         List<Feedback> feedbacks = feedbackService.getFeedbacksByExamId(examId);
