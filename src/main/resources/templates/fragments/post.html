@@ -2,6 +2,7 @@
     <div class="post card mb-3">
         <input type="hidden" name="username" th:value="${username}">
         <input type="hidden" name="avatarUrl" th:value="${avatarUrl}">
+        <input type="hidden" name="postId" th:value="${post.postId}">
         <div class="card-body">
             <div class="d-flex justify-content-between mb-2">
                 <div class="d-flex align-items-center">
@@ -117,7 +118,6 @@
                         </div>
 
                         <div class="d-flex">
-                            <input type="hidden" name="postId" th:value="${post.postId}">
                             <input type="hidden" id="parentCommentId" name="parentCommentId" value="">
 
                             <img th:src="${avatarUrl}" class="rounded-circle me-2" width="35" height="35" alt="User">

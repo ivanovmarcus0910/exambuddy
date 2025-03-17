@@ -468,6 +468,151 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 
+function editComment(element) {
+    event.preventDefault();
+
+    // Lấy dữ liệu từ `data-*`
+    const commentId = element.getAttribute("data-comment-id");
+    const content = element.getAttribute("data-content");
+    const username = element.getAttribute("data-username");
+    const images = element.getAttribute("data-images") ? element.getAttribute("data-images").split(",") : [];
+
+    // Kiểm tra quyền chỉnh sửa
+    const currentUsername = document.querySelector("input[name='username']").value;
+    if (currentUsername !== username) {
+        alert("Bạn chỉ có thể chỉnh sửa bình luận của mình!");
+        return;
+    }
+
+    // Gán dữ liệu vào modal
+    document.getElementById("editCommentId").value = commentId;
+    document.getElementById("editCommentContent").value = content;
+
+    // Hiển thị ảnh hiện tại
+    const previewContainer = document.getElementById("editCommentImagePreview");
+    previewContainer.innerHTML = ""; // Xóa ảnh cũ trước khi thêm mới
+
+    if (images.length > 0 && images[0] !== "") {
+        images.forEach(url => {
+            const img = document.createElement("img");
+            img.src = url;
+            img.classList.add("comment-image", "me-2");
+            img.style.width = "80px";
+            img.style.height = "80px";
+            previewContainer.appendChild(img);
+        });
+    }
+
+    // Khi chọn ảnh mới, xóa ảnh cũ khỏi preview
+    document.getElementById("editCommentImage").addEventListener("change", function () {
+        if (this.files.length > 0) {
+            previewContainer.innerHTML = ""; // Xóa ảnh cũ
+        }
+    });
+
+    // Hiển thị modal chỉnh sửa bình luận
+    new bootstrap.Modal(document.getElementById("editCommentModal")).show();
+}
+
+function submitEditComment() {
+    let commentId = document.getElementById("editCommentId").value;
+    let postId = document.querySelector("input[name='postId']").value;
+    let content = document.getElementById("editCommentContent").value;
+    let keepOldImages = document.getElementById("editCommentImage").files.length === 0;
+    let formData = new FormData();
+
+    formData.append("commentId", commentId);
+    formData.append("postId", postId);
+    formData.append("content", content);
+    formData.append("keepOldImages", keepOldImages);
+
+    if (!keepOldImages) {
+        let fileInput = document.getElementById("editCommentImage");
+        for (let file of fileInput.files) {
+            formData.append("newImages", file);
+        }
+    }
+
+    fetch("forum/comment/edit", {
+        method: "POST",
+        body: formData
+    }).then(response => response.json()).then(data => {
+        if (data.success) {
+            alert("Cập nhật bình luận thành công!");
+            window.location.href = "/postDetail/" + postId;
+        } else {
+            alert("Lỗi: " + data.message);
+        }
+    }).catch(error => console.error("❌ Lỗi:", error));
+}
+
+function updateCommentOnPage(commentId, newContent, newImages, keepOldImages) {
+    const commentElement = document.getElementById(`comment-${commentId}`);
+
+    if (!commentElement) {
+        console.warn("❌ Không tìm thấy bình luận với ID:", commentId);
+        return;
+    }
+    // Cập nhật nội dung
+    commentElement.querySelector(".comment-content").textContent = newContent;
+
+    // Cập nhật ảnh
+    const imagesContainer = commentElement.querySelector(".comment-images");
+
+    if (!keepOldImages) {
+        imagesContainer.innerHTML = ""; // Nếu có ảnh mới, xóa ảnh cũ luôn
+    }
+
+    if (newImages && newImages.length > 0) {
+        newImages.forEach(url => {
+            const img = document.createElement("img");
+            img.src = url;
+            img.classList.add("comment-image");
+            img.onclick = () => openImageModal(img);
+            imagesContainer.appendChild(img);
+        });
+    }
+}
+
+function confirmDeleteComment(element) {
+    event.preventDefault();
+    const commentId = element.getAttribute("data-comment-id");
+    const username = element.getAttribute("data-username");
+
+    // Kiểm tra quyền chỉnh sửa
+    const currentUsername = document.querySelector("input[name='username']").value;
+    if (currentUsername !== username) {
+        alert("Bạn chỉ có thể chỉnh sửa bình luận của mình!");
+        return;
+    }
+
+    if (confirm("Bạn có chắc chắn muốn xoá bình luận này không?")) {
+        deleteComment(commentId);
+    }
+}
+
+function deleteComment(commentId) {
+    const postId = document.querySelector("input[name='postId']").value;
+
+    fetch("/forum/comment/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ postId: postId, commentId: commentId })
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert("Xóa bình luận thành công!");
+                document.getElementById(`comment-${commentId}`).remove(); // Xóa UI
+            } else {
+                alert("Lỗi: " + data.message);
+            }
+        })
+        .catch(error => console.error("❌ Lỗi:", error));
+}
+
+
+
 
 
 

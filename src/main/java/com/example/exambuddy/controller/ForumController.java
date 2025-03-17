@@ -276,5 +276,55 @@ public class ForumController {
         return response;
     }
 
+    @PostMapping("/comment/edit")
+    @ResponseBody
+    public ResponseEntity<?> editComment(
+            @RequestParam String commentId,
+            @RequestParam String postId,  // Nhận luôn từ frontend
+            @RequestParam String content,
+            @RequestParam(required = false, defaultValue = "true") boolean keepOldImages,
+            @RequestPart(value = "newImages", required = false) MultipartFile[] files,
+            HttpSession session) {
+
+        String username = (String) session.getAttribute("loggedInUser");
+        if (username == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Bạn cần đăng nhập để chỉnh sửa bình luận.");
+        }
+
+        List<String> imageUrls = new ArrayList<>();
+        if (!keepOldImages && files != null) { // Nếu không giữ ảnh cũ và có ảnh mới
+            for (MultipartFile file : files) {
+                if (!file.isEmpty()) {
+                    String imageUrl = cloudinaryService.upLoadImg(file, "imgForum/imgComments");
+                    imageUrls.add(imageUrl);
+                }
+            }
+        }
+
+        boolean success = postService.updateComment(postId, commentId, username, content, imageUrls, keepOldImages);
+        if (success) {
+            return ResponseEntity.ok(Map.of("success", true, "commentId", commentId, "content", content, "imageUrls", imageUrls));
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("success", false, "message", "Không thể cập nhật bình luận."));
+        }
+    }
+
+    @PostMapping("/comment/delete")
+    public ResponseEntity<?> deleteComment(@RequestBody Map<String, String> requestData, HttpSession session) {
+        String username = (String) session.getAttribute("loggedInUser");
+        if (username == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("success", false, "message", "Bạn cần đăng nhập để thực hiện thao tác này."));
+        }
+
+        String postId = requestData.get("postId");
+        String commentId = requestData.get("commentId");
+
+        boolean deleted = postService.deleteComment(postId, commentId, username);
+        if (deleted) {
+            return ResponseEntity.ok(Map.of("success", true));
+        } else {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("success", false, "message", "Không thể xóa bình luận!"));
+        }
+    }
 
 }

@@ -146,6 +146,20 @@
                         <div class="d-flex align-items-center justify-content-between">
                             <h6 class="fw-bold mb-0">${comment.username}</h6>
                         </div>
+                        <div class="dropdown">
+                            <button class="btn btn-sm" type="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-three-dots-vertical"></i>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item text-primary" href="#"
+                                    onclick="event.preventDefault(); editComment('${comment.commentId}', '${comment.content}', ${JSON.stringify(comment.imageUrls)}, '${comment.username}')">
+                                        <i class="bi bi-pencil"></i> Chỉnh sửa
+                                    </a>
+                                </li>
+                                <li><a class="dropdown-item text-danger" href="#" onclick="deleteComment('${comment.commentId}')"><i class="bi bi-trash"></i> Xoá</a></li>
+                                <li><a class="dropdown-item text-secondary" href="#" onclick="reportComment('${comment.commentId}')"><i class="bi bi-flag"></i> Báo cáo</a></li>
+                            </ul>
+                        </div>
                         <span class="comment-content">${comment.content}</span>
                     </div>
                     <div class="comment-images mt-2">${imagesHtml}</div>
