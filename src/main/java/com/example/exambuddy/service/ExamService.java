@@ -143,6 +143,8 @@ public class ExamService {
             }
             List<Map<String, Object>> questions = (List<Map<String, Object>>) examData.get("questions");
             int x = (questions != null) ? questions.size() : 0;
+            Object timedurationObj = examData.get("timeduration");
+            String timedurationStr = timedurationObj instanceof Integer ? timedurationObj.toString() : (String) timedurationObj;
 
             // Thêm dữ liệu đề thi vào collection "exams"
             db.collection("exams").document(examId).set(Map.of(
@@ -154,7 +156,7 @@ public class ExamService {
                     "tags", examData.get("tags"),
                     "username", examData.get("username"),
                     "date", examData.get("date"),
-                    "timeduration", Long.parseLong((String) examData.get("timeduration")) ,
+                    "timeduration", Long.parseLong(timedurationStr),
                     "questionCount", x
             )).get();
             System.out.println("Exam document set");

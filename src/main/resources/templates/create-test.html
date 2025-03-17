@@ -157,6 +157,10 @@
                     <label for="tags" class="form-label">Tags (cách nhau bằng dấu phẩy)</label>
                     <input type="text" class="form-control" id="tags" placeholder="VD: thi thử, kiểm tra">
                 </div>
+                <div class="mb-3">
+                    <label for="timeduration" class="form-label">Thời lượng (phút)</label>
+                    <input type="number" class="form-control" id="timeduration" min="1" value="60" required>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
@@ -387,30 +391,39 @@
         const username = getCookie('noname');
         if (!username) {
             alert('Bạn cần đăng nhập để tạo đề thi!');
+            window.location.href = '/login';
             return;
         }
 
-        const examName = document.getElementById('examName').value;
+        const examName = document.getElementById('examName').value.trim();
         const examType = document.getElementById('examType').value;
         const grade = document.getElementById('grade').value;
         const subject = document.getElementById('subject').value;
         const city = document.getElementById('city').value;
-        const tags = document.getElementById('tags').value.split(',').map(tag => tag.trim());
+        const tags = document.getElementById('tags').value.split(',').map(tag => tag.trim()).filter(tag => tag);
+        const timeduration = document.getElementById('timeduration').value;
 
-        if (!examName || !examType || !grade || !subject || !city) {
+        if (!examName || !examType || !grade || !subject || !city || !timeduration) {
             alert('Vui lòng điền đầy đủ thông tin đề thi!');
             return;
         }
 
+        // Kiểm tra timeduration là số hợp lệ
+        if (isNaN(timeduration) || parseInt(timeduration) <= 0) {
+            alert('Thời lượng phải là một số lớn hơn 0!');
+            return;
+        }
+
         const examData = {
-            examName: examName,
-            examType: examType,
-            grade: grade,
-            subject: subject,
-            city: city,
-            tags: tags,
-            username: username,
+            examName,
+            examType,
+            grade,
+            subject,
+            city,
+            tags,
+            username,
             date: new Date().toISOString(),
+            timeduration: timeduration, // Gửi dưới dạng chuỗi
             questions: draftQuestions.map(q => ({
                 questionText: q.questionText,
                 options: q.options,
@@ -418,22 +431,37 @@
             }))
         };
 
+        console.log('Submitting exam data:', examData);
+
         fetch('/exams/addExam', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json'
+            },
             body: JSON.stringify(examData)
         })
-            .then(response => response.text())
+            .then(response => response.json())
             .then(data => {
-                alert(data);
-                if (data.includes('thành công')) {
+                console.log('Response from server:', data);
+
+                alert(data.message);
+
+                if (data.status === 'success') {
                     draftQuestions = [];
                     renderDraftQuestions();
                     updateCreateExamButton();
                     bootstrap.Modal.getInstance(document.getElementById('examInfoModal')).hide();
+                } else if (data.message === 'redirect:/login') {
+                    alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại!');
+                    window.location.href = '/login';
+                } else if (data.status === 'error') {
+                    alert(data.message);
                 }
             })
-            .catch(err => alert('Lỗi khi lưu đề thi: ' + err));
+            .catch(err => {
+                console.error('Fetch error:', err);
+                alert('Lỗi khi lưu đề thi: ' + err.message);
+            });
     }
 </script>
 </body>
