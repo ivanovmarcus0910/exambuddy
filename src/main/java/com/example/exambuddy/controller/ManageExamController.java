@@ -185,28 +185,47 @@ public class ManageExamController {
     }
 
     @PostMapping("/exams/addExam")
-    public String addExam(@RequestBody Map<String, Object> examData, HttpSession session, HttpServletRequest request) {
+    @ResponseBody // Đảm bảo trả về JSON, không render template
+    public ResponseEntity<Map<String, Object>> addExam(@RequestBody Map<String, Object> examData, HttpSession session, HttpServletRequest request) {
+        Map<String, Object> response = new HashMap<>();
+
+
         // Lấy username từ session
         String username = (String) session.getAttribute("loggedInUser");
         if (username == null) {
-            return "redirect:/login"; // Nếu chưa đăng nhập, chuyển hướng về trang đăng nhập
+            response.put("status", "error");
+            response.put("message", "redirect:/login");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
         }
+
 
         // Lấy thông tin user từ UserService
         User user = userService.getUserByUsername(username);
         if (user == null || (user.getRole() != User.Role.ADMIN && user.getRole() != User.Role.TEACHER)) {
-            return "error"; // Chuyển hướng hoặc hiển thị lỗi nếu không có quyền
+            response.put("status", "error");
+            response.put("message", "Bạn không có quyền tạo đề thi!");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
         }
+
 
         try {
             boolean status = examService.addExam(examData, "");
-            if (status)
-                return "Đề thi đã được lưu thành công!";
-            else throw new Exception();
+            if (status) {
+                response.put("status", "success");
+                response.put("message", "Đề thi đã được lưu thành công!");
+                return ResponseEntity.ok(response);
+            } else {
+                response.put("status", "error");
+                response.put("message", "Lỗi khi lưu đề thi!");
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            }
         } catch (Exception e) {
-            return "Lỗi khi lưu đề thi: " + e.getMessage();
+            response.put("status", "error");
+            response.put("message", "Lỗi khi lưu đề thi: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
+
 
     //Lấy tiến trình bài đang làm
     @GetMapping("exams/progress")
