@@ -204,7 +204,7 @@
     // Cập nhật giao diện thời gian
     function updateTimerDisplay() {
         document.getElementById("timer").innerText = formatTime(timeLeft);
-        document.getElementById("progress-bar").style.width = (timeLeft / totalDuration * 100) + "%";
+        document.getElementById("progress-bar").style.width = ((timeLeft /60) / totalDuration * 100) + "%";
     }
 
     // Đếm ngược thời gian
