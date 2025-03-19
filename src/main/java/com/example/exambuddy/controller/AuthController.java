@@ -33,9 +33,10 @@ public class AuthController {
     private PasswordService passService;
     @Autowired
     private UserService userService;
-
     @Autowired
     private CookieService cookieService;
+    @Autowired
+    private RoleController roleController;
 
     //Tra ve trang login
     @GetMapping("/login")
@@ -149,7 +150,10 @@ public class AuthController {
 
                         // 🔥 Thêm role vào session
                         if (user != null) {
-                            session.setAttribute("role", user.getRole().toString()); // 🔥 Lưu role vào session
+                            session.setAttribute("role", user.getRole().toString()); // 🔥 Lưu role vào session// Chuyển đổi role sang tiếng Việt và lưu vào session cho việc hiển thị
+                            String roleInVietnamese = roleController.getRoleNameInVietnamese(user.getRole().toString());
+                            session.setAttribute("roleInVietnamese", roleInVietnamese);
+
                             System.out.println("Đã lưu role vào session: " + user.getRole());
                         }
 
@@ -255,7 +259,7 @@ public class AuthController {
     public String signup(@RequestParam String email,
                          @RequestParam String username,
                          @RequestParam String password,
-                         @RequestParam String confirmPassword,
+                         //@RequestParam String confirmPassword,
                          @RequestParam String role,
                          Model model) {
 

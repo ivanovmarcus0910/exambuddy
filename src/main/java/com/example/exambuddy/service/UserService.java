@@ -5,7 +5,9 @@ import com.example.exambuddy.model.User;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.*;
 import com.google.firebase.cloud.FirestoreClient;
+import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,7 +22,8 @@ import java.util.concurrent.ExecutionException;
 @Service
 public class UserService {
     private static final String COLLECTION_NAME = "users";
-
+    @Autowired
+    private EmailService emailService;
     public static User getUserData(String username) {
         Firestore firestore = FirestoreClient.getFirestore();
 
@@ -70,7 +73,7 @@ public class UserService {
     }
 
     // ✅ Thêm mới hàm lưu tài khoản OAuth2 vào Firestore
-    public static void saveOAuth2User(String email, String name, String avatarUrl) {
+        public static void saveOAuth2User(String email, String name, String avatarUrl) {
         Firestore firestore = FirestoreClient.getFirestore();
         CollectionReference users = firestore.collection(COLLECTION_NAME);
 
@@ -129,7 +132,6 @@ public class UserService {
             e.printStackTrace();
         }
     }
-
 
     public List<User> getAllUsers() throws ExecutionException, InterruptedException {
         Firestore firestore = FirestoreClient.getFirestore();

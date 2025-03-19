@@ -575,26 +575,15 @@
                   <td th:text="${user.degreeUrl}">Degree URL</td>
                   <td class="text-center">
                     <div class="d-flex justify-content-start align-items-center" style="white-space: nowrap;">
-                      <!-- Form cập nhật vai trò -->
-                      <form action="/admin/changeRole" method="post" class="d-inline-flex align-items-center">
+                      <!-- Form chấp nhận giáo viên -->
+                      <form action="/admin/approveTeacher" method="post" class="d-inline-flex align-items-center">
                         <input type="hidden" name="username" th:value="${user.username}">
-                        <select name="newRole" class="form-select w-auto">
-                          <option value="STUDENT" th:selected="${user.role == 'STUDENT'}">STUDENT</option>
-                          <option value="TEACHER" th:selected="${user.role == 'TEACHER'}">TEACHER</option>
-                          <option value="ADMIN" th:selected="${user.role == 'ADMIN'}">ADMIN</option>
-                          <option value="UPGRADED_USER" th:selected="${user.role == 'UPGRADED_USER'}">UPGRADED_STUDENT</option>
-                          <option value="PENDING_TEACHER" th:selected="${user.role == 'PENDING_TEACHER'}">PENDING_TEACHER</option>
-                        </select>
-                        <button type="submit" class="btn btn-success btn-sm ms-2">💾 Lưu</button>
+                        <button type="submit" class="btn btn-success btn-sm ms-2">✅ Chấp nhận</button>
                       </form>
-                      <!-- Form cập nhật trạng thái -->
-                      <form action="/admin/updateUserStatus" method="post" class="d-inline-flex align-items-center ms-2">
+                      <!-- Form từ chối giáo viên -->
+                      <form action="/admin/rejectTeacher" method="post" class="d-inline-flex align-items-center ms-2">
                         <input type="hidden" name="username" th:value="${user.username}">
-                        <button type="submit"
-                                th:class="'btn btn-sm ' + (${user.active} ? 'btn-danger' : 'btn-success')"
-                                th:text="${user.active} ? '🚫 Vô hiệu hóa' : '✅ Kích hoạt lại'">
-                        </button>
-
+                        <button type="submit" class="btn btn-danger btn-sm ms-2">❌ Từ chối</button>
                       </form>
                     </div>
                   </td>

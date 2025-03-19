@@ -20,28 +20,31 @@ public class ProfileController {
     private CloudinaryService cloudinaryService;
 
     @RequestMapping("/profile")
-    public String profilePage(HttpServletRequest request, Model model ) {
-        HttpSession session = request.getSession();
+    public String profilePage(HttpSession session, Model model ) {
         String username = (String) session.getAttribute("loggedInUser");
 
-        if(username == null){
+        if (username == null) {
             return "login";
         }
         User user = UserService.getUserData(username);
         model.addAttribute("user", user);
 
-        if("TEACHER".equalsIgnoreCase(user.getRole().toString())){
-            return "profileTeacher"; // file profileTeacher.html
-        } else {
-            return "profileStudent"; // file profileStudent.html
+        // Kiểm tra xem người dùng có phải là giáo viên chờ xét duyệt (Pending Teacher) hay không
+        if ("PENDING_TEACHER".equalsIgnoreCase(user.getRole().toString())) {
+            model.addAttribute("pendingTeacherMessage", "Bạn đang chờ xét duyệt làm giảng viên. Vui lòng cập nhật thông tin đầy đủ để admin duyệt.");
         }
-    }
+        if ("TEACHER".equalsIgnoreCase(user.getRole().toString()) || "PENDING_TEACHER".equalsIgnoreCase(user.getRole().toString())) {
+                return "profileTeacher"; // file profileTeacher.html
+            } else {
+                return "profileStudent"; // file profileStudent.html
+            }
+        }
 
     /*
     Cập nhật hồ sơ học sinh
      */
     @PostMapping("/profile/student/update")
-    public String updateProfileStudent(HttpServletRequest request,
+    public String updateProfileStudent(HttpSession session,
                                        @RequestParam String firstName,
                                        @RequestParam String lastName,
                                        @RequestParam String phone,
@@ -52,7 +55,6 @@ public class ProfileController {
                                        @RequestParam(required = false) String description,
                                        RedirectAttributes redirectAttributes,
                                        Model model ){
-        HttpSession session = request.getSession();
         String username = (String) session.getAttribute("loggedInUser");
         if(username == null){
             return "login";
@@ -91,7 +93,7 @@ public class ProfileController {
     Cập nhật hồ sơ giáo viên
      */
     @PostMapping("/profile/teacher/update")
-    public String updateProfileTeacher(HttpServletRequest request,
+    public String updateProfileTeacher(HttpSession session,
                                        @RequestParam String firstName,
                                        @RequestParam String lastName,
                                        @RequestParam String phone,
@@ -105,11 +107,18 @@ public class ProfileController {
                                        @RequestParam(required = false) String description,
                                        RedirectAttributes redirectAttributes,
                                        Model model) {
-        HttpSession session = request.getSession();
+
         String username = (String) session.getAttribute("loggedInUser");
         if(username == null){
             return "login";
         }
+        // Lấy thông tin người dùng hiện tại
+        User user = UserService.getUserData(username);
+        if (user == null) {
+            // Nếu không tìm thấy người dùng, redirect về trang đăng nhập
+            return "redirect:/login";
+        }
+
         UserService.updateUserField(username, "firstName", firstName);
         UserService.updateUserField(username, "lastName", lastName);
         UserService.updateUserField(username, "phone", phone);
@@ -140,15 +149,24 @@ public class ProfileController {
             String degreeUrl = cloudinaryService.upLoadImg(degreeFile, "degreeFiles");
             UserService.updateUserField(username, "degreeFile", degreeUrl);
         }
-        // Lấy lại thông tin người dùng đã cập nhật
-        User updatedUser = UserService.getUserData(username);
-        session.setAttribute("user", updatedUser);
-        model.addAttribute("user", updatedUser);
-        // Thêm flash attribute để thông báo thành công
-        redirectAttributes.addFlashAttribute("success", "Cập nhật thành công!");
+//        // Lấy lại thông tin người dùng đã cập nhật
+//        User updatedUser = UserService.getUserData(username);
+//        session.setAttribute("user", updatedUser);
+//        model.addAttribute("user", updatedUser);
+//        // Thêm flash attribute để thông báo thành công
+//        redirectAttributes.addFlashAttribute("success", "Cập nhật thành công!");
+        // Kiểm tra vai trò hiện tại của người dùng
+        if ("TEACHER".equalsIgnoreCase(user.getRole().toString())) {
+            // Nếu người dùng đã là giáo viên (TEACHER), chỉ thông báo cập nhật thành công
+            redirectAttributes.addFlashAttribute("success", "Cập nhật thành công.");
+        } else if ("PENDING_TEACHER".equalsIgnoreCase(user.getRole().toString())) {
+            // Nếu người dùng là PENDING_TEACHER, thay đổi trạng thái và gửi yêu cầu cho admin xét duyệt
+            UserService.updateUserField(username, "teacherStatus", "WAITING_FOR_APPROVAL");
+            redirectAttributes.addFlashAttribute("success", "Thông tin của bạn đã được gửi đến admin để xét duyệt.");
+        }
         return "redirect:/profile";
     }
-    
+
 
 
 
