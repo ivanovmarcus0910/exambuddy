@@ -114,15 +114,19 @@
                     <td th:text="${exam.examName}"></td>
                     <td th:text="${exam.subject}"></td>
                     <td th:text="${exam.grade}"></td>
-                    <td th:text="${exam.date}"></td>
+                    <td th:text="${exam.getFormattedDate()}"></td>
                     <td>
                         <div class="d-flex gap-2">
                             <form th:action="@{/exams/{id}/detail(id=${exam.examID})}" method="get">
                                 <button type="submit" class="btn btn-primary">Xem chi tiết</button>
                             </form>
-                            <form th:action="@{/exams/{id}/statistics(id=${exam.examID})}" method="get">
-                                <button type="submit" class="btn btn-success">Thống kê</button>
+                            <form th:action="@{/exams/edit/{id}(id=${exam.examID})}" method="get">
+                                <button type="submit" class="btn  btn-warning ">Chỉnh sửa</button>
                             </form>
+                            <form th:action="@{/exams/{id}/statistics(id=${exam.examID})}" method="get">
+                                <button type="submit" class="btn btn-danger">Thống kê</button>
+                            </form>
+
                         </div>
                     </td>
                 </tr>
@@ -132,10 +136,8 @@
                 </tbody>
             </table>
         </div>
-
     </div>
 </div>
-
 <!-- Bootstrap Bundle JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>

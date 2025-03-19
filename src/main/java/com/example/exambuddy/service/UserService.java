@@ -24,6 +24,7 @@ public class UserService {
     private static final String COLLECTION_NAME = "users";
     @Autowired
     private EmailService emailService;
+    private static final String EXAM_COLLECTION_NAME = "exams";
     public static User getUserData(String username) {
         Firestore firestore = FirestoreClient.getFirestore();
 
@@ -116,7 +117,7 @@ public class UserService {
         } catch (Exception e) {
             System.out.println("Lỗi khi lấy avatar của: " + username);
         }
-        return "http://res.cloudinary.com/dsuav027e/image/upload/v1739939318/dkm6iw7ujnsja8z9d3ek.png"; // Trả về avatar mặc định nếu không tìm thấy
+        return "https://res.cloudinary.com/dsuav027e/image/upload/v1740403342/imgAvatar/sp9pms05th5guermrcve.png"; // Trả về avatar mặc định nếu không tìm thấy
     }
 
     public static void updateUserField(String username, String field, Object value) {
@@ -306,6 +307,26 @@ public class UserService {
             return false;
         }
     }
+    public boolean isExamCreator(String examId, String username) {
+        Firestore firestore = FirestoreClient.getFirestore();
+        try {
+            DocumentSnapshot examSnapshot = firestore.collection(EXAM_COLLECTION_NAME)
+                    .document(examId)
+                    .get()
+                    .get();
+            if (!examSnapshot.exists()) {
+                System.out.println("Exam not found: " + examId);
+                return false;
+            }
+            String creator = examSnapshot.getString("username");
+            return username != null && username.equals(creator);
+        } catch (InterruptedException | ExecutionException e) {
+            System.out.println("Error checking exam creator for examId: " + examId);
+            e.printStackTrace();
+            return false;
+        }
+    }
+
 //    public boolean updatePremiumExp(long time, String username) {
 //        Firestore firestore = FirestoreClient.getFirestore();
 //        DocumentReference userRef = firestore.collection("users").document(username);

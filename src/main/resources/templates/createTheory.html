@@ -125,6 +125,27 @@
       display: block;
       margin: 10px 0;
     }
+    .list-group-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 15px;
+      position: relative;
+    }
+    .subject-name, .chapter-name {
+      cursor: pointer;
+      flex-grow: 1;
+      margin-right: 10px;
+    }
+    .edit-subject-btn, .edit-chapter-btn {
+      margin-right: 5px;
+    }
+    input.form-control-sm {
+      display: inline-block;
+      width:600px !important; /* Đảm bảo chiều rộng phù hợp */
+      vertical-align: middle;
+    }
+
   </style>
 </head>
 <body>
@@ -199,7 +220,7 @@
       <div class="mb-3">
         <label for="lesson-file" class="form-label">Tải lên file Word/PDF</label>
         <input type="file" id="lesson-file" class="form-control" accept=".doc,.docx,.pdf" onchange="handleFileUpload(event)">
-        <button type="button" id="import-file-btn" class="btn btn-secondary mt-2" onclick="importFileContent()" disabled>Import nội dung</button>
+        <button type="button" id="import-file-btn" class="btn btn-secondary mt-2" onclick="importFileContent('add')" disabled>Import nội dung</button>
       </div>
       <textarea id="lesson-content" class="form-control" style="min-height: 150px;"></textarea>
       <button type="submit" class="btn btn-primary mt-2">Lưu</button>
@@ -211,10 +232,11 @@
   document.addEventListener('DOMContentLoaded', function () {
     try {
       CKEDITOR.replace('lesson-content', {
+        filebrowserImageUploadUrl: '/api/theory/upload-image', // Endpoint tải ảnh
         allowedContent: true,
         entities: false,
         htmlEncodeOutput: false,
-        versionCheck: false // Tắt thông báo cập nhật phiên bản
+        versionCheck: false
       });
     } catch (error) {
       console.error('Error initializing CKEditor:', error);
@@ -297,16 +319,13 @@
         subjects.forEach(subject => {
           const li = document.createElement('li');
           li.classList.add('list-group-item');
-          const span = document.createElement('span');
-          span.textContent = subject.name;
-          span.style.cursor = 'pointer';
-          span.addEventListener('click', () => toggleChapters(classId, subject.id, subject.name));
-          const button = document.createElement('button');
-          button.classList.add('btn', 'btn-danger', 'btn-sm');
-          button.textContent = 'Xóa';
-          button.addEventListener('click', () => deleteSubject(classId, subject.id));
-          li.appendChild(span);
-          li.appendChild(button);
+          li.innerHTML = `
+        <span class="subject-name" data-id="${subject.id}" onclick="toggleChapters('${classId}', '${subject.id}', '${subject.name}')">${subject.name}</span>
+        <div>
+          <button class="btn btn-primary btn-sm me-2 edit-subject-btn" data-id="${subject.id}" onclick="editSubjectName('${classId}', '${subject.id}', this)">Cập nhật</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteSubject('${classId}', '${subject.id}')">Xóa</button>
+        </div>
+      `;
           elements.subjectList.appendChild(li);
         });
         updateBreadcrumb();
@@ -373,9 +392,12 @@
           const li = document.createElement('li');
           li.classList.add('list-group-item');
           li.innerHTML = `
-            <span onclick="toggleLessons('${classId}', '${subjectId}', '${chapter.id}', '${chapter.name}')">${chapter.name}</span>
-            <button class="btn btn-danger btn-sm" onclick="deleteChapter('${classId}', '${subjectId}', '${chapter.id}')">Xóa</button>
-          `;
+        <span class="chapter-name" data-id="${chapter.id}" onclick="toggleLessons('${classId}', '${subjectId}', '${chapter.id}', '${chapter.name}')">${chapter.name}</span>
+        <div>
+          <button class="btn btn-primary btn-sm me-2 edit-chapter-btn" data-id="${chapter.id}" onclick="editChapterName('${classId}', '${subjectId}', '${chapter.id}', this)">Cập nhật</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteChapter('${classId}', '${subjectId}', '${chapter.id}')">Xóa</button>
+        </div>
+      `;
           elements.chapterList.appendChild(li);
         });
         updateBreadcrumb();
@@ -384,6 +406,127 @@
         elements.chapterList.innerHTML = '<li class="list-group-item">Có lỗi khi tải danh sách chương</li>';
       }
     }
+
+
+    // thêm upadate chap,sub
+    window.editSubjectName = function(classId, subjectId, button) {
+      const li = button.closest('li');
+      const span = li.querySelector('.subject-name');
+      const currentName = span.textContent;
+
+      // Chuyển span thành input
+      span.style.display = 'none';
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'form-control form-control-sm';
+      input.value = currentName;
+      input.style.width = '150px'; // Đặt chiều rộng phù hợp
+      span.parentNode.insertBefore(input, span.nextSibling);
+
+      // Thêm nút Lưu và Hủy
+      const buttonContainer = li.querySelector('div');
+      buttonContainer.innerHTML = `
+    <button class="btn btn-primary btn-sm me-2" onclick="saveSubjectName('${classId}', '${subjectId}', this)">Lưu</button>
+    <button class="btn btn-secondary btn-sm" onclick="cancelEdit(this, '${currentName}')">Hủy</button>
+    <button class="btn btn-danger btn-sm" onclick="deleteSubject('${classId}', '${subjectId}')">Xóa</button>
+  `;
+    };
+
+    window.editChapterName = function(classId, subjectId, chapterId, button) {
+      const li = button.closest('li');
+      const span = li.querySelector('.chapter-name');
+      const currentName = span.textContent;
+
+      // Chuyển span thành input
+      span.style.display = 'none';
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'form-control form-control-sm';
+      input.value = currentName;
+      input.style.width = '150px'; // Đặt chiều rộng phù hợp
+      span.parentNode.insertBefore(input, span.nextSibling);
+
+      // Thêm nút Lưu và Hủy
+      const buttonContainer = li.querySelector('div');
+      buttonContainer.innerHTML = `
+    <button class="btn btn-primary btn-sm me-2" onclick="saveChapterName('${classId}', '${subjectId}', '${chapterId}', this)">Lưu</button>
+    <button class="btn btn-secondary btn-sm" onclick="cancelEdit(this, '${currentName}')">Hủy</button>
+    <button class="btn btn-danger btn-sm" onclick="deleteChapter('${classId}', '${subjectId}', '${chapterId}')">Xóa</button>
+  `;
+    };
+
+    window.saveSubjectName = async function(classId, subjectId, button) {
+      const li = button.closest('li');
+      const input = li.querySelector('input');
+      const newName = input.value.trim();
+
+      if (!newName) {
+        alert('Tên môn học không được để trống!');
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/theory/subjects/${classId}/${subjectId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: subjectId, name: newName })
+        });
+        if (!response.ok) throw new Error(`Không thể cập nhật môn học: ${response.status}`);
+        alert('Môn học đã được cập nhật thành công!');
+        loadSubjects(classId);
+      } catch (error) {
+        console.error('Error updating subject:', error);
+        alert('Có lỗi xảy ra khi cập nhật môn học. Vui lòng thử lại.');
+      }
+    };
+
+    window.saveChapterName = async function(classId, subjectId, chapterId, button) {
+      const li = button.closest('li');
+      const input = li.querySelector('input');
+      const newName = input.value.trim();
+
+      if (!newName) {
+        alert('Tên chương không được để trống!');
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/theory/chapters/${classId}/${subjectId}/${chapterId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: chapterId, name: newName })
+        });
+        if (!response.ok) throw new Error(`Không thể cập nhật chương: ${response.status}`);
+        alert('Chương đã được cập nhật thành công!');
+        loadChapters(classId, subjectId);
+      } catch (error) {
+        console.error('Error updating chapter:', error);
+        alert('Có lỗi xảy ra khi cập nhật chương. Vui lòng thử lại.');
+      }
+    };
+
+    window.cancelEdit = function(button, originalName) {
+      const li = button.closest('li');
+      const input = li.querySelector('input');
+      const span = li.querySelector('.subject-name') || li.querySelector('.chapter-name');
+      input.remove();
+      span.style.display = 'inline';
+      span.textContent = originalName;
+
+      // Khôi phục nút ban đầu
+      const buttonContainer = li.querySelector('div');
+      const isSubject = span.classList.contains('subject-name');
+      buttonContainer.innerHTML = `
+    <button class="btn btn-primary btn-sm me-2 ${isSubject ? 'edit-subject-btn' : 'edit-chapter-btn'}"
+            data-id="${span.dataset.id}"
+            onclick="${isSubject ? `editSubjectName('${state.classId}', '${span.dataset.id}', this)` : `editChapterName('${state.classId}', '${state.subjectId}', '${span.dataset.id}', this)`}">
+      Cập nhật
+    </button>
+    <button class="btn btn-danger btn-sm" onclick="${isSubject ? `deleteSubject('${state.classId}', '${span.dataset.id}')` : `deleteChapter('${state.classId}', '${state.subjectId}', '${span.dataset.id}')`}">
+      Xóa
+    </button>
+  `;
+    };
 
     elements.addChapterBtn.addEventListener('click', () => elements.chapterForm.classList.remove('hidden'));
 
@@ -535,9 +678,14 @@
       const updateForm = document.createElement('form');
       updateForm.classList.add('update-lesson-form', 'mt-3');
       updateForm.innerHTML = `
-        <textarea id="update-lesson-content" class="form-control" style="min-height: 150px;"></textarea>
-        <button type="submit" class="btn btn-primary mt-2">Cập nhật nội dung</button>
-      `;
+    <div class="mb-3">
+      <label for="update-lesson-file" class="form-label">Tải lên file Word/PDF để cập nhật</label>
+      <input type="file" id="update-lesson-file" class="form-control" accept=".doc,.docx,.pdf" onchange="handleFileUpload(event)">
+      <button type="button" id="update-import-file-btn" class="btn btn-secondary mt-2" onclick="importFileContent('update')" disabled>Import nội dung</button>
+    </div>
+    <textarea id="update-lesson-content" class="form-control" style="min-height: 150px;"></textarea>
+    <button type="submit" class="btn btn-primary mt-2">Cập nhật nội dung</button>
+  `;
       lessonItem.insertAdjacentElement('afterend', updateForm);
 
       try {
@@ -545,7 +693,7 @@
           allowedContent: true,
           entities: false,
           htmlEncodeOutput: false,
-          versionCheck: false // Tắt thông báo cập nhật cho update-lesson-content
+          versionCheck: false
         });
         if (CKEDITOR.instances['update-lesson-content']) {
           CKEDITOR.instances['update-lesson-content'].setData(content);
@@ -609,20 +757,46 @@
     });
 
     window.handleFileUpload = function(event) {
-      const file = event.target.files[0];
+      const fileInput = event.target;
+      const file = fileInput.files[0];
+      const maxSizeInMB = 1; // Giới hạn kích thước tối đa (MB)
+      const maxSizeInBytes = maxSizeInMB * 1024 * 1024; // Chuyển sang bytes
+
+      // Xác định nút "Import" dựa trên ID của input file
+      const importButtonId = fileInput.id === 'lesson-file' ? 'import-file-btn' : 'update-import-file-btn';
+      const importButton = document.getElementById(importButtonId);
+
       if (file) {
-        elements.importFileBtn.disabled = false;
+        if (file.size > maxSizeInBytes) {
+          alert(`File vượt quá kích thước tối đa cho phép (${maxSizeInMB}MB). Vui lòng chọn file nhỏ hơn.`);
+          fileInput.value = ''; // Xóa file đã chọn
+          importButton.disabled = true;
+        } else {
+          importButton.disabled = false;
+        }
       } else {
-        elements.importFileBtn.disabled = true;
+        importButton.disabled = true;
       }
     };
 
-    window.importFileContent = async function() {
-      const file = elements.lessonFileInput.files[0];
+    window.importFileContent = async function(context) {
+      // Xác định ID dựa trên context ('add' cho thêm mới, 'update' cho cập nhật)
+      const fileInputId = context === 'add' ? 'lesson-file' : 'update-lesson-file';
+      const importButtonId = context === 'add' ? 'import-file-btn' : 'update-import-file-btn';
+      const ckEditorId = context === 'add' ? 'lesson-content' : 'update-lesson-content';
+
+      const fileInput = document.getElementById(fileInputId);
+      const importButton = document.getElementById(importButtonId);
+      const file = fileInput.files[0];
+
       if (!file) {
         alert('Vui lòng chọn một file Word hoặc PDF!');
         return;
       }
+
+      // Hiển thị trạng thái "Đang import..." trên nút
+      importButton.disabled = true;
+      importButton.innerText = 'Đang import...';
 
       try {
         const formData = new FormData();
@@ -633,15 +807,25 @@
           body: formData
         });
 
-        if (!response.ok) throw new Error('Không thể trích xuất nội dung từ file.');
-        const content = await response.text();
-        if (CKEDITOR.instances['lesson-content']) {
-          CKEDITOR.instances['lesson-content'].setData(content);
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(errorText || 'Không thể trích xuất nội dung từ file.');
         }
-        alert('Nội dung đã được import thành công! Vui lòng nhập tên bài học và nhấn "Lưu".');
+
+        const content = await response.text();
+        if (CKEDITOR.instances[ckEditorId]) {
+          CKEDITOR.instances[ckEditorId].setData(content);
+        }
+
+        alert('Nội dung đã được import thành công! ' +
+                (context === 'add' ? 'Vui lòng nhập tên bài học và nhấn "Lưu".' : 'Nhấn "Cập nhật nội dung" để lưu.'));
       } catch (error) {
         console.error('Error importing file:', error);
         alert('Có lỗi xảy ra khi import file: ' + error.message);
+      } finally {
+        // Khôi phục trạng thái nút
+        importButton.disabled = false;
+        importButton.innerText = 'Import nội dung';
       }
     };
   });

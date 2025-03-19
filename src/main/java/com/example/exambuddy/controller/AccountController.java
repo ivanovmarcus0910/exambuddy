@@ -115,10 +115,9 @@ public class AccountController {
 
 
     @GetMapping("/paymentHistory")
-    public String listPayments(@RequestParam(defaultValue = "0") int page, HttpServletRequest request, Model model) {
+    public String listPayments(@RequestParam(defaultValue = "0") int page, HttpServletRequest request, Model model, HttpSession session) {
         try {
-            String username = cookieService.getCookie(request, "noname");
-            System.out.println("username=" + username);
+            String username = session.getAttribute("loggedInUser").toString();
             User user = userService.getUserByUsername(username);
             model.addAttribute("user", user);
             int pageSize = 10; // Số bản ghi trên mỗi trang
@@ -144,7 +143,7 @@ public class AccountController {
         return null;
     }
 
-    @GetMapping("/upgrade")
+    @RequestMapping("/upgrade")
     public String upgrage(HttpSession session, Model model) {
         String username = (String) session.getAttribute("loggedInUser");
         System.out.println("username=" + username);
@@ -152,7 +151,6 @@ public class AccountController {
             return "redirect:/login";
         }
         User user = userService.getUserByUsername(username);
-
         model.addAttribute("user", user);
         if (user != null &&( (user.getRole() == User.Role.STUDENT) || (user.getRole() == User.Role.UPGRADED_STUDENT))) {
             model.addAttribute("level", chargeLevel);
@@ -189,26 +187,27 @@ public class AccountController {
             {
                 if (userService.updateUserPremium(username, timer))
                 {
+                    model.addAttribute("user", user);
                     return "redirect:/profile";
                 }
                 else
                 {
 
-                    model.addAttribute("err", "Lỗi giao dịch, vui lòng thử lại!");
-                    return "upgrade";
+                    redirectAttributes.addFlashAttribute("err", "Lỗi giao dịch, vui lòng thử lại!");
+                    return "redirect:/upgrade";
                 }
 
             }
             else
             {
-                model.addAttribute("err", "Lỗi giao dịch, vui lòng thử lại!");
-                return "upgrade";
+                redirectAttributes.addFlashAttribute("err", "Lỗi giao dịch, vui lòng thử lại!");
+                return "redirect:/upgrade";
 
             }
         }
         else{
-            model.addAttribute("err", "Không đủ coin vui lòng nạp và thử lại!");
-            return "upgrade";
+            redirectAttributes.addFlashAttribute("err", "Không đủ coin vui lòng nạp và thử lại!");
+            return "redirect:/upgrade";
         }
 
     }

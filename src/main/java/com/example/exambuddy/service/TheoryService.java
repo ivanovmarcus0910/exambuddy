@@ -237,37 +237,15 @@ public class TheoryService {
         StringBuilder content = new StringBuilder();
 
         try (PDDocument document = PDDocument.load(file)) {
-            // Sử dụng PDFTextStripper để trích xuất văn bản với định dạng tốt hơn
-            PDFTextStripper stripper = new PDFTextStripper();
-            stripper.setSortByPosition(true); // Sắp xếp văn bản theo vị trí
-            stripper.setShouldSeparateByBeads(true); // Giữ cấu trúc đoạn văn
-
-            // Duyệt từng trang
-            for (int page = 1; page <= document.getNumberOfPages(); page++) {
-                stripper.setStartPage(page);
-                stripper.setEndPage(page);
-                String text = stripper.getText(document);
-
-                // Giữ xuống dòng, tab, và khoảng trắng
-                text = text.trim()
-                        .replaceAll("\r\n|\r", "<br>")
-                        .replaceAll("\t", "&nbsp;&nbsp;&nbsp;") // Giữ tab
-                        .replaceAll("  ", "&nbsp;&nbsp;"); // Giữ khoảng trắng
-
-                if (!text.isEmpty()) {
-                    content.append("<p>").append(text).append("</p>");
-                }
-            }
-
-            // Trích xuất ảnh từ mỗi trang, giữ vị trí tương đối
             PDFRenderer pdfRenderer = new PDFRenderer(document);
+
             for (int page = 0; page < document.getNumberOfPages(); ++page) {
                 BufferedImage image = pdfRenderer.renderImageWithDPI(page, 300); // 300 DPI
                 String imageUrl = uploadImageToCloudinary(bufferedImageToByteArray(image), "theory_images");
                 if (imageUrl != null) {
                     content.append("\n<img src=\"").append(imageUrl)
                             .append("\" alt=\"Image from PDF page ").append(page + 1)
-                            .append("\" style=\"display: block; margin: 10px 0; max-width: 100%;\">\n");
+                            .append("\" style=\"display: block; margin: 2px 0; max-width: 100%;\">\n");
                 }
             }
         }
@@ -297,6 +275,34 @@ public class TheoryService {
     }
 
 
+
+
+    public void updateSubject(String classId, String subjectId, Subject updatedSubject) throws ExecutionException, InterruptedException {
+        System.out.println("Updating subjectId: " + subjectId + " with name: " + updatedSubject.getName());
+        DocumentReference subjectRef = getFirestore().collection("classes").document(classId)
+                .collection("subjects").document(subjectId);
+
+        DocumentSnapshot subjectSnapshot = subjectRef.get().get();
+        if (!subjectSnapshot.exists()) {
+            throw new RuntimeException("Môn học không tồn tại!");
+        }
+
+        subjectRef.update("name", updatedSubject.getName()).get();
+    }
+
+    public void updateChapter(String classId, String subjectId, String chapterId, Chapter updatedChapter) throws ExecutionException, InterruptedException {
+        System.out.println("Updating chapterId: " + chapterId + " with name: " + updatedChapter.getName());
+        DocumentReference chapterRef = getFirestore().collection("classes").document(classId)
+                .collection("subjects").document(subjectId)
+                .collection("chapters").document(chapterId);
+
+        DocumentSnapshot chapterSnapshot = chapterRef.get().get();
+        if (!chapterSnapshot.exists()) {
+            throw new RuntimeException("Chương không tồn tại!");
+        }
+
+        chapterRef.update("name", updatedChapter.getName()).get();
+    }
 }
 
 

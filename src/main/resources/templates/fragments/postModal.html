@@ -32,6 +32,79 @@
             </div>
         </div>
     </div>
+    <!-- Modal Báo cáo -->
+    <div class="modal fade" id="reportModal" tabindex="-1" aria-labelledby="reportModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="reportModalLabel">Báo Cáo Bài Viết</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Chọn lý do báo cáo:</p>
+                    <form id="reportForm">
+                        <input type="hidden" id="reportPostId">
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="reportReason" value="Nội dung không phù hợp">
+                            <label class="form-check-label">Nội dung không phù hợp</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="reportReason" value="Spam">
+                            <label class="form-check-label">Spam</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="reportReason" value="Thông tin sai lệch">
+                            <label class="form-check-label">Thông tin sai lệch</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="reportReason" value="Lý do khác">
+                            <label class="form-check-label">Lý do khác</label>
+                        </div>
+
+                        <div class="mt-3">
+                            <label for="reportDescription" class="form-label">Mô tả thêm (không bắt buộc)</label>
+                            <textarea class="form-control" id="reportDescription" rows="3"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-danger" id="submitReportBtn">Gửi Báo Cáo</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="editCommentModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Chỉnh sửa bình luận</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="editCommentId">
+                    <textarea id="editCommentContent" class="form-control" rows="3"></textarea>
+
+                    <div class="mt-3">
+                        <label class="form-label">Ảnh hiện tại:</label>
+                        <div id="editCommentImagePreview" class="d-flex"></div>
+                    </div>
+
+                    <div class="mt-3">
+                        <label class="form-label">Chọn ảnh mới:</label>
+                        <input type="file" id="editCommentImage" class="form-control" accept="image/*">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-primary" onclick="submitEditComment()">Lưu thay đổi</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-fullscreen">
             <div class="modal-content">

@@ -3,16 +3,20 @@ package com.example.exambuddy.controller;
 import com.example.exambuddy.model.Chapter;
 import com.example.exambuddy.model.Lesson;
 import com.example.exambuddy.model.Subject;
+import com.example.exambuddy.service.CloudinaryService;
 import com.example.exambuddy.service.TheoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 @RestController
@@ -20,6 +24,8 @@ import java.util.concurrent.ExecutionException;
 public class TheoryController {
     @Autowired
     private TheoryService theoryService;
+    @Autowired
+    private CloudinaryService cloudinaryService;
 
     // Lấy danh sách môn học
     @GetMapping("/subjects/{classId}")
@@ -98,6 +104,80 @@ public class TheoryController {
         File file = File.createTempFile("temp", multipartFile.getOriginalFilename());
         multipartFile.transferTo(file);
         return theoryService.extractContentFromFile(file);
+    }
+
+    @PutMapping("/subjects/{classId}/{subjectId}")
+    public ResponseEntity<String> updateSubject(
+            @PathVariable String classId,
+            @PathVariable String subjectId,
+            @RequestBody Subject updatedSubject) {
+        try {
+            theoryService.updateSubject(classId, subjectId, updatedSubject);
+            return ResponseEntity.ok("Môn học đã được cập nhật thành công!");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Lỗi khi cập nhật môn học: " + e.getMessage());
+        }
+    }
+
+    @PutMapping("/chapters/{classId}/{subjectId}/{chapterId}")
+    public ResponseEntity<String> updateChapter(
+            @PathVariable String classId,
+            @PathVariable String subjectId,
+            @PathVariable String chapterId,
+            @RequestBody Chapter updatedChapter) {
+        try {
+            theoryService.updateChapter(classId, subjectId, chapterId, updatedChapter);
+            return ResponseEntity.ok("Chương đã được cập nhật thành công!");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Lỗi khi cập nhật chương: " + e.getMessage());
+        }
+    }
+
+
+    @PostMapping(value = "/upload-image", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Map<String, Object>> uploadImage(
+            @RequestParam("upload") MultipartFile file) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            // Kiểm tra kích thước file (giới hạn 5MB)
+            if (file.getSize() > 5 * 1024 * 1024) {
+                response.put("uploaded", 0);
+                response.put("error", Map.of("message", "Ảnh quá lớn, kích thước tối đa là 5MB"));
+                return ResponseEntity.status(400).body(response);
+            }
+
+            // Kiểm tra định dạng file (chỉ cho phép ảnh)
+            if (!file.getContentType().startsWith("image/")) {
+                response.put("uploaded", 0);
+                response.put("error", Map.of("message", "File không phải là ảnh, chỉ hỗ trợ định dạng ảnh (jpg, png, gif, v.v.)"));
+                return ResponseEntity.status(400).body(response);
+            }
+
+            // Tải ảnh lên Cloudinary bằng CloudinaryService
+            String imageUrl = cloudinaryService.upLoadImg(file, "theory_images");
+            if (imageUrl != null) {
+                response.put("uploaded", 1);
+                response.put("fileName", file.getOriginalFilename());
+                response.put("url", imageUrl);
+                return ResponseEntity.ok(response);
+            } else {
+                response.put("uploaded", 0);
+                response.put("error", Map.of("message", "Không thể tải ảnh lên Cloudinary"));
+                return ResponseEntity.status(500).body(response);
+            }
+        } catch (Exception e) {
+            System.out.println("Error in uploadImage: " + e.getMessage());
+            e.printStackTrace();
+            response.put("uploaded", 0);
+            response.put("error", Map.of("message", "Lỗi khi tải ảnh: " + e.getMessage()));
+            return ResponseEntity.status(500).body(response);
+        }
     }
 
 }

@@ -43,11 +43,11 @@ public class CheckoutController {
     }
 
     @RequestMapping(value = "/payment-coin")
-    public String Index(HttpServletRequest request, HttpSession session, Model model) {
+    public String CreatePayment(HttpServletRequest request, HttpSession session, Model model) {
         if (session.getAttribute("loggedInUser") == null) {
             return "redirect:/home"; // Nếu chưa đăng nhập, chuyển hướng về home
         }
-        String username = cookieService.getCookie(request, "noname");
+        String username = session.getAttribute("loggedInUser").toString();
         User user =userService.getUserByUsername(username);
         model.addAttribute("user", user);
 
@@ -66,9 +66,9 @@ public class CheckoutController {
         return "cancel"; // Quay lại danh sách thanh toán
     }
     @RequestMapping(method = RequestMethod.POST, value = "/create-payment-link", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-    public void checkout(HttpServletRequest request, HttpServletResponse httpServletResponse, @RequestParam("amount") int amount) {
+    public void checkout(HttpServletRequest request, HttpServletResponse httpServletResponse, @RequestParam("amount") int amount, HttpSession session) {
         try {
-            String username = URLDecoder.decode(cookieService.getCookie(request, "noname"));
+            String username = session.getAttribute("loggedInUser").toString();
             final String baseUrl = getBaseUrl(request);
             final String productName = "Coin";
             final String description = "Deposit Coin";

@@ -29,6 +29,13 @@
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
       min-height: 400px;
     }
+    .lesson-content-container {
+      background: white;
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      min-height: 400px;
+    }
     .accordion-button {
       background-color: #e9ecef;
       color: #1a73e8;
@@ -58,14 +65,30 @@
       background: #e9ecef;
       transform: translateX(5px);
     }
-    .btn-primary {
+    .list-group-item a {
+      cursor: pointer;
+    }
+    .btn-primary  {
       background-color: #1a73e8;
       border: none;
       border-radius: 8px;
-      padding: 10px 20px;
+      padding: 5px 10px;
+      font-size: 12px;
+      margin-left: 10px;
     }
-    .btn-primary:hover {
+    .btn-primary:hover, .btn-back:hover {
       background-color: #1557b0;
+    }
+    .btn-back {
+      background-color: #6c757d; /* Màu xám */
+      border: none;
+      border-radius: 8px;
+      padding: 5px 10px;
+      font-size: 12px;
+      color: white;
+    }
+    .btn-back:hover {
+      background-color: #5a6268; /* Màu xám đậm hơn khi hover */
     }
     .breadcrumb-custom {
       background: #e9ecef;
@@ -90,6 +113,9 @@
       color: #1a73e8;
       font-weight: bold;
       text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+    }
+    .hidden {
+      display: none;
     }
   </style>
 </head>
@@ -124,6 +150,13 @@
         </div>
         <div id="subjects" class="accordion"></div>
       </div>
+      <div id="lesson-content" class="lesson-content-container hidden">
+        <div id="lesson-breadcrumb" class="breadcrumb-custom">
+          <button class="btn btn-back" id="back-btn"><<</button> &nbsp;
+          <span id="lesson-breadcrumb-text"></span>
+        </div>
+        <div id="lesson-details"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -132,22 +165,30 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
+    // Định nghĩa các phần tử HTML
     const elements = {
       bookTypeSelect: document.getElementById('book-type'),
       classGradeSelect: document.getElementById('class-grade'),
       selectClassBtn: document.getElementById('select-class-btn'),
       subjectsContainer: document.getElementById('subjects'),
       breadcrumb: document.getElementById('breadcrumb'),
-      breadcrumbText: document.getElementById('breadcrumb-text')
+      breadcrumbText: document.getElementById('breadcrumb-text'),
+      detailsContainer: document.getElementById('details-container'),
+      lessonContent: document.getElementById('lesson-content'),
+      lessonBreadcrumb: document.getElementById('lesson-breadcrumb'),
+      lessonBreadcrumbText: document.getElementById('lesson-breadcrumb-text'),
+      lessonDetails: document.getElementById('lesson-details'),
+      backBtn: document.getElementById('back-btn')
     };
 
+    // Đối tượng lưu trữ trạng thái
     const state = {
       classId: null,
       subjectName: null,
       chapterName: null
     };
 
-    // Hàm tạo accordion item
+    // Hàm tạo một mục accordion
     function createAccordionItem(id, title, targetId, parentId, contentId) {
       const item = document.createElement('div');
       item.classList.add('accordion-item');
@@ -175,7 +216,7 @@
       elements.breadcrumb.classList.toggle('hidden', !breadcrumbStr);
     }
 
-    // Xử lý sự kiện chọn lớp/sách
+    // Sự kiện khi nhấn nút chọn lớp
     elements.selectClassBtn.addEventListener('click', function() {
       state.classId = `${elements.classGradeSelect.value}_${elements.bookTypeSelect.value}`;
       state.subjectName = null;
@@ -270,15 +311,54 @@
           lessonList.innerHTML = '<li class="list-group-item text-muted">Không có bài học nào.</li>';
         } else {
           lessons.forEach(lesson => {
-            const breadcrumbStr = encodeURIComponent(elements.breadcrumbText.textContent + ` / ${lesson.name || 'Bài học không tên'}`);
             const li = document.createElement('li');
             li.classList.add('list-group-item');
-            li.innerHTML = `<a href="/lesson?classId=${classId}&subjectId=${subjectId}&chapterId=${chapterId}&lessonId=${lesson.id}&breadcrumb=${breadcrumbStr}" class="text-decoration-none text-dark">${lesson.name || 'Bài học không tên'}</a>`;
+            li.innerHTML = `<a class="text-decoration-none text-dark" data-class-id="${classId}" data-subject-id="${subjectId}" data-chapter-id="${chapterId}" data-lesson-id="${lesson.id}">${lesson.name || 'Bài học không tên'}</a>`;
             lessonList.appendChild(li);
+
+            li.querySelector('a').addEventListener('click', function() {
+              const classId = this.getAttribute('data-class-id');
+              const subjectId = this.getAttribute('data-subject-id');
+              const chapterId = this.getAttribute('data-chapter-id');
+              const lessonId = this.getAttribute('data-lesson-id');
+              loadLessonContent(classId, subjectId, chapterId, lessonId);
+            });
           });
         }
       } catch (err) {
         lessonsContainer.innerHTML = '<p class="text-danger">Lỗi tải danh sách bài học.</p>';
+      }
+    }
+
+    // Hàm tải nội dung bài học và hiển thị
+    async function loadLessonContent(classId, subjectId, chapterId, lessonId) {
+      try {
+        const response = await fetch(`/api/theory/lesson/${classId}/${subjectId}/${chapterId}/${lessonId}`);
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+        const lesson = await response.json();
+
+        // Cập nhật breadcrumb cho bài học
+        elements.lessonBreadcrumbText.innerHTML = `
+          ${elements.breadcrumbText.textContent} / ${lesson.name || 'Bài học không tên'}
+        `;
+
+        // Hiển thị nội dung bài học
+        elements.lessonDetails.innerHTML = `
+          <h2 style="text-align: center; border-bottom: 2px solid #1a73e8" >${lesson.name || 'Bài học không tên'}</h2>
+          <div>${lesson.content || 'Không có nội dung'}</div>
+        `;
+
+        // Ẩn bảng chọn môn học và hiển thị nội dung bài học
+        elements.detailsContainer.classList.add('hidden');
+        elements.lessonContent.classList.remove('hidden');
+
+        // Gắn sự kiện cho nút "Quay lại" trong breadcrumb
+        elements.backBtn.addEventListener('click', function() {
+          elements.lessonContent.classList.add('hidden');
+          elements.detailsContainer.classList.remove('hidden');
+        });
+      } catch (err) {
+        elements.lessonDetails.innerHTML = '<p class="text-danger">Lỗi tải nội dung bài học.</p>';
       }
     }
   });

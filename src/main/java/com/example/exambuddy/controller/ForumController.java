@@ -26,8 +26,6 @@ public class ForumController {
     @Autowired
     private CloudinaryService cloudinaryService;
     @Autowired
-    private CookieService cookieService;
-    @Autowired
     private PostService postService;
 
     @PostMapping("/create")
@@ -36,8 +34,7 @@ public class ForumController {
                                                           @RequestParam("subject") String subject,
                                                           @RequestParam(value = "grade", required = false, defaultValue = "Chung") String grade,
                                                           @RequestParam("images") MultipartFile[] files,
-                                                          HttpServletRequest request) {
-        HttpSession session = request.getSession();
+                                                          HttpSession session) {
         String username = (String) session.getAttribute("loggedInUser");
 
         if (username == null) {
@@ -82,8 +79,7 @@ public class ForumController {
     }
 
     @GetMapping
-    public String forumPage(HttpServletRequest request, Model model) {
-        HttpSession session = request.getSession();
+    public String forumPage(HttpSession session, Model model) {
         String username = (String) session.getAttribute("loggedInUser");
 
         String avatarUrl = UserService.getAvatarUrlByUsername(username);
@@ -129,41 +125,72 @@ public class ForumController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/comment")
-    public String createComment(@RequestParam String postId,
-                                @RequestParam(required = false) String parentCommentId,
-                                @RequestParam String content,
-                                @RequestParam("commentImages") MultipartFile[] files,
-                                HttpServletRequest request,
-                                Model model) {
-        HttpSession session = request.getSession();
-        String username = (String) session.getAttribute("loggedInUser");
+//    @PostMapping("/comment")
+//    public String createComment(@RequestParam String postId,
+//                                @RequestParam(required = false) String parentCommentId,
+//                                @RequestParam String content,
+//                                @RequestParam("commentImages") MultipartFile[] files,
+//                                HttpServletRequest request, HttpSession session,
+//                                Model model) {
+//        String username = (String) session.getAttribute("loggedInUser");
+//
+//        if (username == null) {
+//            return "redirect:/login";
+//        }
+//
+//        List<String> imageUrls = new ArrayList<>();
+//
+//        if (files != null) { // Kiểm tra nếu có file mới xử lý
+//            for (MultipartFile file : files) {
+//                if (!file.isEmpty()) {
+//                    String imageUrl = this.cloudinaryService.upLoadImg(file, "imgForum/imgComments");
+//                    imageUrls.add(imageUrl);
+//                    System.out.println("URL = " + imageUrl);
+//                }
+//            }
+//        }
+//        String avatarUrl = UserService.getAvatarUrlByUsername(username);
+//
+//        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+//        String date = formatter.format(new Date());
+//
+//        // Lưu bình luận, có thể là bình luận chính hoặc phản hồi
+//        Comment comment = PostService.saveComment(postId, parentCommentId, username, avatarUrl, content, date, imageUrls);
+//        model.addAttribute("comment", comment);
+//
+//        return "redirect:/postDetail/" + postId;
+//    }
 
+    @PostMapping("/comment")
+    @ResponseBody // Trả về JSON thay vì redirect
+    public ResponseEntity<?> createComment(
+            @RequestParam String postId,
+            @RequestParam(required = false) String parentCommentId,
+            @RequestParam String content,
+            @RequestPart(value = "commentImages", required = false) MultipartFile[] files,
+            HttpSession session) {
+
+        String username = (String) session.getAttribute("loggedInUser");
         if (username == null) {
-            return "redirect:/login";
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Bạn cần đăng nhập để bình luận.");
         }
 
         List<String> imageUrls = new ArrayList<>();
-
-        if (files != null) { // Kiểm tra nếu có file mới xử lý
+        if (files != null) {
             for (MultipartFile file : files) {
                 if (!file.isEmpty()) {
                     String imageUrl = this.cloudinaryService.upLoadImg(file, "imgForum/imgComments");
                     imageUrls.add(imageUrl);
-                    System.out.println("URL = " + imageUrl);
                 }
             }
         }
+
         String avatarUrl = UserService.getAvatarUrlByUsername(username);
+        String date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
 
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        String date = formatter.format(new Date());
-
-        // Lưu bình luận, có thể là bình luận chính hoặc phản hồi
         Comment comment = PostService.saveComment(postId, parentCommentId, username, avatarUrl, content, date, imageUrls);
-        model.addAttribute("comment", comment);
 
-        return "redirect:/postDetail/" + postId;
+        return ResponseEntity.ok(comment);
     }
 
 
@@ -193,8 +220,7 @@ public class ForumController {
     public String updatePost(@RequestParam String postId,
                              @RequestParam String content,
                              @RequestParam("images") MultipartFile[] files,
-                             HttpServletRequest request) {
-        HttpSession session = request.getSession();
+                             HttpSession session) {
         String username = (String) session.getAttribute("loggedInUser");
 
         if (username == null) {
@@ -217,8 +243,7 @@ public class ForumController {
 
     @DeleteMapping("/delete/{postId}")
     @ResponseBody
-    public String deletePost(@PathVariable String postId, HttpServletRequest request) {
-        HttpSession session = request.getSession();
+    public String deletePost(@PathVariable String postId, HttpSession session) {
         String username = (String) session.getAttribute("loggedInUser");
 
         if (username == null) {
@@ -251,5 +276,55 @@ public class ForumController {
         return response;
     }
 
+    @PostMapping("/comment/edit")
+    @ResponseBody
+    public ResponseEntity<?> editComment(
+            @RequestParam String commentId,
+            @RequestParam String postId,  // Nhận luôn từ frontend
+            @RequestParam String content,
+            @RequestParam(required = false, defaultValue = "true") boolean keepOldImages,
+            @RequestPart(value = "newImages", required = false) MultipartFile[] files,
+            HttpSession session) {
+
+        String username = (String) session.getAttribute("loggedInUser");
+        if (username == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Bạn cần đăng nhập để chỉnh sửa bình luận.");
+        }
+
+        List<String> imageUrls = new ArrayList<>();
+        if (!keepOldImages && files != null) { // Nếu không giữ ảnh cũ và có ảnh mới
+            for (MultipartFile file : files) {
+                if (!file.isEmpty()) {
+                    String imageUrl = cloudinaryService.upLoadImg(file, "imgForum/imgComments");
+                    imageUrls.add(imageUrl);
+                }
+            }
+        }
+
+        boolean success = postService.updateComment(postId, commentId, username, content, imageUrls, keepOldImages);
+        if (success) {
+            return ResponseEntity.ok(Map.of("success", true, "commentId", commentId, "content", content, "imageUrls", imageUrls));
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("success", false, "message", "Không thể cập nhật bình luận."));
+        }
+    }
+
+    @PostMapping("/comment/delete")
+    public ResponseEntity<?> deleteComment(@RequestBody Map<String, String> requestData, HttpSession session) {
+        String username = (String) session.getAttribute("loggedInUser");
+        if (username == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("success", false, "message", "Bạn cần đăng nhập để thực hiện thao tác này."));
+        }
+
+        String postId = requestData.get("postId");
+        String commentId = requestData.get("commentId");
+
+        boolean deleted = postService.deleteComment(postId, commentId, username);
+        if (deleted) {
+            return ResponseEntity.ok(Map.of("success", true));
+        } else {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("success", false, "message", "Không thể xóa bình luận!"));
+        }
+    }
 
 }
