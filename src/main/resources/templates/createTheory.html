@@ -232,10 +232,11 @@
   document.addEventListener('DOMContentLoaded', function () {
     try {
       CKEDITOR.replace('lesson-content', {
+        filebrowserImageUploadUrl: '/api/theory/upload-image', // Endpoint tải ảnh
         allowedContent: true,
         entities: false,
         htmlEncodeOutput: false,
-        versionCheck: false // Tắt thông báo cập nhật phiên bản
+        versionCheck: false
       });
     } catch (error) {
       console.error('Error initializing CKEditor:', error);

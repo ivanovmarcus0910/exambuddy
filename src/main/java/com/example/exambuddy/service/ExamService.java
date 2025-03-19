@@ -593,10 +593,10 @@ public class ExamService {
                     if (exam.isActive())
                     {
                     exam.setExamID(doc.getId());
-                    if (exam.getDate() != null) {
-                        String formattedDate = formatDate(exam.getDate());
-                        exam.setDate(formattedDate);
-                    }// Đặt examID trực tiếp từ ID tài liệu
+//                    if (exam.getDate() != null) {
+//                        String formattedDate = formatDate(exam.getDate());
+//                        exam.setDate(formattedDate);
+//                    }// Đặt examID trực tiếp từ ID tài liệu
                     exams.add(exam);
                     }
 

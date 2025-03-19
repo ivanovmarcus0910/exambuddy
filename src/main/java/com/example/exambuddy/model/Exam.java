@@ -1,6 +1,9 @@
 package com.example.exambuddy.model;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 
 public class Exam {
     private String examID;
@@ -142,5 +145,22 @@ public class Exam {
 
     public void setTimeduration(long timeduration) {
         this.timeduration = timeduration;
+    }
+    public String getFormattedDate() {
+        return formatDate(this.date);
+    }
+    public static String formatDate(String dateString) {
+        try {
+            SimpleDateFormat originalFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+            originalFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+
+            Date date = originalFormat.parse(dateString);
+
+            SimpleDateFormat targetFormat = new SimpleDateFormat("dd/MM/yyyy");
+            return targetFormat.format(date);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "Lỗi định dạng ngày!";
+        }
     }
 }
