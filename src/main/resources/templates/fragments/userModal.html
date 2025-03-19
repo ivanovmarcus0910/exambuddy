@@ -1,0 +1,246 @@
+<!-- userModal.html -->
+<div th:fragment="userModalFragment">
+  <div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="userModalTitle" aria-hidden="true">
+    <!-- Form gọn: modal-lg, max-width: 700px -->
+    <div class="modal-dialog modal-lg" style="max-width: 700px;">
+      <div class="modal-content" style="border: none; border-radius: 6px; overflow: hidden;">
+
+        <!-- CSS tùy chỉnh -->
+        <style>
+          /* Header mới: màu xanh #2196f3, chữ trắng */
+          .modal-header.admin-header {
+            background-color: #2196f3;
+            color: #fff;
+            padding: 0.75rem 1rem;
+          }
+          .modal-header .modal-title {
+            font-family: "Segoe UI Semibold", sans-serif;
+            font-size: 1rem;
+            margin: 0;
+            color: #fff; /* Đảm bảo chữ trắng */
+          }
+          /* Nút đóng trắng */
+          .btn-close.btn-close-white:focus,
+          .btn-close.btn-close-white:active {
+            box-shadow: none;
+          }
+
+          /* Body: nền sáng, font gọn */
+          .modal-body.admin-body {
+            background-color: #f9f9f9;
+            font-family: "Segoe UI", Tahoma, sans-serif;
+            font-size: 0.95rem;
+            padding: 1rem 1.25rem;
+          }
+
+          /* Avatar: dạng vuông, nhỏ hơn, không viền */
+          #modal-avatar {
+            width: 120px;
+            height: 120px;
+            object-fit: cover;
+            border: none;
+            border-radius: 0; /* Vuông (nếu muốn bo góc nhẹ: 8px) */
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+          }
+          /* Username: màu đậm, cỡ vừa, hiển thị bình thường */
+          #modal-username {
+            font-size: 1.05rem;
+            margin-top: 0.5rem;
+            color: #333; /* Màu đậm để nổi trên nền sáng */
+          }
+
+          /* Gói avatar + username: không có background màu */
+          .avatar-container {
+            text-align: center;
+            margin-bottom: 1rem;
+          }
+
+          /* Kiểu inline cho label-value */
+          .info-line {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+          }
+          /* Label và value phân biệt màu rõ */
+          .info-line .label {
+            color: #01A1D2;        /* Label xám đậm */
+            font-weight: 600;   /* Tăng đậm */
+            margin-right: 1rem;
+            white-space: nowrap;
+            font-weight: bold;
+          }
+          .info-line .value {
+            color: #111;        /* Value đậm hơn */
+            white-space: normal;
+          }
+
+          /* Đường kẻ ngang mảnh */
+          .thin-hr {
+            border: 0;
+            height: 1px;
+            background: #ddd;
+            margin: 0.75rem 0;
+          }
+
+          /* BADGE cho Trạng thái & Xác thực */
+          .badge {
+            display: inline-block;
+            padding: 0.2rem 0.5rem;
+            font-size: 0.8rem;
+            border-radius: 4px;
+            color: #fff;
+          }
+          .badge-active { background-color: #28a745; }
+          .badge-inactive { background-color: #dc3545; }
+          .badge-verified { background-color: #17a2b8; }
+          .badge-unverified {
+            background-color: #ffc107;
+            color: #333;
+          }
+        </style>
+
+        <!-- Header -->
+        <div class="modal-header admin-header">
+          <h5 class="modal-title fw-bold" id="userModalTitle">Thông tin Người dùng</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+
+        <!-- Body -->
+        <div class="modal-body admin-body">
+          <div class="row">
+            <!-- Cột trái: avatar -->
+            <!-- Cột trái: Avatar & Username, căn giữa -->
+            <div class="col-md-4 d-flex flex-column justify-content-center align-items-center">
+              <img id="modal-avatar"
+                   alt="User Avatar"
+                   class="mb-2"
+                   style="width:120px; height:120px; object-fit:cover; border:none; border-radius:0; box-shadow: 0 1px 3px rgba(0,0,0,0.1);" />
+              <h4 id="modal-username" class="fw-bold mb-0" style="color:#333; font-size:1.05rem; margin-top:0.5rem;">
+                <!-- Tên user -->
+              </h4>
+            </div>
+
+            <!-- Cột phải: thông tin cơ bản -->
+            <div class="col-md-8">
+              <div class="info-line">
+                <span class="label">Email:</span>
+                <span class="value" id="modal-email"></span>
+              </div>
+              <div class="info-line">
+                <span class="label">Số điện thoại:</span>
+                <span class="value" id="modal-phone"></span>
+              </div>
+              <div class="info-line">
+                <span class="label">Trạng thái:</span>
+                <span class="value">
+                  <span id="modal-active" class="badge"></span>
+                </span>
+              </div>
+              <div class="info-line">
+                <span class="label">Vai trò:</span>
+                <span class="value" id="modal-role"></span>
+              </div>
+              <div class="info-line">
+                <span class="label">Coin:</span>
+                <span class="value" id="modal-coin"></span>
+              </div>
+              <div class="info-line">
+                <span class="label">Ngày tham gia:</span>
+                <span class="value" id="modal-join-date"></span>
+              </div>
+              <div class="info-line">
+                <span class="label">Xác thực:</span>
+                <span class="value">
+                  <span id="modal-verified" class="badge"></span>
+                </span>
+              </div>
+            </div>
+          </div> <!-- End row -->
+
+          <hr class="thin-hr">
+
+          <!-- Thông tin chung -->
+          <div class="info-line">
+            <span class="label">Họ:</span>
+            <span class="value" id="modal-firstname"></span>
+          </div>
+          <div class="info-line">
+            <span class="label">Tên:</span>
+            <span class="value" id="modal-lastname"></span>
+          </div>
+          <div class="info-line">
+            <span class="label">Ngày sinh:</span>
+            <span class="value" id="modal-birth"></span>
+          </div>
+          <div class="info-line">
+            <span class="label">Địa chỉ:</span>
+            <span class="value" id="modal-address"></span>
+          </div>
+          <div class="info-line">
+            <span class="label">Trường:</span>
+            <span class="value" id="modal-school"></span>
+          </div>
+          <div class="info-line">
+            <span class="label">Mô tả:</span>
+            <span class="value" id="modal-description"></span>
+          </div>
+
+          <hr class="thin-hr">
+
+          <!-- STUDENT & UPGRADED_USER -->
+          <div id="group-student" style="display:none;">
+            <div class="info-line">
+              <span class="label">Lớp:</span>
+              <span class="value" id="modal-grade"></span>
+            </div>
+            <div class="info-line">
+              <span class="label">Mã học sinh:</span>
+              <span class="value" id="modal-student-id"></span>
+            </div>
+          </div>
+
+          <!-- TEACHER & PENDING_TEACHER -->
+          <div id="group-teacher" style="display:none;">
+            <div class="info-line">
+              <span class="label">Mã giáo viên:</span>
+              <span class="value" id="modal-teacher-code"></span>
+            </div>
+            <div class="info-line">
+              <span class="label">Chuyên môn:</span>
+              <span class="value" id="modal-speciality"></span>
+            </div>
+            <div class="info-line">
+              <span class="label">Kinh nghiệm:</span>
+              <span class="value" id="modal-experience"></span>
+            </div>
+            <div class="info-line">
+              <span class="label">Chứng chỉ:</span>
+              <span class="value" id="modal-degree-url"></span>
+            </div>
+          </div>
+
+          <!-- Upgraded, Pending, Admin -->
+          <div id="group-upgraded" style="display:none;">
+            <div class="info-line">
+              <span class="label">Thông tin nâng cấp:</span>
+              <span class="value">[Các trường riêng]</span>
+            </div>
+          </div>
+          <div id="group-pending" style="display:none;">
+            <div class="info-line">
+              <span class="label">Thông tin chờ duyệt:</span>
+              <span class="value">[Các trường riêng]</span>
+            </div>
+          </div>
+          <div id="group-admin" style="display:none;">
+            <div class="info-line">
+              <span class="label">Thông tin Quản trị viên:</span>
+              <span class="value">[Các trường riêng]</span>
+            </div>
+          </div>
+
+        </div> <!-- End modal-body -->
+      </div>
+    </div>
+  </div>
+</div>

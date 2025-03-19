@@ -15,13 +15,13 @@ public class RoleController {
             case "ADMIN":
                 return "Quản trị viên";
             case "STUDENT":
-                return "Học viên";
+                return "Học sinh";
             case "TEACHER":
-                return "Giảng viên";
+                return "Giáo viên";
             case "PENDING_TEACHER":
-                return "Giảng viên chờ duyệt";
+                return "Xét duyệt giáo viên";
             case "UPGRADED_STUDENT":
-                return "Học viên nâng cấp";
+                return "Tài khoản nâng cấp";
             default:
                 return "Chưa xác định";
         }
