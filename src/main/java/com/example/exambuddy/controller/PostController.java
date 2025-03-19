@@ -27,14 +27,19 @@ public class PostController {
     @Autowired
     private PostService postService;
 
+//    @GetMapping("/{postId}")
+//    public String getPostDetail(@PathVariable String postId, Model model) {
+//        Post post = postService.getPostById(postId);
+//        model.addAttribute("post", post);
+//        return "postDetail"; // Trả về template Thymeleaf
+//    }
+
     @Autowired
     private UserService userService;
     @GetMapping("/{postId}")
     public String getPostDetail(@PathVariable String postId,
                                 @RequestParam(value = "modal", required = false, defaultValue = "false") boolean isModal,
-                                Model model,
-                                HttpServletRequest request) {
-        HttpSession session = request.getSession();
+                                Model model, HttpSession session) {
         String username = (String) session.getAttribute("loggedInUser");
         // Lấy bài viết theo postId
         Post post = postService.getPostById(postId);
@@ -61,6 +66,29 @@ public class PostController {
         return "postDetail"; // Trả về trang đầy đủ
     }
 
+//    public ResponseEntity<?> getPostDetail(@PathVariable String postId, HttpServletRequest request) {
+//        HttpSession session = request.getSession();
+//        String username = (String) session.getAttribute("loggedInUser");
+//
+//        Post post = postService.getPostById(postId);
+//        if (post == null) {
+//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Bài viết không tồn tại.");
+//        }
+//
+//        post.setLiked(post.getLikedUsernames() != null && post.getLikedUsernames().contains(username));
+//        List<Comment> comments = postService.getCommentsByPostId(postId, username);
+//        post.setComments(comments != null ? comments : new ArrayList<>());
+//
+//        return ResponseEntity.ok(post);
+//    }
+//
+//    @GetMapping("/{postId}/comments")
+//    public ResponseEntity<?> getComments(@PathVariable String postId, HttpServletRequest request) {
+//        HttpSession session = request.getSession();
+//        String username = (String) session.getAttribute("loggedInUser");
+//        List<Comment> comments = postService.getCommentsByPostId(postId, username);
+//        return ResponseEntity.ok(comments);
+//    }
     @GetMapping("/post-History")
     public String getUserPostHistory(HttpServletRequest request, Model model) {
         HttpSession session = request.getSession();

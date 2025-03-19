@@ -349,4 +349,64 @@ public class PostService {
         return userPosts;
     }
 
+    public boolean updateComment(String postId, String commentId, String username, String newContent, List<String> newImageUrls, boolean keepOldImages) {
+        try {
+            DocumentReference commentRef = db.collection("posts")
+                    .document(postId)
+                    .collection("comments")
+                    .document(commentId);
+
+            DocumentSnapshot document = commentRef.get().get();
+            if (!document.exists()) {
+                System.out.println("❌ Không tìm thấy bình luận với ID: " + commentId);
+                return false;
+            }
+
+            Comment comment = document.toObject(Comment.class);
+            if (comment == null || !comment.getUsername().equals(username)) {
+                System.out.println("❌ Không có quyền chỉnh sửa bình luận này");
+                return false;
+            }
+
+            Map<String, Object> updates = new HashMap<>();
+            updates.put("content", newContent);
+
+            if (!keepOldImages) {
+                updates.put("imageUrls", newImageUrls);
+            }
+
+            commentRef.update(updates).get();
+            System.out.println("✅ Cập nhật bình luận thành công: " + commentId);
+            return true;
+        } catch (InterruptedException | ExecutionException e) {
+            System.err.println("❌ Lỗi khi cập nhật bình luận: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public boolean deleteComment(String postId, String commentId, String username) {
+        DocumentReference postRef = db.collection("posts").document(postId);
+        CollectionReference commentsRef = postRef.collection("comments");
+        DocumentReference commentRef = commentsRef.document(commentId);
+
+        try {
+            DocumentSnapshot commentDoc = commentRef.get().get();
+            if (!commentDoc.exists()) {
+                System.out.println("Lỗi không thấy commentId: " + commentId);
+                return false; // Bình luận không tồn tại
+            }
+
+            Comment comment = commentDoc.toObject(Comment.class);
+            if (comment == null || !comment.getUsername().equals(username)) {
+                System.out.println("Lỗi rồi");
+                return false; // Không có quyền xóa bình luận
+            }
+
+            commentRef.delete().get(); // Xóa bình luận trong Firestore
+            return true;
+        } catch (InterruptedException | ExecutionException e) {
+            System.err.println("❌ Lỗi khi xóa bình luận: " + e.getMessage());
+            return false;
+        }
+    }
 }
