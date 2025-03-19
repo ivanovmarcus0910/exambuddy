@@ -20,8 +20,7 @@ public class ProfileController {
     private CloudinaryService cloudinaryService;
 
     @RequestMapping("/profile")
-    public String profilePage(HttpServletRequest request, Model model ) {
-        HttpSession session = request.getSession();
+    public String profilePage(HttpSession session, Model model ) {
         String username = (String) session.getAttribute("loggedInUser");
 
         if(username == null){
@@ -40,7 +39,7 @@ public class ProfileController {
     Cập nhật hồ sơ học sinh
      */
     @PostMapping("/profile/student/update")
-    public String updateProfileStudent(HttpServletRequest request,
+    public String updateProfileStudent(HttpSession session,
                                        @RequestParam String firstName,
                                        @RequestParam String lastName,
                                        @RequestParam String phone,
@@ -51,7 +50,6 @@ public class ProfileController {
                                        @RequestParam(required = false) String description,
                                        RedirectAttributes redirectAttributes,
                                        Model model ){
-        HttpSession session = request.getSession();
         String username = (String) session.getAttribute("loggedInUser");
         if(username == null){
             return "login";
