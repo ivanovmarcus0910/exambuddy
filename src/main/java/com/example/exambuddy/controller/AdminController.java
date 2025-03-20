@@ -63,14 +63,30 @@ public class AdminController {
     // Quản lý Người dùng: adminUser.html
     // Quản lý Người dùng (gộp danh sách và phân loại theo tab vào 1 trang adminUser.html)
     @GetMapping("/users")
-    public String adminUsers(Model model, HttpSession session) throws ExecutionException, InterruptedException {
+    public String adminUsers(Model model, HttpSession session,
+                             @RequestParam(defaultValue = "0") int page) throws Exception {
         String loggedInUser = (String) session.getAttribute("loggedInUser");
         if (loggedInUser == null || !authService.isAdmin(loggedInUser)) {
             return "redirect:/login";
         }
 
+        int pageSize = 10;
+        List<User> userPage = userService.getUserPage(page, pageSize);
+        model.addAttribute("userPage", userPage);
+        model.addAttribute("currentPage", page);
+
         // Lấy toàn bộ người dùng
         List<User> allUsers = userService.getAllUsers();
+
+        // Kiểm tra nếu trang hiện tại chưa đủ 10 phần tử
+        boolean hasNextPage = userPage.size() == pageSize;
+        model.addAttribute("hasNextPage", hasNextPage);
+
+        // Nếu không có dữ liệu ở trang tiếp theo, hiển thị thông báo
+        if (userPage.size() < pageSize && page > 0) {
+            model.addAttribute("emptyPageMessage", "Trang tiếp theo không có dữ liệu.");
+        }
+
 
         // Phân loại theo vai trò
         List<User> students = allUsers.stream()

@@ -47,8 +47,8 @@
     /* Các cột có nội dung dài */
     th.username, td.username { min-width: 220px; }
     th.email, td.email { min-width: 180px; }
-    th.active, td.active { min-width: 120px; }
-    th.role, td.role { min-width: 180px; }
+    th.active, td.active { min-width: 110px; }
+    th.role, td.role { min-width: 170px; }
 
     /* Cột Tài khoản: căn chỉnh avatar và username theo hàng ngang */
     .user-account {
@@ -152,11 +152,13 @@
         </ul>
 
         <!-- Tab Content -->
+
         <div class="tab-content">
 
           <!-- ======================== TAB TẤT CẢ ======================== -->
           <div class="tab-pane fade show active" id="tab-all">
             <h5 class="fw-bold mb-3">Tổng số Người dùng</h5>
+
             <div class="table-responsive">
               <table class="table table-bordered table-striped">
                 <thead class="table-secondary">
@@ -166,10 +168,12 @@
                   <th class="active">Trạng thái</th>
                   <th class="role">Vai trò</th>
                   <th>Thao tác</th>
+                  <th>Đổi vai trò</th>
+                  <th  style="min-width: 150px;">Hạn chế</th>
                 </tr>
                 </thead>
                 <tbody>
-                <tr th:each="user : ${allUsers}">
+                <tr th:each="user : ${userPage}">
                   <td class="user-account">
                     <div class="d-flex align-items-center">
                       <img th:src="${user.avatarUrl}" alt="User Avatar" class="rounded-circle" style="width:30px; height:30px;">
@@ -177,17 +181,20 @@
                     </div>
                   </td>
                   <td class="email" th:text="${user.email}">Email</td>
+                  <!-- Trạng thái (Active/Inactive) -->
                   <td>
-                      <span th:style="${user.active}
-                        ? 'display:inline-block; background-color:#2196f3; color:#fff; padding:6px 12px; border-radius:9999px;'
-                        : 'display:inline-block; background-color:#E43161; color:#fff; padding:6px 12px; border-radius:9999px;'"
-                            th:text="${user.active} ? 'Active' : 'Inactive'">
-                      </span>
+                    <span th:style="${user.active}
+                      ? 'display:inline-block; background-color:#2196f3; color:#fff; padding:6px 12px; border-radius:9999px;'
+                      : 'display:inline-block; background-color:#E43161; color:#fff; padding:6px 12px; border-radius:9999px;'"
+                          th:text="${user.active} ? 'Active' : 'Inactive'">
+                    </span>
                   </td>
+
+                  <!-- Vai trò -->
                   <td class="role text-primary" th:text="${@roleController.getRoleNameInVietnamese(user.role)}">Role</td>
                   <td class="text-center">
                     <!-- Ở Tab Tất cả, chỉ có nút Xem chi tiết -->
-                    <button class="btn btn-info btn-sm"
+                    <button class="btn btn-primary btn-sm fw-bold rounded-pill d-flex align-items-center justify-content-center px-3"
                             data-bs-toggle="modal" data-bs-target="#userModal"
                             th:data-id="${user.id}"
                             th:data-username="${user.username}"
@@ -211,13 +218,77 @@
                             th:data-experience="${user.experience}"
                             th:data-degree-url="${user.degreeUrl}"
                             th:data-school="${user.school}">
-                      Xem chi tiết
+                      Xem
                     </button>
+                  </td>
+
+                  <!-- Đổi vai trò: dropdown + Lưu -->
+                  <td class="text-center align-middle">
+                    <form action="/admin/changeRole" method="post" class="d-inline-flex align-items-center">
+                      <input type="hidden" name="username" th:value="${user.username}">
+                      <select name="newRole"
+                              class="form-select form-select-sm text-white bg-dark border-0 rounded-pill px-3 me-2"
+                              style="width: auto; min-width: 130px;">
+                        <option value="STUDENT" th:selected="${user.role == 'STUDENT'}">Học sinh</option>
+                        <option value="TEACHER" th:selected="${user.role == 'TEACHER'}">Gíao viên</option>
+                        <option value="ADMIN" th:selected="${user.role == 'ADMIN'}">Quản trị viên</option>
+                        <option value="UPGRADED_USER" th:selected="${user.role == 'UPGRADED_USER'}">Tài khoản nâng cấp</option>
+                        <option value="PENDING_TEACHER" th:selected="${user.role == 'PENDING_TEACHER'}">Xét duyệt giáo viên</option>
+                      </select>
+                      <button type="submit" class="btn btn-success btn-sm rounded-pill d-flex align-items-center px-3">
+                        <i class="bi bi-save me-1"></i> Lưu
+                      </button>
+                    </form>
+                  </td>
+
+                  <!-- Cột Hạn chế: Chặn/Bỏ chặn -->
+                  <td style="min-width: 150px;">
+                    <form action="/admin/updateUserStatus" method="post" class="d-flex align-items-center">
+                      <input type="hidden" name="username" th:value="${user.username}">
+
+                      <!-- Nút bo tròn, màu nền đỏ (btn-danger) nếu đang active hoặc xanh (btn-success) nếu đang inactive -->
+                      <button type="submit"
+                              class="btn btn-sm rounded-pill d-flex align-items-center justify-content-center px-3 fw-bold text-white"
+                              th:classappend="${user.active} ? ' btn-danger' : ' btn-success'">
+                        <i class="bi" th:class="${user.active} ? 'bi-x-circle me-1' : 'bi-check-circle me-1'"></i>
+                        <span th:text="${user.active} ? 'Chặn' : 'Bỏ chặn'"></span>
+                      </button>
+                    </form>
                   </td>
                 </tr>
                 </tbody>
               </table>
             </div>
+
+            <!-- Thông báo nếu không có dữ liệu trong trang tiếp theo -->
+            <div th:if="${emptyPageMessage != null}" class="alert alert-warning mt-3" style="background-color: transparent; color: #856404;">
+              <p th:text="${emptyPageMessage}"></p>
+            </div>
+
+            <!-- Phân trang -->
+            <div class="d-flex justify-content-center mt-3">
+              <nav>
+                <ul class="pagination pagination-sm">
+                  <!-- Nút Trang trước -->
+                  <li class="page-item" th:classappend="${currentPage > 0} ? '' : 'disabled'">
+                    <a class="page-link" th:href="@{/admin/users(page=${currentPage - 1})}">&laquo; Trang trước</a>
+                  </li>
+
+                  <!-- Các số trang -->
+                  <li th:each="pageNum : ${#numbers.sequence(0, currentPage + 2)}"
+                      th:class="pageNum == currentPage ? 'page-item active' : 'page-item'">
+                    <a class="page-link" th:href="@{/admin/users(page=${pageNum})}" th:text="${pageNum + 1}"></a>
+                  </li>
+
+                  <!-- Nút Trang sau -->
+                  <li class="page-item" th:classappend="${hasNextPage} ? '' : 'disabled'">
+                    <a class="page-link" th:href="@{/admin/users(page=${currentPage + 1})}">Trang sau &raquo;</a>
+                  </li>
+                </ul>
+              </nav>
+            </div>
+
+
             <!-- Biểu đồ (nếu cần) -->
             <div class="my-4">
               <canvas id="userRoleChart" style="max-width:600px; max-height:400px;"></canvas>
@@ -325,6 +396,35 @@
                 </tbody>
               </table>
             </div>
+
+            <!-- Thông báo nếu không có dữ liệu trong trang tiếp theo -->
+            <div th:if="${emptyPageMessage != null}" class="alert alert-warning mt-3" style="background-color: transparent; color: #856404;">
+              <p th:text="${emptyPageMessage}"></p>
+            </div>
+
+            <!-- Phân trang -->
+            <div class="d-flex justify-content-center mt-3">
+              <nav>
+                <ul class="pagination pagination-sm">
+                  <!-- Nút Trang trước -->
+                  <li class="page-item" th:classappend="${currentPage > 0} ? '' : 'disabled'">
+                    <a class="page-link" th:href="@{/admin/users(page=${currentPage - 1})}">&laquo; Trang trước</a>
+                  </li>
+
+                  <!-- Các số trang -->
+                  <li th:each="pageNum : ${#numbers.sequence(0, currentPage + 2)}"
+                      th:class="pageNum == currentPage ? 'page-item active' : 'page-item'">
+                    <a class="page-link" th:href="@{/admin/users(page=${pageNum})}" th:text="${pageNum + 1}"></a>
+                  </li>
+
+                  <!-- Nút Trang sau -->
+                  <li class="page-item" th:classappend="${hasNextPage} ? '' : 'disabled'">
+                    <a class="page-link" th:href="@{/admin/users(page=${currentPage + 1})}">Trang sau &raquo;</a>
+                  </li>
+                </ul>
+              </nav>
+            </div>
+
           </div>
 
           <!-- ======================== TAB GIÁO VIÊN ======================== -->
@@ -428,6 +528,33 @@
                 </tbody>
               </table>
             </div>
+            <!-- Thông báo nếu không có dữ liệu trong trang tiếp theo -->
+            <div th:if="${emptyPageMessage != null}" class="alert alert-warning mt-3" style="background-color: transparent; color: #856404;">
+              <p th:text="${emptyPageMessage}"></p>
+            </div>
+
+            <!-- Phân trang -->
+            <div class="d-flex justify-content-center mt-3">
+              <nav>
+                <ul class="pagination pagination-sm">
+                  <!-- Nút Trang trước -->
+                  <li class="page-item" th:classappend="${currentPage > 0} ? '' : 'disabled'">
+                    <a class="page-link" th:href="@{/admin/users(page=${currentPage - 1})}">&laquo; Trang trước</a>
+                  </li>
+
+                  <!-- Các số trang -->
+                  <li th:each="pageNum : ${#numbers.sequence(0, currentPage + 2)}"
+                      th:class="pageNum == currentPage ? 'page-item active' : 'page-item'">
+                    <a class="page-link" th:href="@{/admin/users(page=${pageNum})}" th:text="${pageNum + 1}"></a>
+                  </li>
+
+                  <!-- Nút Trang sau -->
+                  <li class="page-item" th:classappend="${hasNextPage} ? '' : 'disabled'">
+                    <a class="page-link" th:href="@{/admin/users(page=${currentPage + 1})}">Trang sau &raquo;</a>
+                  </li>
+                </ul>
+              </nav>
+            </div>
           </div>
 
           <!-- ======================== TAB TÀI KHOẢN NÂNG CẤP ======================== -->
@@ -519,6 +646,33 @@
                 </tbody>
               </table>
             </div>
+            <!-- Thông báo nếu không có dữ liệu trong trang tiếp theo -->
+            <div th:if="${emptyPageMessage != null}" class="alert alert-warning mt-3" style="background-color: transparent; color: #856404;">
+              <p th:text="${emptyPageMessage}"></p>
+            </div>
+
+            <!-- Phân trang -->
+            <div class="d-flex justify-content-center mt-3">
+              <nav>
+                <ul class="pagination pagination-sm">
+                  <!-- Nút Trang trước -->
+                  <li class="page-item" th:classappend="${currentPage > 0} ? '' : 'disabled'">
+                    <a class="page-link" th:href="@{/admin/users(page=${currentPage - 1})}">&laquo; Trang trước</a>
+                  </li>
+
+                  <!-- Các số trang -->
+                  <li th:each="pageNum : ${#numbers.sequence(0, currentPage + 2)}"
+                      th:class="pageNum == currentPage ? 'page-item active' : 'page-item'">
+                    <a class="page-link" th:href="@{/admin/users(page=${pageNum})}" th:text="${pageNum + 1}"></a>
+                  </li>
+
+                  <!-- Nút Trang sau -->
+                  <li class="page-item" th:classappend="${hasNextPage} ? '' : 'disabled'">
+                    <a class="page-link" th:href="@{/admin/users(page=${currentPage + 1})}">Trang sau &raquo;</a>
+                  </li>
+                </ul>
+              </nav>
+            </div>
           </div>
 
           <!-- ======================== TAB XÉT DUYỆT GIÁO VIÊN ======================== -->
@@ -609,6 +763,33 @@
                 </tr>
                 </tbody>
               </table>
+            </div>
+            <!-- Thông báo nếu không có dữ liệu trong trang tiếp theo -->
+            <div th:if="${emptyPageMessage != null}" class="alert alert-warning mt-3" style="background-color: transparent; color: #856404;">
+              <p th:text="${emptyPageMessage}"></p>
+            </div>
+
+            <!-- Phân trang -->
+            <div class="d-flex justify-content-center mt-3">
+              <nav>
+                <ul class="pagination pagination-sm">
+                  <!-- Nút Trang trước -->
+                  <li class="page-item" th:classappend="${currentPage > 0} ? '' : 'disabled'">
+                    <a class="page-link" th:href="@{/admin/users(page=${currentPage - 1})}">&laquo; Trang trước</a>
+                  </li>
+
+                  <!-- Các số trang -->
+                  <li th:each="pageNum : ${#numbers.sequence(0, currentPage + 2)}"
+                      th:class="pageNum == currentPage ? 'page-item active' : 'page-item'">
+                    <a class="page-link" th:href="@{/admin/users(page=${pageNum})}" th:text="${pageNum + 1}"></a>
+                  </li>
+
+                  <!-- Nút Trang sau -->
+                  <li class="page-item" th:classappend="${hasNextPage} ? '' : 'disabled'">
+                    <a class="page-link" th:href="@{/admin/users(page=${currentPage + 1})}">Trang sau &raquo;</a>
+                  </li>
+                </ul>
+              </nav>
             </div>
           </div>
 
