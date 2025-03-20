@@ -1,5 +1,6 @@
 package com.example.exambuddy.service;
 
+import com.example.exambuddy.model.User;
 import org.springframework.stereotype.Service;
 import jakarta.mail.*;
 import jakarta.mail.internet.InternetAddress;
@@ -11,8 +12,13 @@ import java.util.Random;
 @Service
 public class EmailService {
 
+    /*
+    private final String senderEmail = "apartmentprovjp@gmail.com"; // Email gửi
+    private final String senderPassword = "uzvr cjwb oxna xmbu" ; // Mật khẩu ứng dụng (App Password)
+
+     */
     private final String senderEmail = "exambuddy.team@gmail.com"; // Email gửi
-    private final String senderPassword = "nkax uvpp nblb lsoj" ; // Mật khẩu ứng dụng (App Password)
+    private final String senderPassword = "tnvd pdpt axvt ozqa" ; // Mật khẩu ứng dụng (App Password)
 
     public String generateOtp() {
         Random random = new Random();
@@ -61,7 +67,7 @@ public class EmailService {
      * @param subject        Chủ đề email
      * @param message        Nội dung email
      */
-    private void sendEmail(String recipientEmail, String subject, String message) throws MessagingException {
+    public void sendEmail(String recipientEmail, String subject, String message) throws MessagingException {
         // Cấu hình SMTP với SSL (Port 465)
         Properties props = new Properties();
         props.put("mail.smtp.host", "smtp.gmail.com"); // Máy chủ SMTP của Gmail
@@ -84,7 +90,8 @@ public class EmailService {
             mimeMessage.setFrom(new InternetAddress(senderEmail));
             mimeMessage.addRecipient(Message.RecipientType.TO, new InternetAddress(recipientEmail));
             mimeMessage.setSubject(subject);
-            mimeMessage.setText(message);
+            mimeMessage.setContent(message, "text/html; charset=UTF-8");
+
 
             // Gửi email
             Transport.send(mimeMessage);
@@ -95,6 +102,35 @@ public class EmailService {
             throw e;  // Đẩy lỗi lên để FirebaseAuthService xử lý
         }
     }
+    public void sendTeacherStatusNotification(String recipientEmail, boolean isAccepted, User user) throws MessagingException {
+        String subject = isAccepted ? "Yêu cầu của bạn đã được chấp nhận" : "Yêu cầu của bạn đã bị từ chối";
+        String message;
+
+        // Sử dụng họ tên người dùng từ đối tượng User
+        String fullName = user.getLastName() +" "+ user.getFirstName(); // Giả sử bạn có phương thức này trong lớp User
+        String fontFamily = "font-family: Arial, Tahoma, Verdana, sans-serif;";
+        if (isAccepted) {
+            message = "<html><body style='" + fontFamily + "'>" +
+                    "<p><strong>Chào <span style='color: #4CAF50;'>" + fullName + "</span>,</strong></p>" +  // Chỉ fullname có màu
+                    "<p style='font-size: 16px;'>Chúng tôi vui mừng thông báo rằng yêu cầu trở thành giáo viên của bạn đã được chấp nhận. Bạn đã chính thức trở thành giáo viên của hệ thống.</p>" +
+                    "<p style='font-size: 16px;'>Cảm ơn bạn đã tham gia cùng chúng tôi!</p>" +
+                    "<br><p style='font-size: 16px;'>Trân trọng,<br><span style='color: #1E88E5;'>Exam Buddy Team</span></p>" +
+                    "</body></html>";
+        } else {
+            message = "<html><body style='" + fontFamily + "'>" +
+                    "<p><strong>Chào <span style='color: #F44336;'>" + fullName + "</span>,</strong></p>" +  // Chỉ fullname có màu
+                    "<p style='font-size: 16px;'>Chúng tôi rất tiếc phải thông báo rằng yêu cầu trở thành giáo viên của bạn đã bị từ chối.</p>" +
+                    "<p style='font-size: 16px;'>Cảm ơn bạn đã quan tâm và chúng tôi hi vọng sẽ có cơ hội làm việc cùng bạn trong tương lai!</p>" +
+                    "<br><p style='font-size: 16px;'>Trân trọng,<br><span style='color: #1E88E5;'>Exam Buddy Team</span></p>" +
+                    "</body></html>";
+        }
+
+
+
+        // Gửi email thông báo cho người dùng
+        sendEmail(recipientEmail, subject, message);
+    }
+
 
     /**
      * Tạo mã OTP ngẫu nhiên gồm 6 chữ số

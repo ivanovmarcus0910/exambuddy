@@ -112,6 +112,7 @@
                 <div class="add-comment mt-3">
                     <form id="comment-form" action="/forum/comment" method="post" enctype="multipart/form-data">
                         <input type="hidden" name="postId" th:value="${post.postId}">
+    <!--                        <input type="hidden" name="isModal" th:value="${isModal}">-->
                         <!-- Hiển thị tiêu đề khi phản hồi -->
                         <div id="reply-info" class="mb-2 d-none">
                             <span>Trả lời <strong id="reply-username"></strong></span>
@@ -128,7 +129,7 @@
                                     <div class="col-auto">
                                         <input type="file" name="commentImages" class="form-control mt-2" multiple>
                                     </div>
-                                    <button type="submit" class="btn btn-primary mt-2" id="submitCommentBtn">Bình luận</button>
+                                    <button type="submit" class="btn btn-primary mt-2" id="submitCommentBtn" onclick="submitComment(event)">Bình luận</button>
                                 </div>
                             </div>
                         </div>

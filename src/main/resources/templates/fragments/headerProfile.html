@@ -164,7 +164,7 @@
                    id="userDropdown" data-bs-toggle="dropdown">
                     <img th:src="${user.avatarUrl}" alt="Avatar"
                          style="width:40px; height:40px; border-radius:50%; object-fit:cover; margin-right:6px;">
-                    <span style="font-size:0.9rem;" th:text="${user.role}">Học viên</span>
+                    <span style="font-size:0.9rem;" th:text="${session.roleInVietnamese}">Học viên</span>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                     <li><a class="dropdown-item" href="/profile">Thông tin cá nhân</a></li>

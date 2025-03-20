@@ -80,7 +80,9 @@
             <div th:if="${success}" class="alert alert-success" style="font-size:0.9rem;">
                 [[${success}]]
             </div>
-
+            <div th:if="${pendingTeacherMessage}" class="alert alert-warning" style="font-size:0.9rem;">
+                <strong>Thông báo:</strong> [[${pendingTeacherMessage}]]
+            </div>
             <!-- Gói các tab-pane trong .tab-content -->
             <div class="tab-content">
                 <!-- Tab-pane: Chỉnh sửa hồ sơ -->
@@ -117,7 +119,10 @@
                                 <!-- Badges và EB Coin -->
                                 <div class="mt-3 d-flex flex-column align-items-center gap-1">
                                     <div>
-                                        <span class="badge bg-info me-1" th:text="${user.role}"></span>
+                                        <span class="badge bg-info me-1" th:text="${session.roleInVietnamese}"></span>
+                                        <span class="badge bg-warning text-dark">
+                                            <i class="bi bi-star-fill"></i> Premium User
+                                        </span>
                                     </div>
                                     <div class="px-3 py-2 text-white" style="background-color:#007bff; border-radius:8px;">
                                         <h6 style="margin:0; font-size:1rem;">EB Coin</h6>

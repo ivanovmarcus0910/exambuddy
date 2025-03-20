@@ -43,6 +43,11 @@ public class FirebaseAuthService {
         // Kiểm tra email trong danh sách Admin
         User.Role role = ADMIN_Email.contains(email) ? User.Role.ADMIN : selectRole;
 
+        // Nếu vai trò là Teacher, lưu vào cơ sở dữ liệu với vai trò Pending_Teacher
+            if (role == User.Role.TEACHER) {
+                role = User.Role.PENDING_TEACHER;  // Chuyển thành Pending_Teacher
+            }
+
         System.out.println("Mật khẩu trước khi mã hoá: " + password);
         // ✅ Mã hóa mật khẩu trước khi lưu vào Firestore
         String hashedPassword = passService.encodePassword(password);

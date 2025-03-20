@@ -3,10 +3,8 @@ package com.example.exambuddy.controller;
 import com.example.exambuddy.model.Exam;
 import com.example.exambuddy.model.Post;
 import com.example.exambuddy.model.User;
-import com.example.exambuddy.service.ExamService;
-import com.example.exambuddy.service.FirebaseAuthService;
-import com.example.exambuddy.service.PostService;
-import com.example.exambuddy.service.UserService;
+import com.example.exambuddy.service.*;
+import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -32,6 +30,9 @@ public class AdminController {
 
     @Autowired
     private PostService postService;
+
+    @Autowired
+    private EmailService emailService;
 
     // Trang chủ (Dashboard): admin.html
     @GetMapping("")
@@ -109,6 +110,60 @@ public class AdminController {
 
         return "adminUser"; // Trả về view adminUser.html (đã gộp chức năng tab)
     }
+
+    // POST: Xác nhận yêu cầu trở thành giáo viên
+    @PostMapping("/approveTeacher")
+    public String approveTeacher(@RequestParam String username, HttpSession session) {
+        String loggedInUser = (String) session.getAttribute("loggedInUser");
+        if (loggedInUser == null || !authService.isAdmin(loggedInUser)) {
+            return "redirect:/login";
+        }
+
+        User user = userService.getUserByUsername(username);
+        if (user != null) {
+            userService.updateUserRole(username, User.Role.TEACHER);
+
+            // Gửi thông báo về việc yêu cầu đã được chấp nhận
+            try {
+                emailService.sendTeacherStatusNotification(user.getEmail(), true,user);  // Gửi email thông báo đã chấp nhận
+            } catch (MessagingException e) {
+                e.printStackTrace();
+            }
+
+            // Gửi thông báo tới người dùng về việc yêu cầu đã được chấp nhận
+            //userService.sendNotification(user, "Yêu cầu của bạn đã được chấp nhận. Bạn đã trở thành giáo viên.");
+        }
+
+        return "redirect:/admin/users";  // Quay lại danh sách người dùng
+    }
+
+    // POST: Từ chối yêu cầu trở thành giáo viên
+    @PostMapping("/rejectTeacher")
+    public String rejectTeacher(@RequestParam String username, HttpSession session) {
+        String loggedInUser = (String) session.getAttribute("loggedInUser");
+        if (loggedInUser == null || !authService.isAdmin(loggedInUser)) {
+            return "redirect:/login";
+        }
+
+        // Gửi thông báo cho người dùng
+        User user = userService.getUserByUsername(username);
+        if (user != null) {
+            userService.updateUserRole(username, User.Role.PENDING_TEACHER);
+
+            // Gửi thông báo về việc yêu cầu đã bị từ chối
+            try {
+                emailService.sendTeacherStatusNotification(user.getEmail(), false, user);  // Gửi email thông báo đã từ chối
+            } catch (MessagingException e) {
+                e.printStackTrace();
+            }
+
+            // Gửi thông báo tới người dùng về việc yêu cầu đã bị từ chối
+            //userService.sendNotification(user, "Yêu cầu của bạn đã bị từ chối.");
+        }
+
+        return "redirect:/admin/users";  // Quay lại danh sách người dùng
+    }
+
 
     // Quản lý Đề thi: adminExam.html
     @GetMapping("/exams")
