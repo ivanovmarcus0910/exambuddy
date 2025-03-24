@@ -68,7 +68,6 @@ public class AuthController {
                     picture = (String) data.get("url");
                 }
             }
-            System.out.println("Avatar URL: " + picture);
         }
 
         if (email != null) {
@@ -82,7 +81,6 @@ public class AuthController {
             response.addCookie(nonameCookie);
             session.setAttribute("urlimg", UserService.getAvatarUrlByUsername(email));
 
-            System.out.println("Đăng nhập thành công với email: " + email);
             return "redirect:/home";
         }
 

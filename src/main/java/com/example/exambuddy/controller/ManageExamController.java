@@ -122,8 +122,6 @@ public class ManageExamController {
         userAnswers.forEach((questionID, answers) ->
                 System.out.println("Câu " + questionID + " => " + answers)
         );
-
-        // Chuyển đổi dữ liệu thành map đúng
         Map<String, List<Integer>> parsedAnswers = new HashMap<>();
         for (Map.Entry<String, List<String>> entry : userAnswers.entrySet()) {
             List<Integer> selectedIndexes = entry.getValue().stream()
@@ -131,8 +129,6 @@ public class ManageExamController {
                     .collect(Collectors.toList());
             parsedAnswers.put(entry.getKey(), selectedIndexes);
         }
-
-        // In ra kết quả sau khi parse
 
 
         try {
@@ -677,7 +673,7 @@ public class ManageExamController {
     }
     @PostMapping("/exams/delete/{examId}")
     public String deleteExam(@PathVariable String examId,
-                             HttpSession session) {
+                             HttpSession session, Model model) {
         String username = (String) session.getAttribute("loggedInUser");
         if (username == null) {
             session.setAttribute("error", "Bạn cần đăng nhập.");
@@ -685,9 +681,14 @@ public class ManageExamController {
         }
         Exam exam = examService.getExam(examId);
         if (exam.getUsername().equals(username)) {
-            examService.deleteExam(examId);
+            examService.updateExamStatus(examId, false);
+            return "redirect:/exams/created";
         }
-        return "redirect:/exams/created";
+        else
+        {
+            model.addAttribute("error", "Bạn đang truy cập trái phép");
+            return "error";
+        }
     }
     @GetMapping("/exams/{examId}/feedbacks")
     public ResponseEntity<List<Feedback>> getFeedbacks(@PathVariable String examId) {
