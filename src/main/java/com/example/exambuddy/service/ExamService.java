@@ -43,7 +43,7 @@ public class ExamService {
         List<Exam> exams = new ArrayList<>();
         try {
             // Lấy danh sách theo thứ tự mới nhất và giới hạn số lượng theo trang
-            Query query = db.collection("exams").orderBy("date", Query.Direction.DESCENDING).limit(size);
+            Query query = db.collection("exams").orderBy("participantCount", Query.Direction.DESCENDING).limit(size);
             if (page > 0) {
                 ApiFuture<QuerySnapshot> previousFuture = db.collection("exams")
                         .orderBy("date", Query.Direction.DESCENDING)
@@ -146,19 +146,22 @@ public class ExamService {
             Object timedurationObj = examData.get("timeduration");
             String timedurationStr = timedurationObj instanceof Integer ? timedurationObj.toString() : (String) timedurationObj;
 
-            // Thêm dữ liệu đề thi vào collection "exams"
-            db.collection("exams").document(examId).set(Map.of(
-                    "examName", examData.get("examName"),
-                    "grade", examData.get("grade"),
-                    "subject", examData.get("subject"),
-                    "examType", examData.get("examType"),
-                    "city", examData.get("city"),
-                    "tags", examData.get("tags"),
-                    "username", examData.get("username"),
-                    "date", examData.get("date"),
-                    "timeduration", Long.parseLong(timedurationStr),
-                    "questionCount", x
-            )).get();
+            // Tạo một HashMap để lưu dữ liệu đề thi
+            Map<String, Object> examDataMap = new HashMap<>();
+            examDataMap.put("examName", examData.get("examName"));
+            examDataMap.put("grade", examData.get("grade"));
+            examDataMap.put("subject", examData.get("subject"));
+            examDataMap.put("examType", examData.get("examType"));
+            examDataMap.put("city", examData.get("city"));
+            examDataMap.put("tags", examData.get("tags"));
+            examDataMap.put("username", examData.get("username"));
+            examDataMap.put("date", examData.get("date"));
+            examDataMap.put("timeduration", Long.parseLong(timedurationStr));
+            examDataMap.put("questionCount", x);
+            examDataMap.put("participantCount", 0); // Mặc định là 0 khi tạo mới
+
+// Thêm dữ liệu vào collection "exams"
+            db.collection("exams").document(examId).set(examDataMap).get();
             System.out.println("Exam document set");
 
 
@@ -437,6 +440,8 @@ public class ExamService {
         docRef.delete();
         docRef = db.collection("examProgress").document(userId + "_" + examId);
         docRef.delete();
+        db.collection("exams").document(examId)
+                .update("participantCount", FieldValue.increment(1));
     }
 
     public void saveExamResult(String userId, String examId, double score, Exam exam, MultiValueMap<String, String> userAnswers, List<String> correctAnswers) {

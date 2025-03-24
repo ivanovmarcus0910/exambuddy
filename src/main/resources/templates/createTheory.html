@@ -625,8 +625,15 @@
       const lessonName = elements.lessonNameInput.value;
       let lessonContent = '';
       if (CKEDITOR.instances['lesson-content']) {
-        lessonContent = CKEDITOR.instances['lesson-content'].getData();
+        lessonContent = CKEDITOR.instances['lesson-content'].getData().trim();
       }
+
+      // Kiểm tra nếu nội dung bài học trống
+      if (!lessonContent) {
+        alert('Nội dung bài học không được để trống! Vui lòng nhập nội dung trước khi lưu.');
+        return; // Dừng lại, không lưu
+      }
+
       const newLesson = { id: Date.now().toString(), name: lessonName, content: lessonContent };
       try {
         const response = await fetch(`/api/theory/lessons/${state.classId}/${state.subjectId}/${state.chapterId}`, {

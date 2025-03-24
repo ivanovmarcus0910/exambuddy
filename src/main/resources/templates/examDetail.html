@@ -22,7 +22,8 @@
             <div class="card shadow-sm p-4">
                 <h4 class="text-primary fw-bold" th:text="${exam.examName}"></h4>
                 <p><b>Môn học:</b> <span th:text="${exam.subject}"></span></p>
-                <p><b>Ngày đăng:</b> <span th:text="${exam.date}"></span></p>
+                <p><b>Lớp:</b> <span th:text="${exam.grade}"></span></p>
+                <p><b>Ngày đăng:</b> <span th:text="${exam.getFormattedDate()}"></span></p>
                 <p><b>Số câu hỏi:</b> <span th:text="${questions.size()}"></span></p>
                 <h5 class="mt-4">Danh sách câu hỏi:</h5>
                 <ul class="list-group">
