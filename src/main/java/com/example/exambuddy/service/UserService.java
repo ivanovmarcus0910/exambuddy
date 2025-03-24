@@ -23,7 +23,7 @@ import java.util.concurrent.ExecutionException;
 public class UserService {
     private static final String COLLECTION_NAME = "users";
     @Autowired
-    private EmailService emailService;
+    private PaginationService<User> paginationService;
     private static final String EXAM_COLLECTION_NAME = "exams";
     public static User getUserData(String username) {
         Firestore firestore = FirestoreClient.getFirestore();
@@ -327,10 +327,18 @@ public class UserService {
         }
     }
 
-//    public boolean updatePremiumExp(long time, String username) {
-//        Firestore firestore = FirestoreClient.getFirestore();
-//        DocumentReference userRef = firestore.collection("users").document(username);
-//
-//    }
+    /**
+     * Lấy danh sách người dùng cho một trang với 10 phần tử mỗi trang, sắp xếp theo "joinTime".
+     *
+     * @param page Số trang (bắt đầu từ 0)
+     * @param pageSize Số phần tử mỗi trang (ví dụ 10)
+     * @return Danh sách người dùng của trang hiện tại.
+     * @throws Exception Nếu có lỗi trong quá trình truy vấn.
+     */
+    public List<User> getUserPage(int page, int pageSize) throws Exception {
+        return paginationService.getPage("users", "joinTime", page, pageSize, User.class);
+    }
+
+
 
 }

@@ -17,6 +17,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import java.util.concurrent.TimeUnit;
 
 
 import java.io.UnsupportedEncodingException;
@@ -104,6 +105,26 @@ public class AuthController {
                                            HttpSession session,
                                            HttpServletResponse response) throws UnsupportedEncodingException {
 
+        // Kiểm tra trạng thái lock đăng nhập
+        Long lockTime = (Long) session.getAttribute("loginLockTime");
+        if (lockTime != null) {
+            long currentTime = System.currentTimeMillis();
+            long lockDuration = TimeUnit.MINUTES.toMillis(5);  // Khóa 1 phút
+            long endLockTime = lockTime + lockDuration + 2000;
+            // Nếu thời gian hiện tại chưa vượt qua 5 phút kể từ thời điểm lock
+            if (currentTime < endLockTime) {
+                // Tài khoản vẫn đang bị khóa
+
+                model.addAttribute("endLockTime", endLockTime);
+                model.addAttribute("error", "Bạn đã nhập sai quá 5 lần. Vui lòng thử lại sau 5 phút.");
+                return CompletableFuture.completedFuture("login");
+            } else {
+                // Hết thời gian lock, reset lại số lần thất bại
+                session.removeAttribute("loginLockTime");
+                session.removeAttribute("failedLoginCount");
+            }
+        }
+
         long startTime = System.currentTimeMillis();
 
         // Lấy thông tin user theo username
@@ -121,25 +142,34 @@ public class AuthController {
 
                         if (user == null) {
                             model.addAttribute("error", "Tài khoản không tồn tại!");
+                            // Cập nhật số lần đăng nhập thất bại
+                            authService.updateFailedLogin(session);
                             return "login";
                         }
 
                         // Giả sử User có trường verified
                         if (!user.isVerified()) {
                             model.addAttribute("error", "Tài khoản chưa xác thực. Vui lòng kiểm tra email.");
+                            authService.updateFailedLogin(session);
                             return "login";
                         }
 
                         if (!authenticated) {
                             model.addAttribute("error", "Mật khẩu không đúng. Vui lòng thử lại!");
+                            authService.updateFailedLogin(session);
                             return "login";
                         }
 
                         // Kiểm tra trạng thái active của tài khoản
                         if (!user.isActive()) {
                             model.addAttribute("error", "Tài khoản của bạn đã bị vô hiệu hóa!");
+                            authService.updateFailedLogin(session);
                             return "login";
                         }
+
+                        // Đăng nhập thành công, reset lại số lần thất bại
+                        session.removeAttribute("failedLoginCount");
+                        session.removeAttribute("loginLockTime");
 
                         // Lưu thông tin đăng nhập vào session
                         session.setAttribute("loggedInUser", username);
@@ -178,6 +208,7 @@ public class AuthController {
                         model.addAttribute("error", "Lỗi hệ thống. Vui lòng thử lại sau!");
                         return "login";
                     }
+
                 });
     }
 
