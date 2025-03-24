@@ -50,6 +50,9 @@
             <div id="error-message" th:if="${error}" class="alert alert-danger text-center">
                 <span th:text="${error}"></span>
             </div>
+            <!-- Phần hiển thị bộ đếm thời gian nếu có -->
+            <div id="timer" th:if="${endLockTime != null}" class="alert alert-warning text-center"></div>
+
             <!-- Hiển thị thông báo thành công nếu có -->
             <div th:if="${success}" class="alert alert-success text-center">
                 <span th:text="${success}"></span>
@@ -180,5 +183,28 @@
         }
     });
 </script>
+
+<!-- JavaScript đồng hồ đếm ngược hiển thị thời gian lock nếu có -->
+<script th:if="${endLockTime != null}" th:inline="javascript">
+    /*<![CDATA[*/
+    var endLockTime = /*[[${endLockTime}]]*/ 0;
+    var timerElement = document.getElementById("timer");
+    var countdownInterval = setInterval(function() {
+        var now = new Date().getTime();
+        var remainingTime = Math.ceil((endLockTime - now) / 1000); // Tính tổng số giây còn lại
+
+        if (remainingTime <= 0) {
+            clearInterval(countdownInterval);
+            timerElement.innerHTML = "Đã hết thời gian khóa!";
+        } else {
+            // Tách thành phút và giây
+            var minutes = Math.floor(remainingTime / 60);
+            var seconds = remainingTime % 60;
+            timerElement.innerHTML = "Vui lòng đợi: " + minutes + " phút " + seconds + " giây";
+        }
+    }, 1000);
+    /*]]>*/
+</script>
+
 </body>
 </html>
