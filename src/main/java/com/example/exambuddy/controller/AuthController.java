@@ -145,27 +145,27 @@ public class AuthController {
                         if (user == null) {
                             model.addAttribute("error", "Tài khoản không tồn tại!");
                             // Cập nhật số lần đăng nhập thất bại
-                            updateFailedLogin(session);
+                            authService.updateFailedLogin(session);
                             return "login";
                         }
 
                         // Giả sử User có trường verified
                         if (!user.isVerified()) {
                             model.addAttribute("error", "Tài khoản chưa xác thực. Vui lòng kiểm tra email.");
-                            updateFailedLogin(session);
+                            authService.updateFailedLogin(session);
                             return "login";
                         }
 
                         if (!authenticated) {
                             model.addAttribute("error", "Mật khẩu không đúng. Vui lòng thử lại!");
-                            updateFailedLogin(session);
+                            authService.updateFailedLogin(session);
                             return "login";
                         }
 
                         // Kiểm tra trạng thái active của tài khoản
                         if (!user.isActive()) {
                             model.addAttribute("error", "Tài khoản của bạn đã bị vô hiệu hóa!");
-                            updateFailedLogin(session);
+                            authService.updateFailedLogin(session);
                             return "login";
                         }
 
@@ -214,20 +214,6 @@ public class AuthController {
                 });
     }
 
-    // Phương thức cập nhật số lần đăng nhập thất bại
-    private void updateFailedLogin(HttpSession session) {
-        Integer failedAttempts = (Integer) session.getAttribute("failedLoginCount");
-        if (failedAttempts == null) {
-            failedAttempts = 1;
-        } else {
-            failedAttempts++;
-        }
-        session.setAttribute("failedLoginCount", failedAttempts);
-        // Nếu đã nhập sai >= 5 lần, đặt thời gian lock hiện tại
-        if (failedAttempts >= 5) {
-            session.setAttribute("loginLockTime", System.currentTimeMillis());
-        }
-    }
 
     @GetMapping("/forgotPass")
     public String forgotPasswordPage() {
