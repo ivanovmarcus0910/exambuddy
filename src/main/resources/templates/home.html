@@ -234,8 +234,13 @@
             let leaderboard = document.querySelector("#leaderboard");
             leaderboard.innerHTML = "";
             data.forEach(record => {
-                let formattedScore = record.totalScore.toFixed(1);
-                let row = `<li class="list-group-item">${record.username} - ${formattedScore} Điểm</li>`;
+                let formattedScore = record.totalScore.toFixed(0);
+                let row = `<li class="list-group-item d-flex justify-content-between">
+    <span class="text-truncate" style="max-width: 50%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
+        ${record.username}
+    </span>
+    <span>${formattedScore} Điểm</span>
+</li>`;
                 leaderboard.innerHTML += row;
             });
         } catch (error) {
@@ -250,9 +255,14 @@
             let contributionBoard = document.querySelector("#contribution-board");
             contributionBoard.innerHTML = "";
             data.forEach(record => {
-                let formattedScore = record.totalScore.toFixed(1);
+                let formattedScore = record.totalScore.toFixed(0);
 
-                let row = `<li class="list-group-item">${record.username} - ${formattedScore} Điểm</li>`;
+                let row = `<li class="list-group-item d-flex justify-content-between">
+    <span class="text-truncate" style="max-width: 50%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
+        ${record.username}
+    </span>
+    <span>${formattedScore} Điểm</span>
+</li>`;
                 contributionBoard.innerHTML += row;
             });
         } catch (error) {
@@ -266,8 +276,8 @@
         updateContributionBoard();
 
         // Tự động cập nhật BXH mỗi 5 giây
-        setInterval(updateLeaderboard, 5000);
-        setInterval(updateContributionBoard, 5000);
+        // setInterval(updateLeaderboard, 5000);
+        // setInterval(updateContributionBoard, 5000);
     });
 </script>
 <div th:insert="~{fragments/logoutModal :: logoutModal}"></div>

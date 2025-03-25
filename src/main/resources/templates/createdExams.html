@@ -126,6 +126,9 @@
                             <form th:action="@{/exams/{id}/statistics(id=${exam.examID})}" method="get">
                                 <button type="submit" class="btn btn-danger">Thống kê</button>
                             </form>
+                            <form th:action="@{/exams/delete/{id}(id=${exam.examID})}" method="post">
+                                <button type="submit" class="btn btn-danger">Xóa đề</button>
+                            </form>
 
                         </div>
                     </td>

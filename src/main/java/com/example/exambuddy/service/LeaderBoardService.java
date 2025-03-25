@@ -45,7 +45,6 @@ public class LeaderBoardService {
             List<QueryDocumentSnapshot> documents = future.get().getDocuments();
             for (QueryDocumentSnapshot doc : documents) {
                 RecordTopUser record = doc.toObject(RecordTopUser.class);
-                System.out.println(record.getTotalScore());
                 topUsers.add(record);
             }
         } catch (Exception e) {
