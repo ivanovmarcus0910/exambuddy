@@ -10,6 +10,7 @@ import com.example.exambuddy.service.*;
 import com.example.exambuddy.model.User;
 import com.google.cloud.firestore.*;
 import com.google.firebase.cloud.FirestoreClient;
+import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -101,13 +102,32 @@ public class ManageExamController {
             if (session.getAttribute("loggedInUser") == null) {
                 return "redirect:/home"; // Nếu chưa đăng nhập, chuyển hướng về home
             }
-
+            List<Question> questions;;
             Exam exam = examService.getExam(examId);
-            String username = cookieService.getCookie(request, "noname");
-            examService.addExamSession(examId, username, 1000 * 60 * exam.getTimeduration());
+            String username = session.getAttribute("loggedInUser").toString();
+            if (session.getAttribute("shuffledQuestions_"+examId) == null) {
+                examService.submitExam(username, examId);
+
+                examService.addExamSession(examId, username, 1000 * 60 * exam.getTimeduration());
+                questions = new ArrayList<>(exam.getQuestions());
+                System.out.println("Trước khi xáo trộn:");
+                for (Question question : questions) {
+                    System.out.println(question.getQuestionText());
+                }
+                Collections.shuffle(questions);
+                System.out.println("Đề trong Server Sau khi random: ");
+                for (Question question : questions) {
+                    System.out.println(question.getQuestionText());
+                }
+            }
+            else{
+                questions = (List<Question>) session.getAttribute("shuffledQuestions_" + examId);
+            }
+            session.setAttribute("shuffledQuestions_" + examId, questions);
+
             model.addAttribute("exam", exam);
             model.addAttribute("username", username);
-            model.addAttribute("questions", exam.getQuestions()); // Gửi danh sách câu hỏi qua view
+            model.addAttribute("questions", questions); // Gửi danh sách câu hỏi qua view
             model.addAttribute("timeduration", exam.getTimeduration());
             return "examDo";
         } catch (Exception e) {
@@ -117,7 +137,7 @@ public class ManageExamController {
     }
 
     @PostMapping("exams/{examId}/submit")
-    public String submitExam(@PathVariable String examId, @RequestParam MultiValueMap<String, String> userAnswers, HttpServletRequest request, Model model) {
+    public String submitExam(@PathVariable String examId, @RequestParam MultiValueMap<String, String> userAnswers, HttpServletRequest request, Model model, HttpSession session) {
 
         userAnswers.forEach((questionID, answers) ->
                 System.out.println("Câu " + questionID + " => " + answers)
@@ -133,7 +153,10 @@ public class ManageExamController {
 
         try {
             Exam exam = examService.getExam(examId);
-            List<Question> questions = exam.getQuestions();
+            List<Question> questions = (List<Question>) session.getAttribute("shuffledQuestions_" + examId);
+            for (Question question : questions) {
+                System.out.println(question.getQuestionText());
+            }
             int totalQuestions = exam.getQuestions().size();
             int correctCount = 0;
             Question question;
@@ -143,6 +166,8 @@ public class ManageExamController {
                 question = questions.get(i);
 
                 List<Integer> correctAnswers = question.getCorrectAnswers(); // Đáp án đúng
+                System.out.println("Câu " + question.getQuestionText() + " => " +question.getCorrectAnswers().toString());
+
                 List<Integer> userSelected = parsedAnswers.getOrDefault(questionKey, new ArrayList<>()); // Đáp án người dùng chọn
 
                 // So sánh danh sách đáp án đúng với đáp án người dùng chọn
@@ -151,14 +176,15 @@ public class ManageExamController {
                     correctCount++;
                     correctQuestions.add(questionKey); // Thêm vào danh sách câu đúng
                 }
-                //System.out.println(i+":"+correctAnswers +" vs "+ userSelected);
+//                System.out.println(i+":"+correctAnswers +" vs "+ userSelected);
             }
 
             double score = (double) correctCount / totalQuestions * 10;
-            userAnswers.forEach((questionID, answers) ->
-                    System.out.println(questionID + " => " + answers)
-            );
-            String username = cookieService.getCookie(request, "noname");
+//            userAnswers.forEach((questionID, answers) ->
+//                    System.out.println(questionID + " => " + answers)
+//            );
+            String username = session.getAttribute("loggedInUser").toString();
+            session.removeAttribute("shuffledQuestions_"+examId);
             examService.submitExam(username, examId);
             examService.saveExamResult(username, examId, score, exam, userAnswers, correctQuestions);
             leaderBoardService.updateUserScore(username, score);
