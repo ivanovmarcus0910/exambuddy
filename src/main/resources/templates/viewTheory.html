@@ -232,25 +232,31 @@
         if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
         const subjects = await response.json();
         elements.subjectsContainer.innerHTML = '';
-        subjects.forEach(subject => {
-          const item = createAccordionItem(subject.id, subject.name, `subject-collapse-${subject.id}`, 'subjects', `chapters-${subject.id}`);
-          elements.subjectsContainer.appendChild(item);
 
-          const collapse = document.getElementById(`subject-collapse-${subject.id}`);
-          collapse.addEventListener('shown.bs.collapse', () => {
-            const chaptersContainer = document.getElementById(`chapters-${subject.id}`);
-            if (chaptersContainer && !chaptersContainer.hasChildNodes()) {
-              state.subjectName = subject.name;
-              loadChapters(classId, subject.id, chaptersContainer);
+        // Kiểm tra nếu danh sách môn học rỗng
+        if (subjects.length === 0) {
+          elements.subjectsContainer.innerHTML = '<p class="text-muted">Không có môn học nào.</p>';
+        } else {
+          subjects.forEach(subject => {
+            const item = createAccordionItem(subject.id, subject.name, `subject-collapse-${subject.id}`, 'subjects', `chapters-${subject.id}`);
+            elements.subjectsContainer.appendChild(item);
+
+            const collapse = document.getElementById(`subject-collapse-${subject.id}`);
+            collapse.addEventListener('shown.bs.collapse', () => {
+              const chaptersContainer = document.getElementById(`chapters-${subject.id}`);
+              if (chaptersContainer && !chaptersContainer.hasChildNodes()) {
+                state.subjectName = subject.name;
+                loadChapters(classId, subject.id, chaptersContainer);
+                updateBreadcrumb();
+              }
+            });
+            collapse.addEventListener('hidden.bs.collapse', () => {
+              state.subjectName = null;
+              state.chapterName = null;
               updateBreadcrumb();
-            }
+            });
           });
-          collapse.addEventListener('hidden.bs.collapse', () => {
-            state.subjectName = null;
-            state.chapterName = null;
-            updateBreadcrumb();
-          });
-        });
+        }
       } catch (err) {
         elements.subjectsContainer.innerHTML = '<p class="text-danger">Lỗi tải danh sách môn học.</p>';
       }
@@ -270,24 +276,30 @@
 
         chaptersContainer.innerHTML = `<div class="accordion" id="chapters-accordion-${subjectId}"></div>`;
         const accordion = chaptersContainer.querySelector(`#chapters-accordion-${subjectId}`);
-        chapters.forEach(chapter => {
-          const item = createAccordionItem(chapter.id, chapter.name, `chapter-collapse-${chapter.id}`, `chapters-accordion-${subjectId}`, `lessons-${chapter.id}`);
-          accordion.appendChild(item);
 
-          const collapse = document.getElementById(`chapter-collapse-${chapter.id}`);
-          collapse.addEventListener('shown.bs.collapse', () => {
-            const lessonsContainer = document.getElementById(`lessons-${chapter.id}`);
-            if (lessonsContainer && !lessonsContainer.hasChildNodes()) {
-              state.chapterName = chapter.name;
-              loadLessons(classId, subjectId, chapter.id, lessonsContainer);
+        // Kiểm tra nếu danh sách chương rỗng
+        if (chapters.length === 0) {
+          chaptersContainer.innerHTML = '<p class="text-muted">Không có chương nào.</p>';
+        } else {
+          chapters.forEach(chapter => {
+            const item = createAccordionItem(chapter.id, chapter.name, `chapter-collapse-${chapter.id}`, `chapters-accordion-${subjectId}`, `lessons-${chapter.id}`);
+            accordion.appendChild(item);
+
+            const collapse = document.getElementById(`chapter-collapse-${chapter.id}`);
+            collapse.addEventListener('shown.bs.collapse', () => {
+              const lessonsContainer = document.getElementById(`lessons-${chapter.id}`);
+              if (lessonsContainer && !lessonsContainer.hasChildNodes()) {
+                state.chapterName = chapter.name;
+                loadLessons(classId, subjectId, chapter.id, lessonsContainer);
+                updateBreadcrumb();
+              }
+            });
+            collapse.addEventListener('hidden.bs.collapse', () => {
+              state.chapterName = null;
               updateBreadcrumb();
-            }
+            });
           });
-          collapse.addEventListener('hidden.bs.collapse', () => {
-            state.chapterName = null;
-            updateBreadcrumb();
-          });
-        });
+        }
       } catch (err) {
         chaptersContainer.innerHTML = '<p class="text-danger">Lỗi tải danh sách chương.</p>';
       }

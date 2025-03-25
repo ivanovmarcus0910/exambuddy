@@ -589,26 +589,24 @@ public class ExamService {
         try {
             CollectionReference collectionReference = db.collection("exams");
             ApiFuture<QuerySnapshot> future = collectionReference
-                    .whereEqualTo("username", username) // Tìm bài thi theo username
+                    .whereEqualTo("username", username)
                     .get();
 
             List<QueryDocumentSnapshot> documents = future.get().getDocuments();
 
             for (DocumentSnapshot doc : documents) {
-                if (doc.exists()) {
+                if (doc.exists() && doc.contains("date")) { // Bỏ qua nếu thiếu date
                     Exam exam = doc.toObject(Exam.class);
-                    if (exam.isActive())
-                    {
-                    exam.setExamID(doc.getId());
-//                    if (exam.getDate() != null) {
-//                        String formattedDate = formatDate(exam.getDate());
-//                        exam.setDate(formattedDate);
-//                    }// Đặt examID trực tiếp từ ID tài liệu
-                    exams.add(exam);
+                    if (exam.isActive()) {
+                        exam.setExamID(doc.getId());
+                        exams.add(exam);
                     }
-
                 }
             }
+
+            // Sắp xếp thủ công theo ngày giảm dần
+            exams.sort((e1, e2) -> e2.getDate().compareTo(e1.getDate()));
+
         } catch (Exception e) {
             e.printStackTrace();
         }

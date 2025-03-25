@@ -388,18 +388,26 @@
         if (!response.ok) throw new Error(`Lỗi tải chương: ${response.status}`);
         const chapters = await response.json();
         elements.chapterList.innerHTML = '';
-        chapters.forEach(chapter => {
-          const li = document.createElement('li');
-          li.classList.add('list-group-item');
-          li.innerHTML = `
-        <span class="chapter-name" data-id="${chapter.id}" onclick="toggleLessons('${classId}', '${subjectId}', '${chapter.id}', '${chapter.name}')">${chapter.name}</span>
-        <div>
-          <button class="btn btn-primary btn-sm me-2 edit-chapter-btn" data-id="${chapter.id}" onclick="editChapterName('${classId}', '${subjectId}', '${chapter.id}', this)">Cập nhật</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteChapter('${classId}', '${subjectId}', '${chapter.id}')">Xóa</button>
-        </div>
-      `;
-          elements.chapterList.appendChild(li);
-        });
+
+        // Kiểm tra nếu danh sách chương rỗng
+        if (Array.isArray(chapters) && chapters.length > 0) {
+          chapters.forEach(chapter => {
+            const li = document.createElement('li');
+            li.classList.add('list-group-item');
+            li.innerHTML = `
+          <span class="chapter-name" data-id="${chapter.id}" onclick="toggleLessons('${classId}', '${subjectId}', '${chapter.id}', '${chapter.name}')">${chapter.name}</span>
+          <div>
+            <button class="btn btn-primary btn-sm me-2 edit-chapter-btn" data-id="${chapter.id}" onclick="editChapterName('${classId}', '${subjectId}', '${chapter.id}', this)">Cập nhật</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteChapter('${classId}', '${subjectId}', '${chapter.id}')">Xóa</button>
+          </div>
+        `;
+            elements.chapterList.appendChild(li);
+          });
+        } else {
+          // Hiển thị thông báo nếu không có chương nào
+          elements.chapterList.innerHTML = '<li class="list-group-item">Không có chương nào</li>';
+        }
+
         updateBreadcrumb();
       } catch (error) {
         console.error('Error loading chapters:', error);
