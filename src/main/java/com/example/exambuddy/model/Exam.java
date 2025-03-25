@@ -17,8 +17,7 @@ public class Exam {
     private String date;
     private int questionCount; // Số lượng câu hỏi
     private List<Question> questions; // Danh sách câu hỏi
-
-
+    private  int participantCount;
 
     private long timeduration;
     private boolean active = true;
@@ -28,7 +27,7 @@ public class Exam {
     }
 
     public Exam(String examID, String examName, String grade, String subject, String examType, String city,
-                List<String> tags, String username, String date, int questionCount, List<Question> questions, long timeduration) {
+                List<String> tags, String username, String date, int questionCount, List<Question> questions, long timeduration, int participantCount) {
         this.examID = examID;
         this.examName = examName;
         this.grade = grade;
@@ -42,6 +41,7 @@ public class Exam {
         this.questions = questions;
         this.timeduration = timeduration;
         this.active = true; // Người dùng mới mặc định hoạt động
+        this.participantCount = participantCount;
     }
 
     public boolean isActive() {
@@ -145,6 +145,13 @@ public class Exam {
 
     public void setTimeduration(long timeduration) {
         this.timeduration = timeduration;
+    }
+
+    public int getParticipantCount() {
+        return participantCount;
+    }
+    public void setParticipantCount(int participantCount) {
+        this.participantCount = participantCount;
     }
     public String getFormattedDate() {
         return formatDate(this.date);

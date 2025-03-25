@@ -361,7 +361,7 @@ public class ManageExamController {
             map.put("subject", exam.getSubject());
             map.put("grade", exam.getGrade());
             map.put("examID", exam.getExamID());
-            map.put("createdDate", exam.getDate());
+            map.put("createdDate", exam.getFormattedDate());
             return map;
         }).collect(Collectors.toList());
 
