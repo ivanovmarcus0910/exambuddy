@@ -10,6 +10,7 @@ import com.example.exambuddy.service.*;
 import com.example.exambuddy.model.User;
 import com.google.cloud.firestore.*;
 import com.google.firebase.cloud.FirestoreClient;
+import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -101,13 +102,32 @@ public class ManageExamController {
             if (session.getAttribute("loggedInUser") == null) {
                 return "redirect:/home"; // Nếu chưa đăng nhập, chuyển hướng về home
             }
-
+            List<Question> questions;;
             Exam exam = examService.getExam(examId);
-            String username = cookieService.getCookie(request, "noname");
-            examService.addExamSession(examId, username, 1000 * 60 * exam.getTimeduration());
+            String username = session.getAttribute("loggedInUser").toString();
+            if (session.getAttribute("shuffledQuestions_"+examId) == null) {
+                examService.submitExam(username, examId);
+
+                examService.addExamSession(examId, username, 1000 * 60 * exam.getTimeduration());
+                questions = new ArrayList<>(exam.getQuestions());
+                System.out.println("Trước khi xáo trộn:");
+                for (Question question : questions) {
+                    System.out.println(question.getQuestionText());
+                }
+                Collections.shuffle(questions);
+                System.out.println("Đề trong Server Sau khi random: ");
+                for (Question question : questions) {
+                    System.out.println(question.getQuestionText());
+                }
+            }
+            else{
+                questions = (List<Question>) session.getAttribute("shuffledQuestions_" + examId);
+            }
+            session.setAttribute("shuffledQuestions_" + examId, questions);
+
             model.addAttribute("exam", exam);
             model.addAttribute("username", username);
-            model.addAttribute("questions", exam.getQuestions()); // Gửi danh sách câu hỏi qua view
+            model.addAttribute("questions", questions); // Gửi danh sách câu hỏi qua view
             model.addAttribute("timeduration", exam.getTimeduration());
             return "examDo";
         } catch (Exception e) {
@@ -117,13 +137,11 @@ public class ManageExamController {
     }
 
     @PostMapping("exams/{examId}/submit")
-    public String submitExam(@PathVariable String examId, @RequestParam MultiValueMap<String, String> userAnswers, HttpServletRequest request, Model model) {
+    public String submitExam(@PathVariable String examId, @RequestParam MultiValueMap<String, String> userAnswers, HttpServletRequest request, Model model, HttpSession session) {
 
         userAnswers.forEach((questionID, answers) ->
                 System.out.println("Câu " + questionID + " => " + answers)
         );
-
-        // Chuyển đổi dữ liệu thành map đúng
         Map<String, List<Integer>> parsedAnswers = new HashMap<>();
         for (Map.Entry<String, List<String>> entry : userAnswers.entrySet()) {
             List<Integer> selectedIndexes = entry.getValue().stream()
@@ -132,12 +150,13 @@ public class ManageExamController {
             parsedAnswers.put(entry.getKey(), selectedIndexes);
         }
 
-        // In ra kết quả sau khi parse
-
 
         try {
             Exam exam = examService.getExam(examId);
-            List<Question> questions = exam.getQuestions();
+            List<Question> questions = (List<Question>) session.getAttribute("shuffledQuestions_" + examId);
+            for (Question question : questions) {
+                System.out.println(question.getQuestionText());
+            }
             int totalQuestions = exam.getQuestions().size();
             int correctCount = 0;
             Question question;
@@ -147,6 +166,8 @@ public class ManageExamController {
                 question = questions.get(i);
 
                 List<Integer> correctAnswers = question.getCorrectAnswers(); // Đáp án đúng
+                System.out.println("Câu " + question.getQuestionText() + " => " +question.getCorrectAnswers().toString());
+
                 List<Integer> userSelected = parsedAnswers.getOrDefault(questionKey, new ArrayList<>()); // Đáp án người dùng chọn
 
                 // So sánh danh sách đáp án đúng với đáp án người dùng chọn
@@ -155,14 +176,15 @@ public class ManageExamController {
                     correctCount++;
                     correctQuestions.add(questionKey); // Thêm vào danh sách câu đúng
                 }
-                //System.out.println(i+":"+correctAnswers +" vs "+ userSelected);
+//                System.out.println(i+":"+correctAnswers +" vs "+ userSelected);
             }
 
             double score = (double) correctCount / totalQuestions * 10;
-            userAnswers.forEach((questionID, answers) ->
-                    System.out.println(questionID + " => " + answers)
-            );
-            String username = cookieService.getCookie(request, "noname");
+//            userAnswers.forEach((questionID, answers) ->
+//                    System.out.println(questionID + " => " + answers)
+//            );
+            String username = session.getAttribute("loggedInUser").toString();
+            session.removeAttribute("shuffledQuestions_"+examId);
             examService.submitExam(username, examId);
             examService.saveExamResult(username, examId, score, exam, userAnswers, correctQuestions);
             leaderBoardService.updateUserScore(username, score);
@@ -339,7 +361,7 @@ public class ManageExamController {
             map.put("subject", exam.getSubject());
             map.put("grade", exam.getGrade());
             map.put("examID", exam.getExamID());
-            map.put("createdDate", exam.getDate());
+            map.put("createdDate", exam.getFormattedDate());
             return map;
         }).collect(Collectors.toList());
 
@@ -401,9 +423,17 @@ public class ManageExamController {
         // Lấy danh sách câu hỏi từ Firestore
         Exam exam = examService.getExam(examId);
         if (exam == null) {
-            return "redirect:/exams/result-list";
-        }
+            model.addAttribute("exam", new Exam());  // Truyền danh sách câu hỏi vào Thymeleaf
 
+            model.addAttribute("score", examResult.getScore());
+            model.addAttribute("userName", examResult.getUsername());
+            model.addAttribute("userAnswers", null);
+            model.addAttribute("correctQuestions", examResult.getCorrectAnswers());
+
+            model.addAttribute("err", "Lỗi đề thi đã bị vô hiệu hóa, chân thành xin lỗi!");
+            return "fragments/ResultDetail :: detailFragment";
+        }
+        System.out.println(exam.getExamID());
         // Khởi tạo userAnswers với tất cả các câu hỏi
         Map<String, List<String>> userAnswers = new HashMap<>();
         if (exam.getQuestions() != null) {
@@ -414,6 +444,7 @@ public class ManageExamController {
                         examResult.getAnswers().getOrDefault(key, Collections.emptyList()) : Collections.emptyList());
             }
         }
+        System.out.println(exam.getExamID());
 
         model.addAttribute("exam", exam);  // Truyền danh sách câu hỏi vào Thymeleaf
         model.addAttribute("score", examResult.getScore());
@@ -668,7 +699,7 @@ public class ManageExamController {
     }
     @PostMapping("/exams/delete/{examId}")
     public String deleteExam(@PathVariable String examId,
-                             HttpSession session) {
+                             HttpSession session, Model model) {
         String username = (String) session.getAttribute("loggedInUser");
         if (username == null) {
             session.setAttribute("error", "Bạn cần đăng nhập.");
@@ -676,9 +707,14 @@ public class ManageExamController {
         }
         Exam exam = examService.getExam(examId);
         if (exam.getUsername().equals(username)) {
-            examService.deleteExam(examId);
+            examService.updateExamStatus(examId, false);
+            return "redirect:/exams/created";
         }
-        return "redirect:/exams/created";
+        else
+        {
+            model.addAttribute("error", "Bạn đang truy cập trái phép");
+            return "error";
+        }
     }
     @GetMapping("/exams/{examId}/feedbacks")
     public ResponseEntity<List<Feedback>> getFeedbacks(@PathVariable String examId) {

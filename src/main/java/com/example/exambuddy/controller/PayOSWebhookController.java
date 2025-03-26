@@ -37,7 +37,7 @@ public class PayOSWebhookController {
 
                 String username = userService.updatePaymentStatus(orderCode, amount, "PAID");
                 userService.changeCoinBalance(amount, username);
-                leaderBoardService.updateUserContribute(username, amount);
+                leaderBoardService.updateUserContribute(username, amount/1000);
                 return ResponseEntity.ok("Success");
             } else {
                 String username = userService.updatePaymentStatus(orderCode, amount, "FAIL");

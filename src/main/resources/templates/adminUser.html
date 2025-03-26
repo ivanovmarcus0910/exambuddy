@@ -130,7 +130,7 @@
         <h2 class="h5 fw-bold mb-3">Danh sách Người dùng</h2>
 
         <!-- Nav Tabs -->
-        <ul class="nav nav-tabs mb-3">
+        <ul class="nav nav-tabs flex-nowrap" style="white-space: nowrap; overflow-x: auto;">
           <li class="nav-item">
             <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-all">Tất cả</button>
           </li>
@@ -148,6 +148,13 @@
           </li>
           <li class="nav-item">
             <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-admin">Quản trị viên</button>
+          </li>
+          <!-- Thêm 2 tab mới -->
+          <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-inactive">Tài khoản bị vô hiệu hoá</button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-unverified">Tài khoản chưa xác thực</button>
           </li>
         </ul>
 
@@ -864,6 +871,184 @@
                     </form>
                   </td>
 
+                </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- ================= TAB TÀI KHOẢN BỊ VÔ HIỆU HOÁ ================= -->
+          <div class="tab-pane fade" id="tab-inactive">
+            <h5 class="fw-bold mb-3">Tài khoản bị vô hiệu hoá</h5>
+            <div class="table-responsive">
+              <table class="table table-bordered table-striped">
+                <thead class="table-secondary">
+                <tr>
+                  <th class="username">Tài khoản</th>
+                  <th class="email">Email</th>
+                  <th class="active">Trạng thái</th>
+                  <th class="role">Vai trò</th>
+                  <th>Thao tác</th>
+                  <th>Đổi vai trò</th>
+                  <th style="min-width: 150px;">Hạn chế</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="user : ${inactiveUsers}">
+                  <td class="user-account">
+                    <div class="d-flex align-items-center">
+                      <img th:src="${user.avatarUrl}" alt="User Avatar" class="rounded-circle" style="width:30px; height:30px;">
+                      <span th:text="${user.username}" class="ms-2">Username</span>
+                    </div>
+                  </td>
+                  <td class="email" th:text="${user.email}">Email</td>
+                  <td>
+              <span th:style="${user.active} ?
+                'display:inline-block; background-color:#2196f3; color:#fff; padding:6px 12px; border-radius:9999px;'
+                : 'display:inline-block; background-color:#E43161; color:#fff; padding:6px 12px; border-radius:9999px;'"
+                    th:text="${user.active} ? 'Active' : 'Inactive'">
+              </span>
+                  </td>
+                  <td class="role text-primary" th:text="${@roleController.getRoleNameInVietnamese(user.role)}">Role</td>
+                  <td class="text-center align-middle">
+                    <!-- Nút Xem chi tiết -->
+                    <button class="btn btn-primary btn-sm fw-bold rounded-pill d-flex align-items-center justify-content-center px-3"
+                            data-bs-toggle="modal" data-bs-target="#userModal"
+                            th:data-id="${user.id}"
+                            th:data-username="${user.username}"
+                            th:data-email="${user.email}"
+                            th:data-phone="${user.phone}"
+                            th:data-role="${@roleController.getRoleNameInVietnamese(user.role)}"
+                            th:data-status="${user.active}"
+                            th:data-join-date="${user.getFormattedJoinTime()}"
+                            th:data-firstname="${user.firstName}"
+                            th:data-lastname="${user.lastName}"
+                            th:data-birth="${user.birthDate}"
+                            th:data-address="${user.address}"
+                            th:data-avatar="${user.avatarUrl}"
+                            th:data-coin="${user.coin}"
+                            th:data-verified="${user.verified}">
+                      <i class="bi bi-eye me-1"></i> Xem
+                    </button>
+                  </td>
+                  <td class="text-center align-middle">
+                    <!-- Form đổi vai trò -->
+                    <form action="/admin/changeRole" method="post" class="d-inline-flex align-items-center">
+                      <input type="hidden" name="username" th:value="${user.username}">
+                      <select name="newRole"
+                              class="form-select form-select-sm text-white bg-dark border-0 rounded-pill px-3 me-2"
+                              style="width: auto; min-width: 130px;">
+                        <option value="STUDENT" th:selected="${user.role == 'STUDENT'}">Học sinh</option>
+                        <option value="TEACHER" th:selected="${user.role == 'TEACHER'}">Giáo viên</option>
+                        <option value="ADMIN" th:selected="${user.role == 'ADMIN'}">Quản trị viên</option>
+                        <option value="UPGRADED_USER" th:selected="${user.role == 'UPGRADED_USER'}">Tài khoản nâng cấp</option>
+                        <option value="PENDING_TEACHER" th:selected="${user.role == 'PENDING_TEACHER'}">Xét duyệt giáo viên</option>
+                      </select>
+                      <button type="submit" class="btn btn-success btn-sm rounded-pill d-flex align-items-center px-3">
+                        <i class="bi bi-save me-1"></i> Lưu
+                      </button>
+                    </form>
+                  </td>
+                  <td style="min-width: 150px;">
+                    <!-- Form chặn/bỏ chặn -->
+                    <form action="/admin/updateUserStatus" method="post" class="d-flex align-items-center">
+                      <input type="hidden" name="username" th:value="${user.username}">
+                      <button type="submit"
+                              class="btn btn-sm rounded-pill d-flex align-items-center justify-content-center px-3 fw-bold text-white"
+                              th:classappend="${user.active} ? ' btn-danger' : ' btn-success'">
+                        <i class="bi" th:class="${user.active} ? 'bi-x-circle me-1' : 'bi-check-circle me-1'"></i>
+                        <span th:text="${user.active} ? 'Chặn' : 'Bỏ chặn'"></span>
+                      </button>
+                    </form>
+                  </td>
+                </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- ============== TAB TÀI KHOẢN CHƯA XÁC THỰC ============== -->
+          <div class="tab-pane fade" id="tab-unverified">
+            <h5 class="fw-bold mb-3">Tài khoản chưa xác thực</h5>
+            <div class="table-responsive">
+              <table class="table table-bordered table-striped">
+                <thead class="table-secondary">
+                <tr>
+                  <th class="username">Tài khoản</th>
+                  <th class="email">Email</th>
+                  <th class="verification" style="min-width: 150px;">Xác thực</th>
+                  <th class="role">Vai trò</th>
+                  <th>Thao tác</th>
+                  <th>Đổi vai trò</th>
+                  <th style="min-width: 150px;">Hạn chế</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="user : ${unverifiedUsers}">
+                  <td class="user-account">
+                    <div class="d-flex align-items-center">
+                      <img th:src="${user.avatarUrl}" alt="User Avatar" class="rounded-circle" style="width:30px; height:30px;">
+                      <span th:text="${user.username}" class="ms-2">Username</span>
+                    </div>
+                  </td>
+                  <td class="email" th:text="${user.email}">Email</td>
+                  <td>
+              <span th:style="${user.verified}
+              ? 'display:inline-block; background-color:#2196f3; color:#fff; padding:6px 12px; border-radius:9999px;'
+              : 'display:inline-block; background-color:#E43161; color:#fff; padding:6px 12px; border-radius:9999px;'"
+                    th:text="${user.verified} ? 'Đã xác thực' : 'Chưa xác thực'">
+            </span>
+                  </td>
+                  <td class="role text-primary" th:text="${@roleController.getRoleNameInVietnamese(user.role)}">Role</td>
+                  <td class="text-center align-middle">
+                    <!-- Nút Xem -->
+                    <button class="btn btn-primary btn-sm fw-bold rounded-pill d-flex align-items-center justify-content-center px-3"
+                            data-bs-toggle="modal" data-bs-target="#userModal"
+                            th:data-id="${user.id}"
+                            th:data-username="${user.username}"
+                            th:data-email="${user.email}"
+                            th:data-phone="${user.phone}"
+                            th:data-role="${@roleController.getRoleNameInVietnamese(user.role)}"
+                            th:data-status="${user.active}"
+                            th:data-join-date="${user.getFormattedJoinTime()}"
+                            th:data-firstname="${user.firstName}"
+                            th:data-lastname="${user.lastName}"
+                            th:data-birth="${user.birthDate}"
+                            th:data-address="${user.address}"
+                            th:data-avatar="${user.avatarUrl}"
+                            th:data-coin="${user.coin}"
+                            th:data-verified="${user.verified}">
+                      <i class="bi bi-eye me-1"></i> Xem
+                    </button>
+                  </td>
+                  <td class="text-center align-middle">
+                    <form action="/admin/changeRole" method="post" class="d-inline-flex align-items-center">
+                      <input type="hidden" name="username" th:value="${user.username}">
+                      <select name="newRole"
+                              class="form-select form-select-sm text-white bg-dark border-0 rounded-pill px-3 me-2"
+                              style="width: auto; min-width: 130px;">
+                        <option value="STUDENT" th:selected="${user.role == 'STUDENT'}">Học sinh</option>
+                        <option value="TEACHER" th:selected="${user.role == 'TEACHER'}">Giáo viên</option>
+                        <option value="ADMIN" th:selected="${user.role == 'ADMIN'}">Quản trị viên</option>
+                        <option value="UPGRADED_USER" th:selected="${user.role == 'UPGRADED_USER'}">Tài khoản nâng cấp</option>
+                        <option value="PENDING_TEACHER" th:selected="${user.role == 'PENDING_TEACHER'}">Xét duyệt giáo viên</option>
+                      </select>
+                      <button type="submit" class="btn btn-success btn-sm rounded-pill d-flex align-items-center px-3">
+                        <i class="bi bi-save me-1"></i> Lưu
+                      </button>
+                    </form>
+                  </td>
+                  <td style="min-width: 150px;">
+                    <form action="/admin/updateUserStatus" method="post" class="d-flex align-items-center">
+                      <input type="hidden" name="username" th:value="${user.username}">
+                      <button type="submit"
+                              class="btn btn-sm rounded-pill d-flex align-items-center justify-content-center px-3 fw-bold text-white"
+                              th:classappend="${user.active} ? ' btn-danger' : ' btn-success'">
+                        <i class="bi" th:class="${user.active} ? 'bi-x-circle me-1' : 'bi-check-circle me-1'"></i>
+                        <span th:text="${user.active} ? 'Chặn' : 'Bỏ chặn'"></span>
+                      </button>
+                    </form>
+                  </td>
                 </tr>
                 </tbody>
               </table>

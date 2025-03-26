@@ -94,6 +94,7 @@
               <th>Trạng thái</th>
               <th>Thời gian</th>
               <th>Hành động</th>
+              <th>Ghi chú</th>
             </tr>
             </thead>
             <tbody>
@@ -114,6 +115,8 @@
                   Thanh toán
                 </a>
               </td>
+              <td th:text="${payment.note}"></td>
+
             </tr>
             </tbody>
           </table>

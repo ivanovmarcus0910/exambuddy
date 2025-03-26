@@ -104,13 +104,21 @@ public class AdminController {
         List<User> admins = allUsers.stream()
                 .filter(u -> "ADMIN".equalsIgnoreCase(u.getRole().toString()))
                 .collect(Collectors.toList());
+        List<User> inactiveUsers = allUsers.stream()
+                .filter(u -> !u.isActive())
+                .collect(Collectors.toList());
+        List<User> unverifiedUsers = allUsers.stream()
+                .filter(u -> !u.isVerified())
+                .collect(Collectors.toList());
 
         model.addAttribute("allUsers", allUsers);      // Cho tab "Tổng số"
         model.addAttribute("students", students);      // Cho tab "Học sinh"
         model.addAttribute("teachers", teachers);      // Cho tab "Giáo viên"
         model.addAttribute("upgraded", upgraded);
         model.addAttribute("pending", pending);// Cho tab "Upgrade học sinh"
-        model.addAttribute("admins", admins);          // Cho tab "Admin"
+        model.addAttribute("admins", admins);
+        model.addAttribute("inactiveUsers", inactiveUsers);
+        model.addAttribute("unverifiedUsers", unverifiedUsers);// Cho tab "Admin"
 
         // Thêm số liệu thống kê cho biểu đồ
         model.addAttribute("studentCount", students.size());

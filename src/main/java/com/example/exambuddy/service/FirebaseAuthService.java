@@ -5,6 +5,7 @@ import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.*;
 import com.google.firebase.cloud.FirestoreClient;
 import jakarta.mail.MessagingException;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -347,5 +348,19 @@ public class FirebaseAuthService {
         }
     }
 
+    // Phương thức cập nhật số lần đăng nhập thất bại
+    public void updateFailedLogin(HttpSession session) {
+        Integer failedAttempts = (Integer) session.getAttribute("failedLoginCount");
+        if (failedAttempts == null) {
+            failedAttempts = 1;
+        } else {
+            failedAttempts++;
+        }
+        session.setAttribute("failedLoginCount", failedAttempts);
+        // Nếu đã nhập sai >= 5 lần, đặt thời gian lock hiện tại
+        if (failedAttempts >= 5) {
+            session.setAttribute("loginLockTime", System.currentTimeMillis());
+        }
+    }
 
 }

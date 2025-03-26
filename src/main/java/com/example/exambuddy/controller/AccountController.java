@@ -15,8 +15,10 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.net.URLDecoder;
 import java.net.http.HttpRequest;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.ExecutionException;
 
 import org.springframework.web.bind.annotation.GetMapping;
@@ -55,18 +57,43 @@ public class AccountController {
 //
 //        return "profile";
 //    }
-
+        public boolean isImageFile(MultipartFile file) {
+    String contentType = file.getContentType();
+    return contentType != null && contentType.startsWith("image/");
+        }
+    public static long generateOrderCode() {
+        long timestamp = Instant.now().toEpochMilli(); // Lấy timestamp hiện tại
+        int randomPart = new Random().nextInt(900) + 100; // 3 số ngẫu nhiên (100-999)
+        return Long.parseLong(String.valueOf(timestamp) + randomPart);
+    }
     @PostMapping("/profile/upload")
     public String uploadAvatar(@RequestParam("image") MultipartFile file,
                                @RequestParam String username,
                                HttpSession session,
+                               RedirectAttributes redirectAttributes,
                                Model model) throws IOException {
-        String url = this.cloudinaryService.upLoadImgAvt(file, "imgAvatar", username);
-        System.out.println("URL=" + url);
-        UserService.changeAvatar(username, url);
-        session.setAttribute("urlimg", url);
+        if (isImageFile(file)) {
+
+
+            String url = this.cloudinaryService.upLoadImgAvt(file, "imgAvatar", username);
+            System.out.println("URL=" + url);
+            if (url != null) {
+                UserService.changeAvatar(username, url);
+                session.setAttribute("urlimg", url);
+                redirectAttributes.addFlashAttribute("success", "Cập nhật thành công!");
+
+            } else {
+                redirectAttributes.addFlashAttribute("messageUpload", "Database update failure!");
+
+            }
+        }
+        else {
+            redirectAttributes.addFlashAttribute("messageUpload", "Invalid file type!");
+
+        }
         User user = UserService.getUserData(username);
         model.addAttribute("user", user);
+
 
         return "redirect:/profile";  // Trở về trang profile
     }
@@ -187,28 +214,64 @@ public class AccountController {
             {
                 if (userService.updateUserPremium(username, timer))
                 {
+                    userService.addPaymentTransaction(generateOrderCode(), -charge, "", "PAID", username, "Upgrade Account");
+
                     model.addAttribute("user", user);
                     return "redirect:/profile";
                 }
                 else
                 {
 
-                    redirectAttributes.addFlashAttribute("err", "Lỗi giao dịch, vui lòng thử lại!");
+                    redirectAttributes.addFlashAttribute("err", "Your account upgrade was unsuccessful.Please try again later!");
                     return "redirect:/upgrade";
                 }
 
             }
             else
             {
-                redirectAttributes.addFlashAttribute("err", "Lỗi giao dịch, vui lòng thử lại!");
+                redirectAttributes.addFlashAttribute("err", "We are unable to check your account balance at the moment. Please try again later!");
                 return "redirect:/upgrade";
 
             }
         }
         else{
-            redirectAttributes.addFlashAttribute("err", "Không đủ coin vui lòng nạp và thử lại!");
+            redirectAttributes.addFlashAttribute("err", "Your account balance is not enough. Please try again later!");
             return "redirect:/upgrade";
         }
+
+    }
+    @RequestMapping("/accountbalance")
+    public String accountBalance(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
+        String username = (String) session.getAttribute("loggedInUser");
+        System.out.println("username=" + username);
+        if (username == null) {
+            return "redirect:/login";
+        }
+        long income = 0, expenses = 0;
+        try {
+            int pageSize = 10; // Số bản ghi trên mỗi trang
+            Long lastTimestamp = getLastTimestamp(1, pageSize, username);
+            System.out.println(lastTimestamp);
+            List<Payment> payments = userService.getPayments(username);
+            for (Payment payment : payments) {
+                if (payment.getAmount() > 0) {
+                    income+=payment.getAmount();
+                }
+                else
+                    expenses+=payment.getAmount();
+            }
+        }
+        catch (Exception e) {
+            redirectAttributes.addFlashAttribute("message", "We are unable to check your account balance at the moment. Please try again later!");
+
+        }
+        User user = userService.getUserByUsername(username);
+        model.addAttribute("income", income);
+        model.addAttribute("expenses", expenses);
+        model.addAttribute("totalBalance", user.getCoin());
+        model.addAttribute("user", user);
+
+            return "accountbalance";
 
     }
 
