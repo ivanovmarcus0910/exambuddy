@@ -80,6 +80,9 @@
             <div th:if="${success}" class="alert alert-success" style="font-size:0.9rem;">
                 [[${success}]]
             </div>
+            <div th:if="${messageUpload}" class="alert alert-danger" style="font-size:0.9rem;">
+                [[${messageUpload}]]
+            </div>
             <div th:if="${pendingTeacherMessage}" class="alert alert-warning" style="font-size:0.9rem;">
                 <strong>Thông báo:</strong> [[${pendingTeacherMessage}]]
             </div>
@@ -115,6 +118,8 @@
                                         <i class="bi bi-camera"></i> Thay đổi ảnh
                                     </label>
                                 </form>
+
+
 
                                 <!-- Badges và EB Coin -->
                                 <div class="mt-3 d-flex flex-column align-items-center gap-1">

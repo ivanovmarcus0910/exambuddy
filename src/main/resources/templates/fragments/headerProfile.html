@@ -26,6 +26,24 @@
             border-right: 1px solid #eee;
             z-index: 998;
             transition: width 0.3s ease;
+            overflow-y: auto;
+            scrollbar-width: thin; /* Chỉ áp dụng cho Firefox */
+            scrollbar-color: #ccc #f5f6fa; /* Màu thanh cuộn */
+
+        }
+
+        /* Thiết kế thanh cuộn cho Chrome, Edge */
+        .sidebar-fixed::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .sidebar-fixed::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 4px;
+        }
+
+        .sidebar-fixed::-webkit-scrollbar-track {
+            background: #f5f6fa;
         }
 
         /* Header cố định cho desktop */
@@ -95,6 +113,10 @@
             <a class="d-flex align-items-center px-2 py-1 text-secondary" href="/profile" style="border-radius:8px;">
                 <i class="bi bi-person-fill me-2" style="font-size:1.2rem;"></i>
                 <span class="menu-text">Thông tin cá nhân</span>
+            </a>
+            <a class="d-flex align-items-center px-2 py-1 text-secondary" href="/accountbalance" style="border-radius:8px;">
+                <i class="bi bi-wallet-fill me-2" style="font-size:1.2rem;"></i>
+                <span class="menu-text">Số dư tài khoản</span>
             </a>
             <a class="d-flex align-items-center px-2 py-1 text-secondary" href="/payment-coin" style="border-radius:8px;">
                 <i class="bi bi-wallet-fill me-2" style="font-size:1.2rem;"></i>
