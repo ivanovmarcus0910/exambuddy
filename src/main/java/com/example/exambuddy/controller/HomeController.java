@@ -62,18 +62,18 @@ public class HomeController {
         return "createPayment"; // Trả về tên file HTML (không cần đuôi .html)
     }
 
-    @GetMapping("/createTheory")
-    public String createTheory() {
-        return "createTheory"; // Trả về tên file HTML (không cần đuôi .html)
-    }
-    @GetMapping("/viewTheory")
-    public String viewTheory() {
-        return "viewTheory"; // Trả về tên file HTML (không cần đuôi .html)
-    }
+//    @GetMapping("/createTheory")
+//    public String createTheory() {
+//        return "createTheory"; // Trả về tên file HTML (không cần đuôi .html)
+//    }
+//    @GetMapping("/viewTheory")
+//    public String viewTheory() {
+//        return "viewTheory"; // Trả về tên file HTML (không cần đuôi .html)
+//    }
 
-    @GetMapping("/participant")
-    public String participant() {
-        return "examStatistics";}
+//    @GetMapping("/participant")
+//    public String participant() {
+//        return "examStatistics";}
     @GetMapping("/contact")
     public String contact() {
         return "contact";
