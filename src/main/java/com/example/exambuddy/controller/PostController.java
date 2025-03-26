@@ -43,6 +43,11 @@ public class PostController {
         String username = (String) session.getAttribute("loggedInUser");
         // Lấy bài viết theo postId
         Post post = postService.getPostById(postId);
+
+        if (post == null) {
+            model.addAttribute("postNotFound", true);
+            return "postDetail";
+        }
         // Kiểm tra xem user đã like post hay chưa
         post.setLiked(post.getLikedUsernames() != null && post.getLikedUsernames().contains(username));
 

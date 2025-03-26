@@ -34,7 +34,7 @@ public class ForumController {
                                                           @RequestParam("subject") String subject,
                                                           @RequestParam(value = "grade", required = false, defaultValue = "Chung") String grade,
                                                           @RequestParam("images") MultipartFile[] files,
-                                                          HttpSession session) {
+                                                          @RequestParam("status") String status, HttpSession session) {
         String username = (String) session.getAttribute("loggedInUser");
 
         if (username == null) {
@@ -59,7 +59,7 @@ public class ForumController {
         String date = formatter.format(new Date());
 
         // Lưu bài viết
-        Post post = PostService.savePost(username, avatarUrl, content, subject, grade, date, imageUrls);
+        Post post = PostService.savePost(username, avatarUrl, content, subject, grade, date, status, imageUrls);
 
         // Tạo response JSON
         Map<String, Object> response = new HashMap<>();
@@ -90,9 +90,11 @@ public class ForumController {
     }
 
     @GetMapping("/posts")
-    public ResponseEntity<List<Map<String, Object>>> getPosts(@RequestParam(value = "subject", required = false) String subject,
-                                                              @RequestParam(value = "grade", required = false) String grade) {
-        List<Post> posts = postService.getPostsFromFirestore();
+    public ResponseEntity<List<Map<String, Object>>> getPosts(HttpSession session,
+            @RequestParam(value = "subject", required = false) String subject,
+            @RequestParam(value = "grade", required = false) String grade) {
+        String username = (String) session.getAttribute("loggedInUser");
+        List<Post> posts = postService.getPublicPostsFromFirestore();
 
         if (subject != null && !subject.isEmpty()) {
             posts = posts.stream()
@@ -119,50 +121,21 @@ public class ForumController {
             map.put("likeCount", post.getLikeCount());
             map.put("liked", post.isLiked());
             map.put("imageUrls", post.getImageUrls()); // Trả về danh sách ảnh
+
+            // Lấy số lượng bình luận
+            int commentCount = postService.getCommentsByPostId(post.getPostId(), username).size();
+            System.out.println("commentCount: " + commentCount);
+            post.setCommentCount(commentCount);
+            map.put("commentCount", post.getCommentCount());
+
             return map;
         }).collect(Collectors.toList());
 
         return ResponseEntity.ok(response);
     }
 
-//    @PostMapping("/comment")
-//    public String createComment(@RequestParam String postId,
-//                                @RequestParam(required = false) String parentCommentId,
-//                                @RequestParam String content,
-//                                @RequestParam("commentImages") MultipartFile[] files,
-//                                HttpServletRequest request, HttpSession session,
-//                                Model model) {
-//        String username = (String) session.getAttribute("loggedInUser");
-//
-//        if (username == null) {
-//            return "redirect:/login";
-//        }
-//
-//        List<String> imageUrls = new ArrayList<>();
-//
-//        if (files != null) { // Kiểm tra nếu có file mới xử lý
-//            for (MultipartFile file : files) {
-//                if (!file.isEmpty()) {
-//                    String imageUrl = this.cloudinaryService.upLoadImg(file, "imgForum/imgComments");
-//                    imageUrls.add(imageUrl);
-//                    System.out.println("URL = " + imageUrl);
-//                }
-//            }
-//        }
-//        String avatarUrl = UserService.getAvatarUrlByUsername(username);
-//
-//        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-//        String date = formatter.format(new Date());
-//
-//        // Lưu bình luận, có thể là bình luận chính hoặc phản hồi
-//        Comment comment = PostService.saveComment(postId, parentCommentId, username, avatarUrl, content, date, imageUrls);
-//        model.addAttribute("comment", comment);
-//
-//        return "redirect:/postDetail/" + postId;
-//    }
-
     @PostMapping("/comment")
-    @ResponseBody // Trả về JSON thay vì redirect
+    @ResponseBody
     public ResponseEntity<?> createComment(
             @RequestParam String postId,
             @RequestParam(required = false) String parentCommentId,
@@ -280,7 +253,7 @@ public class ForumController {
     @ResponseBody
     public ResponseEntity<?> editComment(
             @RequestParam String commentId,
-            @RequestParam String postId,  // Nhận luôn từ frontend
+            @RequestParam String postId,
             @RequestParam String content,
             @RequestParam(required = false, defaultValue = "true") boolean keepOldImages,
             @RequestPart(value = "newImages", required = false) MultipartFile[] files,

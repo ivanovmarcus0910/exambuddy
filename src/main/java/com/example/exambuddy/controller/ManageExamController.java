@@ -579,6 +579,10 @@ public class ManageExamController {
         }
     }
 
+    @GetMapping("/participant")
+    public String participant() {
+        return "examStatistics";}
+
     @GetMapping("/exams/{examId}/statistics")
     public String getExamStatistics(@PathVariable String examId, Model model,
                                     HttpServletRequest request, HttpSession session) {

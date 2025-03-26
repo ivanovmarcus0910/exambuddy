@@ -72,7 +72,9 @@ function submitComment(event) {
                     tempCommentEl.setAttribute("data-post-id", data.postId);
                     tempCommentEl.id = "comment-" + data.commentId;
                     tempCommentEl.querySelector(".heart-btn").setAttribute("data-comment-id", data.commentId);
-
+                    tempCommentEl.querySelector(".edit-comment").setAttribute("data-comment-id", data.commentId);
+                    tempCommentEl.querySelector(".delete-comment").setAttribute("data-comment-id", data.commentId);
+                    tempCommentEl.querySelector(".report-comment").setAttribute("data-comment-id", data.commentId);
                     let replyButtons = tempCommentEl.querySelectorAll(".reply-btn");
                     replyButtons.forEach(btn => {
                         btn.setAttribute("onclick", `setReplyForm('${data.commentId}', '${tempComment.username}', '${tempComment.parentCommentId || ""}')`);
@@ -116,17 +118,28 @@ function createCommentElement(comment) {
                             </button>
                             <ul class="dropdown-menu">
                                 <li>
-                                    <a class="dropdown-item text-primary" href="#"
+                                    <a class="dropdown-item text-primary edit-comment" href="#"
                                         onclick="event.preventDefault(); editComment(this)"
                                         data-comment-id="${comment.commentId}"
                                         data-content="${comment.content}"
-                                        data-images='${JSON.stringify(comment.imageUrls)}'
+                                        data-images='${comment.imageUrls ? comment.imageUrls.join(",") : ""}'
                                         data-username="${comment.username}">
                                        <i class="bi bi-pencil"></i> Chỉnh sửa
                                     </a>
                                 </li>
-                                <li><a class="dropdown-item text-danger" href="#" onclick="deleteComment('${comment.commentId}')"><i class="bi bi-trash"></i> Xoá</a></li>
-                                <li><a class="dropdown-item text-secondary" href="#" onclick="reportComment('${comment.commentId}')"><i class="bi bi-flag"></i> Báo cáo</a></li>
+                                <li>
+                                    <a class="dropdown-item text-danger delete-comment" href="#" 
+                                        data-comment-id="${comment.commentId}"
+                                        data-username="${comment.username}"
+                                        onclick="confirmDeleteComment(this)">
+                                        <i class="bi bi-trash"></i> Xoá</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item text-secondary report-comment" href="#" 
+                                        data-comment-id="${comment.commentId}"
+                                        onclick="reportComment('${comment.commentId}')">
+                                        <i class="bi bi-flag"></i> Báo cáo</a>
+                                </li>
                             </ul>
                         </div>
                         <span class="comment-content">${comment.content}</span>
@@ -145,5 +158,6 @@ function createCommentElement(comment) {
                 </div>
             </div>
             <div class="replies ms-4 mt-2"></div>
-        </div>`;
+        </div>
+    `;
 }

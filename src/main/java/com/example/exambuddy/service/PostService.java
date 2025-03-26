@@ -20,7 +20,7 @@ public class PostService {
     private static final Firestore db = FirestoreClient.getFirestore();
     private static final String COLLECTION_NAME = "posts";
 
-    public static Post savePost(String username, String avatarUrl, String content, String subject, String grade, String date, List<String> imageUrls) {
+    public static Post savePost(String username, String avatarUrl, String content, String subject, String grade, String date, String status, List<String> imageUrls) {
         CollectionReference posts = db.collection(COLLECTION_NAME);
 
         Post post = new Post();
@@ -30,6 +30,7 @@ public class PostService {
         post.setSubject(subject);
         post.setGrade(grade);
         post.setDate(date);
+        post.setStatus(status);
         post.setImageUrls(imageUrls);
         post.setLikeCount(0);
         post.setLikedUsernames(new ArrayList<>());
@@ -95,6 +96,29 @@ public class PostService {
         }
         return postList;
     }
+
+    public static List<Post> getPublicPostsFromFirestore() {
+        List<Post> postList = new ArrayList<>();
+
+        try {
+            // Truy vấn chỉ lấy bài có status = "public"
+            ApiFuture<QuerySnapshot> future = db.collection(COLLECTION_NAME)
+                    .whereEqualTo("status", "public")  // Lọc bài viết public
+                    .get();
+
+            List<QueryDocumentSnapshot> documents = future.get().getDocuments();
+            for (DocumentSnapshot document : documents) {
+                Post post = document.toObject(Post.class);
+                post.setPostId(document.getId());
+
+                postList.add(post);
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
+        return postList;
+    }
+
 
     public static Comment saveComment(String postId, String parentCommentId, String username, String avatarUrl, String content, String date, List<String> imageUrls) {
 
