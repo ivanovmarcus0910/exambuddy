@@ -176,9 +176,13 @@ function validateForm() {
     return true;
 }
 function submitQuestions() {
+
     if (!validateForm()) {
         return;
     }
+    document.getElementById("messageContainer").innerHTML =
+        '<div class="alert alert-warning" style="font-size:0.9rem;">Uploading</div>';
+
     let username = getCookie("noname"); // Lấy username từ cookie
     if (!username) {
         alert("Bạn chưa đăng nhập!");

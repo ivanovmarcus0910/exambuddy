@@ -251,7 +251,7 @@ function submitQuestions() {
         })
         .then(message => {
             document.getElementById("messageContainer").innerHTML =
-                '<div class="alert alert-success" style="font-size:0.9rem;">message</div>';
+                '<div class="alert alert-success" style="font-size:0.9rem;">Edit successful</div>';
 
             alert(message); // Hiển thị thông báo từ server
             questions = [];
