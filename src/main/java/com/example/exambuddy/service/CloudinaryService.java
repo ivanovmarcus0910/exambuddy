@@ -32,6 +32,7 @@ public class CloudinaryService {
             return null;
         }
     }
+
     public String upLoadImgAvt(MultipartFile file, String folder, String username){
         try{
         String publicId = folder + "/" + username;  // Tạo public_id cố định cho user

@@ -2,19 +2,21 @@ package com.example.exambuddy.model;
 
 public class Payment {
     long paymentCode;
-    int amount;
+    long amount;
     String url;
     Long timestamp;
     String status;
     String username;
+    String note;
 
-    public Payment(long paymentCode, int amount, String url, String status, String username, Long timestamp) {
+    public Payment(long paymentCode, long amount, String url, String status, String username, Long timestamp, String note) {
         this.paymentCode = paymentCode;
         this.amount = amount;
         this.url = url;
         this.status = status;
         this.username = username;
         this.timestamp = timestamp;
+        this.note = note;
     }
 
     public Payment() {
@@ -28,7 +30,7 @@ public class Payment {
         this.paymentCode = paymentCode;
     }
 
-    public int getAmount() {
+    public long getAmount() {
         return amount;
     }
 
@@ -66,5 +68,13 @@ public class Payment {
 
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    public String getNote() {
+        return note;
+    }
+
+    public void setNote(String note) {
+        this.note = note;
     }
 }

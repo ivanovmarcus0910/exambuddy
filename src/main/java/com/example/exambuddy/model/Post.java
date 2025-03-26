@@ -16,8 +16,10 @@ public class Post {
     private List<String> imageUrls;
     private int likeCount;
     private List<Comment> comments;
+    private int commentCount;
     private List<String> likedUsernames;
     private boolean liked;
+    private String status;
     private boolean active = true;
 
     public Post() {
@@ -123,6 +125,14 @@ public class Post {
         this.comments = comments;
     }
 
+    public int getCommentCount() {
+        return commentCount;
+    }
+
+    public void setCommentCount(int commentCount) {
+        this.commentCount = commentCount;
+    }
+
     public List<String> getLikedUsernames() {
         return likedUsernames;
     }
@@ -137,6 +147,14 @@ public class Post {
 
     public void setLiked(boolean liked) {
         this.liked = liked;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     public void setTimeAgo(String timeAgo) {

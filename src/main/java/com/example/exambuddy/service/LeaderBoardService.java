@@ -95,5 +95,40 @@ public class LeaderBoardService {
             System.err.println("Lỗi khi cập nhật điểm: " + e.getMessage());
         }
     }
+    @Async
+    public CompletableFuture<List<RecordTopUser>> getUserContribute() {
+        List<RecordTopUser> topUsers = new ArrayList<>();
+        try {
+            ApiFuture<QuerySnapshot> future = db.collection("userContribute")
+                    .orderBy("totalScore", Query.Direction.DESCENDING)
+                    .get();
 
+            List<QueryDocumentSnapshot> documents = future.get().getDocuments();
+            for (QueryDocumentSnapshot doc : documents) {
+                RecordTopUser record = doc.toObject(RecordTopUser.class);
+                topUsers.add(record);
+            }
+        } catch (Exception e) {
+            System.err.println("Lỗi khi lấy top Leader Board Contribute: " + e.getMessage());
+        }
+        return CompletableFuture.completedFuture(topUsers);
+    }
+    @Async
+    public CompletableFuture<List<RecordTopUser>> getUserScore() {
+        List<RecordTopUser> topUsers = new ArrayList<>();
+        try {
+            ApiFuture<QuerySnapshot> future = db.collection("userScores")
+                    .orderBy("totalScore", Query.Direction.DESCENDING)
+                    .get();
+
+            List<QueryDocumentSnapshot> documents = future.get().getDocuments();
+            for (QueryDocumentSnapshot doc : documents) {
+                RecordTopUser record = doc.toObject(RecordTopUser.class);
+                topUsers.add(record);
+            }
+        } catch (Exception e) {
+            System.err.println("Lỗi khi lấy Leader Board Score: " + e.getMessage());
+        }
+        return CompletableFuture.completedFuture(topUsers);
+    }
 }

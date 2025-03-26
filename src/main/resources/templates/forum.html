@@ -100,6 +100,25 @@
         </aside>
     </div>
 </div>
+<div id="postTypeModal" class="modal fade" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content p-3">
+            <div class="modal-header">
+                <h5 class="modal-title">Chọn kiểu bài đăng</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <p class="mb-3">Bạn muốn đăng bài lên:</p>
+                <button id="postCommunityBtn" class="btn btn-outline-primary w-100 mb-2">
+                    🌍 Cộng đồng (Public)
+                </button>
+                <button id="postPrivateBtn" class="btn btn-outline-secondary w-100">
+                    🔒 Cá nhân (Private)
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 <div class="modal fade" id="postModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
@@ -166,7 +185,11 @@
             fetch(url)
                 .then(response => response.json())
                 .then(posts => {
-                    postsContainer.innerHTML = ""; // Xóa nội dung cũ
+                    postsContainer.innerHTML = "";
+                    if (posts.length === 0) {
+                        postsContainer.innerHTML = "<p>Không có bài viết nào có sẵn</p>";
+                        return;
+                    }
                     posts.forEach(post => {
                         postsContainer.appendChild(createPostElement(post));
                     });
@@ -245,6 +268,7 @@
                 </button>
                 <button class="btn btn-outline-secondary comment-btn" onclick="openPostModal(event, '${post.postId}')">
                     <i class="bi bi-chat"></i>
+                    <span class="comment-count" th:text="${post.commentCount}">0</span>
                 </button>
             </div>
             <hr class="mt-2 mb-0">
@@ -296,7 +320,6 @@
     });
 
     document.addEventListener("DOMContentLoaded", function () {
-        console.log("ĐỊT mẹ thằng tài");
         const usernameInput = document.querySelector("input[name='username']");
         const username = usernameInput ? usernameInput.value.trim() : "";
 
@@ -316,8 +339,24 @@
 
         form.addEventListener("submit", async function (event) {
             event.preventDefault(); // Chặn form gửi mặc định
+            let postTypeModal = new bootstrap.Modal(document.getElementById("postTypeModal"));
+            postTypeModal.show();
+        });
 
+
+        document.getElementById("postCommunityBtn").addEventListener("click", function () {
+            closeModal();
+            submitPost("public"); // Gửi bài công khai
+        });
+
+        document.getElementById("postPrivateBtn").addEventListener("click", function () {
+            closeModal();
+            submitPost("private"); // Gửi bài riêng tư
+        });
+
+        function submitPost(status) {
             const formData = new FormData(form);
+            formData.append("status", status);
             const content = formData.get("content").trim();
             const subject = formData.get("subject");
             const grade = formData.get("grade") || "Chung";
@@ -325,6 +364,11 @@
 
             if (!content) {
                 alert("Vui lòng nhập nội dung bài viết!");
+                return;
+            }
+
+            if (status === "private") {
+                sendPostToServer(formData, null);
                 return;
             }
 
@@ -339,6 +383,7 @@
                 grade,
                 likeCount: 0,
                 liked: false,
+                status: status,
                 imageUrls: []
             };
             // Nếu có ảnh, tạo URL tạm thời để hiển thị ngay
@@ -352,7 +397,10 @@
             const postElement = createPostElement(tempPost);
             postElement.setAttribute("data-id", tempPost.postId); // Đánh dấu bài viết tạm thời
             postsContainer.prepend(postElement);
+            sendPostToServer(formData, tempPost.postId);
+        }
 
+        function sendPostToServer(formData, tempPostId) {
             // Gửi bài viết lên server
             fetch("/forum/create", {
                 method: "POST",
@@ -361,12 +409,14 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        let tempPostEl = document.querySelector(`.post[data-id='${tempPost.postId}']`);
-                        if (tempPostEl) {
-                            tempPostEl.setAttribute("data-id", data.postId);
-                            tempPostEl.querySelector(".heart-btn").setAttribute("data-post-id", data.postId);
-                            tempPostEl.querySelector(".comment-btn").setAttribute("onclick", `openPostModal(event, '${data.postId}')`);
-                            tempPostEl.querySelector(".text-muted").innerText = data.timeAgo;
+                        if (tempPostId) {
+                            let tempPostEl = document.querySelector(`.post[data-id='${tempPostId}']`);
+                            if (tempPostEl) {
+                                tempPostEl.setAttribute("data-id", data.postId);
+                                tempPostEl.querySelector(".heart-btn").setAttribute("data-post-id", data.postId);
+                                tempPostEl.querySelector(".comment-btn").setAttribute("onclick", `openPostModal(event, '${data.postId}')`);
+                                tempPostEl.querySelector(".text-muted").innerText = data.timeAgo;
+                            }
                         }
                     } else {
                         alert("Lỗi: " + data.message);
@@ -376,7 +426,19 @@
                     console.error("Lỗi khi lưu bài viết:", error);
                     alert("Không thể đăng bài. Hãy thử lại!");
                 });
-        });
+        }
+        function closeModal() {
+            let modalElement = document.getElementById("postTypeModal");
+            let modalInstance = bootstrap.Modal.getInstance(modalElement);
+            if (modalInstance) {
+                modalInstance.hide(); // Đóng modal chính xác
+            }
+
+            // Xóa backdrop nếu vẫn còn
+            document.querySelectorAll(".modal-backdrop").forEach(el => el.remove());
+            document.body.classList.remove("modal-open");
+            document.body.style.overflow = ""; // Khắc phục tình trạng không cuộn được
+        }
     });
 
 </script>
