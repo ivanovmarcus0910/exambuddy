@@ -12,7 +12,7 @@ public class ReportRequest {
     private Date timestamp;    // Thời gian báo cáo
     private String postContent;
     private String postAuthor;
-
+    private boolean postActive;
 
     public ReportRequest() {
     }
@@ -77,5 +77,12 @@ public class ReportRequest {
     }
     public void setPostAuthor(String postAuthor) {
         this.postAuthor = postAuthor;
+    }
+    public boolean isPostActive() {
+        return postActive;
+    }
+
+    public void setPostActive(boolean postActive) {
+        this.postActive = postActive;
     }
 }

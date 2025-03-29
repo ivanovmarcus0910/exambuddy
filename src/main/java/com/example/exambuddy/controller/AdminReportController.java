@@ -48,6 +48,7 @@ public class AdminReportController {
                 if (post != null) {
                     report.setPostContent(post.getContent()); // thêm getter/setter vào ReportRequest
                     report.setPostAuthor(post.getUsername());
+                    report.setPostActive(post.isActive());
                 }
             }
 
