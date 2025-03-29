@@ -194,6 +194,8 @@ public class ExamService {
             examDataMap.put("timeduration", Long.parseLong(timedurationStr));
             examDataMap.put("questionCount", x);
             examDataMap.put("participantCount", 0); // Mặc định là 0 khi tạo mới
+            // Đặt trạng thái active là false để yêu cầu duyệt của admin
+            examDataMap.put("active", false);
 
 // Thêm dữ liệu vào collection "exams"
             db.collection("exams").document(examId).set(examDataMap).get();
@@ -478,6 +480,12 @@ public class ExamService {
         db.collection("exams").document(examId)
                 .update("participantCount", FieldValue.increment(1));
     }
+    public void deleteProcess(String userId, String examId) {
+        DocumentReference docRef = db.collection("examSessions").document(userId + "_" + examId);
+        docRef.delete();
+        docRef = db.collection("examProgress").document(userId + "_" + examId);
+        docRef.delete();
+    }
 
     public void saveExamResult(String userId, String examId, double score, Exam exam, MultiValueMap<String, String> userAnswers, List<String> correctAnswers) {
         String idRandom = UUID.randomUUID().toString();
@@ -491,7 +499,8 @@ public class ExamService {
                 "answers", userAnswers,
                 "submittedAt", System.currentTimeMillis(),
                 "correctAnswers", correctAnswers,
-                "username", userId
+                "username", userId,
+                "exam",exam
 
         ), SetOptions.merge());
     }
@@ -761,17 +770,15 @@ public class ExamService {
             List<QueryDocumentSnapshot> documents = future.get().getDocuments();
             for (QueryDocumentSnapshot doc : documents) {
                 Exam exam = doc.toObject(Exam.class);
-                if (exam.isActive())
-                {
-                exam.setExamID(doc.getId()); // Thêm dòng này để thiết lập ID cho đề thi
+                exam.setExamID(doc.getId());
                 examList.add(exam);
-                }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
         return examList;
     }
+
     // Xoá đề thi
     public void deleteExam(String examId) {
         DocumentReference examRef = db.collection("exams").document(examId);

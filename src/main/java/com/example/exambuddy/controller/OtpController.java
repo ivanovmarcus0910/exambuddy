@@ -33,7 +33,7 @@ public class OtpController {
             return "supportVerification";
         }
 
-        String result = String.valueOf(authService.resendOtp(email, actionType));
+        String result = authService.resendOtp(email, actionType).join();
         model.addAttribute("message", result);
         model.addAttribute("email", email);
         model.addAttribute("actionType", actionType);

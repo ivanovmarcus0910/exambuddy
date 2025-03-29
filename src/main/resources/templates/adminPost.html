@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,8 +12,19 @@
   <!-- Bootstrap JS Bundle -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <style>
-    .sidebar-sticky { position: sticky; top: 0; height: 100vh; overflow-y: auto; z-index: 10; }
-    .header-sticky { position: sticky; top: 0; z-index: 999; background: #fff; }
+    .sidebar-sticky {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      z-index: 10;
+    }
+    .header-sticky {
+      position: sticky;
+      top: 0;
+      z-index: 999;
+      background: #fff;
+    }
   </style>
 </head>
 <body class="bg-white">
@@ -63,6 +74,11 @@
       <!-- Nội dung Quản lí Bài viết -->
       <div class="px-4">
         <h2 class="h5 fw-bold mb-3">📄 Quản Lý Bài Đăng</h2>
+        <div class="text-end mb-3">
+          <!-- Nút Thêm bài đăng, chuyển về endpoint admin nếu cần -->
+          <a href="/forum" class="btn btn-success shadow-sm"
+             style="padding:6px 12px; border-radius:10px; font-size:1rem;">➕ Thêm bài đăng</a>
+        </div>
         <div class="table-responsive bg-light rounded shadow-sm">
           <table class="table table-hover align-middle mb-0">
             <thead class="table-secondary">
@@ -71,7 +87,8 @@
               <th>📝 Nội Dung</th>
               <th>📅 Ngày Đăng</th>
               <th class="text-center">❤️ Lượt Thích</th>
-              <th class="text-center">⚙️ Hành Động</th>
+              <th>Thao tác</th>
+              <th class="text-center">Hành động</th>
             </tr>
             </thead>
             <tbody>
@@ -80,13 +97,22 @@
               <td class="text-truncate" style="max-width: 300px;" th:text="${post.content}"></td>
               <td th:text="${post.date}"></td>
               <td class="fw-semibold text-center" th:text="${post.likeCount}"></td>
+              <!-- Cột Thao tác: nút Xem chi tiết bài viết -->
               <td class="text-center">
-                <a th:href="@{/forum/{postId}(postId=${post.postId})}" class="btn btn-primary btn-sm">🔍 Xem</a>
-                <form action="/admin/updatePostStatus" method="post" class="d-inline-block">
+                <a th:href="@{/postDetail/{postId}(postId=${post.postId})}" class="btn btn-primary btn-sm"
+                   style="padding:2px 6px; border-radius:8px; font-size:0.8rem;">🔍 Xem</a>
+              </td>
+              <!-- Cột Hành động: form cập nhật trạng thái bài viết -->
+              <td class="text-center">
+                <form action="/admin/updatePostStatus" method="post" class="d-inline-flex align-items-center"
+                      th:attr="onsubmit=${post.active} ? 'return confirm(\'Bạn có chắc chắn muốn vô hiệu hóa bài viết này?\')' : 'return confirm(\'Bạn có chắc chắn muốn duyệt bài viết này?\')'">
                   <input type="hidden" name="postId" th:value="${post.postId}">
-                  <button type="submit" class="btn"
-                          th:classappend="${post.active} ? ' btn-danger btn-sm' : ' btn-success btn-sm'"
-                          th:text="${post.active} ? '🚫 Vô hiệu hóa' : '✅ Kích hoạt lại'">
+                  <button type="submit"
+                          class="btn btn-sm rounded-pill d-flex align-items-center justify-content-center px-3 fw-bold text-white"
+                          style="padding:2px 6px; border-radius:8px; font-size:0.8rem;"
+                          th:classappend="${post.active} ? ' btn-danger' : ' btn-success'">
+                    <i class="bi" th:class="${post.active} ? 'bi-x-circle me-1' : 'bi-check-circle me-1'"></i>
+                    <span th:text="${post.active} ? 'Vô hiệu hóa' : 'Duyệt'"></span>
                   </button>
                 </form>
               </td>

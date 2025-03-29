@@ -106,8 +106,7 @@ public class ManageExamController {
             Exam exam = examService.getExam(examId);
             String username = session.getAttribute("loggedInUser").toString();
             if (session.getAttribute("shuffledQuestions_"+examId) == null) {
-                examService.submitExam(username, examId);
-
+                examService.deleteProcess(username, examId);
                 examService.addExamSession(examId, username, 1000 * 60 * exam.getTimeduration());
                 questions = new ArrayList<>(exam.getQuestions());
                 System.out.println("Trước khi xáo trộn:");
@@ -154,9 +153,7 @@ public class ManageExamController {
         try {
             Exam exam = examService.getExam(examId);
             List<Question> questions = (List<Question>) session.getAttribute("shuffledQuestions_" + examId);
-            for (Question question : questions) {
-                System.out.println(question.getQuestionText());
-            }
+            exam.setQuestions(questions);
             int totalQuestions = exam.getQuestions().size();
             int correctCount = 0;
             Question question;
@@ -166,8 +163,6 @@ public class ManageExamController {
                 question = questions.get(i);
 
                 List<Integer> correctAnswers = question.getCorrectAnswers(); // Đáp án đúng
-                System.out.println("Câu " + question.getQuestionText() + " => " +question.getCorrectAnswers().toString());
-
                 List<Integer> userSelected = parsedAnswers.getOrDefault(questionKey, new ArrayList<>()); // Đáp án người dùng chọn
 
                 // So sánh danh sách đáp án đúng với đáp án người dùng chọn
@@ -421,7 +416,7 @@ public class ManageExamController {
         }
 
         // Lấy danh sách câu hỏi từ Firestore
-        Exam exam = examService.getExam(examId);
+        Exam exam = examResult.getExam();
         if (exam == null) {
             model.addAttribute("exam", new Exam());  // Truyền danh sách câu hỏi vào Thymeleaf
 

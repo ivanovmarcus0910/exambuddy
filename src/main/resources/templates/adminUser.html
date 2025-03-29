@@ -102,7 +102,7 @@
           <a href="/admin/stats" class="nav-link">📊 Thống kê</a>
         </li>
         <li class="nav-item mt-3">
-          <a href="/logout" class="nav-link text-danger">🚪 Đăng xuất</a>
+          <a href="/logout" class="nav-link text-danger" data-bs-toggle="modal" data-bs-target="#logoutModal">🚪 Đăng xuất</a>
         </li>
       </ul>
     </div>
@@ -114,9 +114,6 @@
         <div class="d-flex justify-content-between align-items-center">
           <h1 class="h3 fw-bold m-0">Thông tin Người dùng</h1>
           <div class="d-flex align-items-center">
-            <div class="me-3">
-              <input type="text" placeholder="🔍 Tìm kiếm..." class="form-control" style="width: 200px;">
-            </div>
             <div class="d-flex align-items-center">
               <span th:text="${adminUser.username}">Admin</span>
               <img th:src="${adminUser.avatarUrl}" alt="Admin Avatar" class="rounded-circle border border-secondary" style="width:40px; height:40px; margin-left: 8px;">
@@ -125,9 +122,44 @@
         </div>
       </div>
 
-      <!-- Tabs -->
-      <div class="px-4">
-        <h2 class="h5 fw-bold mb-3">Danh sách Người dùng</h2>
+      <!-- Thanh công cụ: Tìm kiếm, Sắp xếp, Thêm người dùng -->
+      <div class="px-4 mb-3">
+        <div class="d-flex flex-wrap align-items-center justify-content-between">
+          <!-- Khối trái: Ô tìm kiếm -->
+          <form th:action="@{/admin/users}" method="get"
+                class="d-flex align-items-center"
+                style="max-width: 350px;">
+            <div class="input-group input-group-sm flex-grow-1">
+            <span class="input-group-text bg-white border-end-0">
+              <i class="bi bi-search"></i>
+            </span>
+              <input type="text" name="search"
+                     class="form-control border-start-0"
+                     placeholder="Tìm kiếm..."
+                     th:value="${searchParam}">
+            </div>
+            <button type="submit"
+                    class="btn btn-outline-success btn-sm ms-2 text-nowrap"
+                    style="white-space: nowrap;">
+              Tìm kiếm
+            </button>
+          </form>
+
+          <!-- Khối phải: Dropdown sắp xếp + nút Thêm người dùng -->
+          <div class="d-flex align-items-center mt-3 mt-sm-0">
+
+            <button class="btn btn-primary btn-sm fw-bold"
+                    type="button"
+                    data-bs-toggle="modal"
+                    data-bs-target="#newUserModal">
+              + Thêm người dùng
+            </button>
+          </div>
+        </div>
+      </div>
+
+
+      <h2 class="h5 fw-bold mb-3 ms-3">Danh sách Người dùng</h2>
 
         <!-- Nav Tabs -->
         <ul class="nav nav-tabs flex-nowrap" style="white-space: nowrap; overflow-x: auto;">
@@ -188,20 +220,22 @@
                     </div>
                   </td>
                   <td class="email" th:text="${user.email}">Email</td>
-                  <!-- Trạng thái (Active/Inactive) -->
+                  <!-- Trạng thái (Active/Inactive) được thiết kế nhỏ gọn -->
                   <td>
                     <span th:style="${user.active}
-                      ? 'display:inline-block; background-color:#2196f3; color:#fff; padding:6px 12px; border-radius:9999px;'
-                      : 'display:inline-block; background-color:#E43161; color:#fff; padding:6px 12px; border-radius:9999px;'"
+                      ? 'display:inline-block; background-color:#2196f3; color:#fff; padding:2px 6px; border-radius:8px; font-size:0.8rem;'
+                      : 'display:inline-block; background-color:#E43161; color:#fff; padding:2px 6px; border-radius:8px; font-size:0.8rem;'"
                           th:text="${user.active} ? 'Active' : 'Inactive'">
                     </span>
                   </td>
+
 
                   <!-- Vai trò -->
                   <td class="role text-primary" th:text="${@roleController.getRoleNameInVietnamese(user.role)}">Role</td>
                   <td class="text-center">
                     <!-- Ở Tab Tất cả, chỉ có nút Xem chi tiết -->
                     <button class="btn btn-primary btn-sm fw-bold rounded-pill d-flex align-items-center justify-content-center px-3"
+                            style="padding:2px 6px; border-radius:8px; font-size:0.8rem;"
                             data-bs-toggle="modal" data-bs-target="#userModal"
                             th:data-id="${user.id}"
                             th:data-username="${user.username}"
@@ -229,39 +263,43 @@
                     </button>
                   </td>
 
-                  <!-- Đổi vai trò: dropdown + Lưu -->
+                  <!-- Đổi vai trò: dropdown + Lưu (có xác nhận) -->
                   <td class="text-center align-middle">
-                    <form action="/admin/changeRole" method="post" class="d-inline-flex align-items-center">
+                    <form action="/admin/changeRole" method="post" class="d-inline-flex align-items-center"
+                          onsubmit="return confirm('Bạn có chắc chắn muốn đổi vai trò người dùng này?');">
                       <input type="hidden" name="username" th:value="${user.username}">
                       <select name="newRole"
-                              class="form-select form-select-sm text-white bg-dark border-0 rounded-pill px-3 me-2"
-                              style="width: auto; min-width: 130px;">
+                              class="form-select form-select-sm text-white bg-dark border-0 rounded-pill me-2"
+                              style="width: auto; min-width: 130px; padding:2px 6px; border-radius:8px; font-size:0.8rem;">
                         <option value="STUDENT" th:selected="${user.role == 'STUDENT'}">Học sinh</option>
                         <option value="TEACHER" th:selected="${user.role == 'TEACHER'}">Gíao viên</option>
                         <option value="ADMIN" th:selected="${user.role == 'ADMIN'}">Quản trị viên</option>
                         <option value="UPGRADED_USER" th:selected="${user.role == 'UPGRADED_USER'}">Tài khoản nâng cấp</option>
                         <option value="PENDING_TEACHER" th:selected="${user.role == 'PENDING_TEACHER'}">Xét duyệt giáo viên</option>
                       </select>
-                      <button type="submit" class="btn btn-success btn-sm rounded-pill d-flex align-items-center px-3">
+                      <button type="submit" class="btn btn-success btn-sm d-flex align-items-center"
+                              style="padding:2px 6px; border-radius:8px; font-size:0.8rem;">
                         <i class="bi bi-save me-1"></i> Lưu
                       </button>
                     </form>
                   </td>
 
+
                   <!-- Cột Hạn chế: Chặn/Bỏ chặn -->
                   <td style="min-width: 150px;">
-                    <form action="/admin/updateUserStatus" method="post" class="d-flex align-items-center">
+                    <form action="/admin/updateUserStatus" method="post" class="d-inline-flex align-items-center"
+                          th:attr="onsubmit=${user.active} ? 'return confirm(\'Bạn có chắc chắn muốn chặn người dùng này?\')' : 'return confirm(\'Bạn có chắc chắn muốn mở chặn người dùng này?\')'">
                       <input type="hidden" name="username" th:value="${user.username}">
-
-                      <!-- Nút bo tròn, màu nền đỏ (btn-danger) nếu đang active hoặc xanh (btn-success) nếu đang inactive -->
                       <button type="submit"
                               class="btn btn-sm rounded-pill d-flex align-items-center justify-content-center px-3 fw-bold text-white"
+                              style="padding:2px 6px; border-radius:8px; font-size:0.8rem;"
                               th:classappend="${user.active} ? ' btn-danger' : ' btn-success'">
                         <i class="bi" th:class="${user.active} ? 'bi-x-circle me-1' : 'bi-check-circle me-1'"></i>
                         <span th:text="${user.active} ? 'Chặn' : 'Bỏ chặn'"></span>
                       </button>
                     </form>
                   </td>
+
                 </tr>
                 </tbody>
               </table>
@@ -334,8 +372,8 @@
                   <!-- Trạng thái (Active/Inactive) -->
                   <td>
                     <span th:style="${user.active}
-                      ? 'display:inline-block; background-color:#2196f3; color:#fff; padding:6px 12px; border-radius:9999px;'
-                      : 'display:inline-block; background-color:#E43161; color:#fff; padding:6px 12px; border-radius:9999px;'"
+                      ? 'display:inline-block; background-color:#2196f3; color:#fff; padding:2px 6px; border-radius:8px; font-size:0.8rem;'
+                      : 'display:inline-block; background-color:#E43161; color:#fff; padding:2px 6px; border-radius:8px; font-size:0.8rem;'"
                           th:text="${user.active} ? 'Active' : 'Inactive'">
                     </span>
                   </td>
@@ -346,6 +384,7 @@
                   <!-- Thao tác: nút Xem -->
                   <td class="text-center align-middle">
                     <button class="btn btn-primary btn-sm fw-bold rounded-pill d-flex align-items-center justify-content-center px-3"
+                            style="padding:2px 6px; border-radius:8px; font-size:0.8rem;"
                             data-bs-toggle="modal" data-bs-target="#userModal"
                             th:data-id="${user.id}"
                             th:data-username="${user.username}"
@@ -367,18 +406,20 @@
 
                   <!-- Đổi vai trò: dropdown + Lưu -->
                   <td class="text-center align-middle">
-                    <form action="/admin/changeRole" method="post" class="d-inline-flex align-items-center">
+                    <form action="/admin/changeRole" method="post" class="d-inline-flex align-items-center"
+                          onsubmit="return confirm('Bạn có chắc chắn muốn đổi vai trò người dùng này?');">
                       <input type="hidden" name="username" th:value="${user.username}">
                       <select name="newRole"
-                              class="form-select form-select-sm text-white bg-dark border-0 rounded-pill px-3 me-2"
-                              style="width: auto; min-width: 130px;">
+                              class="form-select form-select-sm text-white bg-dark border-0 rounded-pill me-2"
+                              style="width: auto; min-width: 130px; padding:2px 6px; border-radius:8px; font-size:0.8rem;">
                         <option value="STUDENT" th:selected="${user.role == 'STUDENT'}">Học sinh</option>
                         <option value="TEACHER" th:selected="${user.role == 'TEACHER'}">Gíao viên</option>
                         <option value="ADMIN" th:selected="${user.role == 'ADMIN'}">Quản trị viên</option>
                         <option value="UPGRADED_USER" th:selected="${user.role == 'UPGRADED_USER'}">Tài khoản nâng cấp</option>
                         <option value="PENDING_TEACHER" th:selected="${user.role == 'PENDING_TEACHER'}">Xét duyệt giáo viên</option>
                       </select>
-                      <button type="submit" class="btn btn-success btn-sm rounded-pill d-flex align-items-center px-3">
+                      <button type="submit" class="btn btn-success btn-sm d-flex align-items-center"
+                              style="padding:2px 6px; border-radius:8px; font-size:0.8rem;">
                         <i class="bi bi-save me-1"></i> Lưu
                       </button>
                     </form>
@@ -386,12 +427,12 @@
 
                   <!-- Cột Hạn chế: Chặn/Bỏ chặn -->
                   <td style="min-width: 150px;">
-                    <form action="/admin/updateUserStatus" method="post" class="d-flex align-items-center">
+                    <form action="/admin/updateUserStatus" method="post" class="d-inline-flex align-items-center"
+                          th:attr="onsubmit=${user.active} ? 'return confirm(\'Bạn có chắc chắn muốn chặn người dùng này?\')' : 'return confirm(\'Bạn có chắc chắn muốn mở chặn người dùng này?\')'">
                       <input type="hidden" name="username" th:value="${user.username}">
-
-                      <!-- Nút bo tròn, màu nền đỏ (btn-danger) nếu đang active hoặc xanh (btn-success) nếu đang inactive -->
                       <button type="submit"
                               class="btn btn-sm rounded-pill d-flex align-items-center justify-content-center px-3 fw-bold text-white"
+                              style="padding:2px 6px; border-radius:8px; font-size:0.8rem;"
                               th:classappend="${user.active} ? ' btn-danger' : ' btn-success'">
                         <i class="bi" th:class="${user.active} ? 'bi-x-circle me-1' : 'bi-check-circle me-1'"></i>
                         <span th:text="${user.active} ? 'Chặn' : 'Bỏ chặn'"></span>
@@ -466,8 +507,8 @@
                   <!-- Trạng thái -->
                   <td>
                     <span th:style="${user.active}
-                      ? 'display:inline-block; background-color:#2196f3; color:#fff; padding:6px 12px; border-radius:9999px;'
-                      : 'display:inline-block; background-color:#E43161; color:#fff; padding:6px 12px; border-radius:9999px;'"
+                      ? 'display:inline-block; background-color:#2196f3; color:#fff; padding:2px 6px; border-radius:8px; font-size:0.8rem;'
+                      : 'display:inline-block; background-color:#E43161; color:#fff; padding:2px 6px; border-radius:8px; font-size:0.8rem;'"
                           th:text="${user.active} ? 'Active' : 'Inactive'">
                     </span>
                   </td>
@@ -478,6 +519,7 @@
                   <!-- Thao tác: nút Xem -->
                   <td class="text-center align-middle">
                     <button class="btn btn-primary btn-sm fw-bold rounded-pill d-flex align-items-center justify-content-center px-3"
+                            style="padding:2px 6px; border-radius:8px; font-size:0.8rem;"
                             data-bs-toggle="modal" data-bs-target="#userModal"
                             th:data-id="${user.id}"
                             th:data-username="${user.username}"
@@ -499,18 +541,20 @@
 
                   <!-- Đổi vai trò -->
                   <td class="text-center align-middle">
-                    <form action="/admin/changeRole" method="post" class="d-inline-flex align-items-center">
+                    <form action="/admin/changeRole" method="post" class="d-inline-flex align-items-center"
+                          onsubmit="return confirm('Bạn có chắc chắn muốn đổi vai trò người dùng này?');">
                       <input type="hidden" name="username" th:value="${user.username}">
                       <select name="newRole"
-                              class="form-select form-select-sm text-white bg-dark border-0 rounded-pill px-3 me-2"
-                              style="width: auto; min-width: 130px;">
+                              class="form-select form-select-sm text-white bg-dark border-0 rounded-pill me-2"
+                              style="width: auto; min-width: 130px; padding:2px 6px; border-radius:8px; font-size:0.8rem;">
                         <option value="STUDENT" th:selected="${user.role == 'STUDENT'}">Học sinh</option>
                         <option value="TEACHER" th:selected="${user.role == 'TEACHER'}">Gíao viên</option>
                         <option value="ADMIN" th:selected="${user.role == 'ADMIN'}">Quản trị viên</option>
                         <option value="UPGRADED_USER" th:selected="${user.role == 'UPGRADED_USER'}">Tài khoản nâng cấp</option>
                         <option value="PENDING_TEACHER" th:selected="${user.role == 'PENDING_TEACHER'}">Xét duyệt giáo viên</option>
                       </select>
-                      <button type="submit" class="btn btn-success btn-sm rounded-pill d-flex align-items-center px-3">
+                      <button type="submit" class="btn btn-success btn-sm d-flex align-items-center"
+                              style="padding:2px 6px; border-radius:8px; font-size:0.8rem;">
                         <i class="bi bi-save me-1"></i> Lưu
                       </button>
                     </form>
@@ -518,12 +562,12 @@
 
                   <!-- Cột Hạn chế: Chặn/Bỏ chặn -->
                   <td style="min-width: 150px;">
-                    <form action="/admin/updateUserStatus" method="post" class="d-flex align-items-center">
+                    <form action="/admin/updateUserStatus" method="post" class="d-inline-flex align-items-center"
+                          th:attr="onsubmit=${user.active} ? 'return confirm(\'Bạn có chắc chắn muốn chặn người dùng này?\')' : 'return confirm(\'Bạn có chắc chắn muốn mở chặn người dùng này?\')'">
                       <input type="hidden" name="username" th:value="${user.username}">
-
-                      <!-- Nút bo tròn, màu nền đỏ (btn-danger) nếu đang active hoặc xanh (btn-success) nếu đang inactive -->
                       <button type="submit"
                               class="btn btn-sm rounded-pill d-flex align-items-center justify-content-center px-3 fw-bold text-white"
+                              style="padding:2px 6px; border-radius:8px; font-size:0.8rem;"
                               th:classappend="${user.active} ? ' btn-danger' : ' btn-success'">
                         <i class="bi" th:class="${user.active} ? 'bi-x-circle me-1' : 'bi-check-circle me-1'"></i>
                         <span th:text="${user.active} ? 'Chặn' : 'Bỏ chặn'"></span>
@@ -591,14 +635,15 @@
                   <td class="email" th:text="${user.email}">Email</td>
                   <td>
                     <span th:style="${user.active}
-                      ? 'display:inline-block; background-color:#2196f3; color:#fff; padding:6px 12px; border-radius:9999px;'
-                      : 'display:inline-block; background-color:#E43161; color:#fff; padding:6px 12px; border-radius:9999px;'"
+                      ? 'display:inline-block; background-color:#2196f3; color:#fff; padding:2px 6px; border-radius:8px; font-size:0.8rem;'
+                      : 'display:inline-block; background-color:#E43161; color:#fff; padding:2px 6px; border-radius:8px; font-size:0.8rem;'"
                           th:text="${user.active} ? 'Active' : 'Inactive'">
                     </span>
                   </td>
                   <td class="role text-primary" th:text="${@roleController.getRoleNameInVietnamese(user.role)}">Role</td>
                   <td class="text-center align-middle">
                     <button class="btn btn-primary btn-sm fw-bold rounded-pill d-flex align-items-center justify-content-center px-3"
+                            style="padding:2px 6px; border-radius:8px; font-size:0.8rem;"
                             data-bs-toggle="modal" data-bs-target="#userModal"
                             th:data-id="${user.id}"
                             th:data-username="${user.username}"
@@ -617,31 +662,35 @@
                       <i class="bi bi-eye me-1"></i> Xem
                     </button>
                   </td>
+
                   <td class="text-center align-middle">
-                    <form action="/admin/changeRole" method="post" class="d-inline-flex align-items-center">
+                    <form action="/admin/changeRole" method="post" class="d-inline-flex align-items-center"
+                          onsubmit="return confirm('Bạn có chắc chắn muốn đổi vai trò người dùng này?');">
                       <input type="hidden" name="username" th:value="${user.username}">
                       <select name="newRole"
-                              class="form-select form-select-sm text-white bg-dark border-0 rounded-pill px-3 me-2"
-                              style="width: auto; min-width: 130px;">
+                              class="form-select form-select-sm text-white bg-dark border-0 rounded-pill me-2"
+                              style="width: auto; min-width: 130px; padding:2px 6px; border-radius:8px; font-size:0.8rem;">
                         <option value="STUDENT" th:selected="${user.role == 'STUDENT'}">Học sinh</option>
                         <option value="TEACHER" th:selected="${user.role == 'TEACHER'}">Gíao viên</option>
                         <option value="ADMIN" th:selected="${user.role == 'ADMIN'}">Quản trị viên</option>
                         <option value="UPGRADED_USER" th:selected="${user.role == 'UPGRADED_USER'}">Tài khoản nâng cấp</option>
                         <option value="PENDING_TEACHER" th:selected="${user.role == 'PENDING_TEACHER'}">Xét duyệt giáo viên</option>
                       </select>
-                      <button type="submit" class="btn btn-success btn-sm rounded-pill d-flex align-items-center px-3">
+                      <button type="submit" class="btn btn-success btn-sm d-flex align-items-center"
+                              style="padding:2px 6px; border-radius:8px; font-size:0.8rem;">
                         <i class="bi bi-save me-1"></i> Lưu
                       </button>
                     </form>
                   </td>
+
                   <!-- Cột Hạn chế: Chặn/Bỏ chặn -->
                   <td style="min-width: 150px;">
-                    <form action="/admin/updateUserStatus" method="post" class="d-flex align-items-center">
+                    <form action="/admin/updateUserStatus" method="post" class="d-inline-flex align-items-center"
+                          th:attr="onsubmit=${user.active} ? 'return confirm(\'Bạn có chắc chắn muốn chặn người dùng này?\')' : 'return confirm(\'Bạn có chắc chắn muốn mở chặn người dùng này?\')'">
                       <input type="hidden" name="username" th:value="${user.username}">
-
-                      <!-- Nút bo tròn, màu nền đỏ (btn-danger) nếu đang active hoặc xanh (btn-success) nếu đang inactive -->
                       <button type="submit"
                               class="btn btn-sm rounded-pill d-flex align-items-center justify-content-center px-3 fw-bold text-white"
+                              style="padding:2px 6px; border-radius:8px; font-size:0.8rem;"
                               th:classappend="${user.active} ? ' btn-danger' : ' btn-success'">
                         <i class="bi" th:class="${user.active} ? 'bi-x-circle me-1' : 'bi-check-circle me-1'"></i>
                         <span th:text="${user.active} ? 'Chặn' : 'Bỏ chặn'"></span>
@@ -709,14 +758,15 @@
                   <td class="email" th:text="${user.email}">Email</td>
                   <td>
                     <span th:style="${user.active}
-                      ? 'display:inline-block; background-color:#2196f3; color:#fff; padding:6px 12px; border-radius:9999px;'
-                      : 'display:inline-block; background-color:#E43161; color:#fff; padding:6px 12px; border-radius:9999px;'"
+                      ? 'display:inline-block; background-color:#2196f3; color:#fff; padding:2px 6px; border-radius:8px; font-size:0.8rem;'
+                      : 'display:inline-block; background-color:#E43161; color:#fff; padding:2px 6px; border-radius:8px; font-size:0.8rem;'"
                           th:text="${user.active} ? 'Active' : 'Inactive'">
                     </span>
                   </td>
                   <td class="role text-primary" th:text="${@roleController.getRoleNameInVietnamese(user.role)}">Role</td>
                   <td class="text-center align-middle">
                     <button class="btn btn-primary btn-sm fw-bold rounded-pill d-flex align-items-center justify-content-center px-3"
+                            style="padding:2px 6px; border-radius:8px; font-size:0.8rem;"
                             data-bs-toggle="modal" data-bs-target="#userModal"
                             th:data-id="${user.id}"
                             th:data-username="${user.username}"
@@ -735,31 +785,35 @@
                       <i class="bi bi-eye me-1"></i> Xem
                     </button>
                   </td>
+
                   <td class="text-center align-middle">
-                    <form action="/admin/changeRole" method="post" class="d-inline-flex align-items-center">
+                    <form action="/admin/changeRole" method="post" class="d-inline-flex align-items-center"
+                          onsubmit="return confirm('Bạn có chắc chắn muốn đổi vai trò người dùng này?');">
                       <input type="hidden" name="username" th:value="${user.username}">
                       <select name="newRole"
-                              class="form-select form-select-sm text-white bg-dark border-0 rounded-pill px-3 me-2"
-                              style="width: auto; min-width: 130px;">
+                              class="form-select form-select-sm text-white bg-dark border-0 rounded-pill me-2"
+                              style="width: auto; min-width: 130px; padding:2px 6px; border-radius:8px; font-size:0.8rem;">
                         <option value="STUDENT" th:selected="${user.role == 'STUDENT'}">Học sinh</option>
                         <option value="TEACHER" th:selected="${user.role == 'TEACHER'}">Gíao viên</option>
                         <option value="ADMIN" th:selected="${user.role == 'ADMIN'}">Quản trị viên</option>
                         <option value="UPGRADED_USER" th:selected="${user.role == 'UPGRADED_USER'}">Tài khoản nâng cấp</option>
                         <option value="PENDING_TEACHER" th:selected="${user.role == 'PENDING_TEACHER'}">Xét duyệt giáo viên</option>
                       </select>
-                      <button type="submit" class="btn btn-success btn-sm rounded-pill d-flex align-items-center px-3">
+                      <button type="submit" class="btn btn-success btn-sm d-flex align-items-center"
+                              style="padding:2px 6px; border-radius:8px; font-size:0.8rem;">
                         <i class="bi bi-save me-1"></i> Lưu
                       </button>
                     </form>
                   </td>
+
                   <!-- Cột Hạn chế: Chặn/Bỏ chặn -->
                   <td style="min-width: 150px;">
-                    <form action="/admin/updateUserStatus" method="post" class="d-flex align-items-center">
+                    <form action="/admin/updateUserStatus" method="post" class="d-inline-flex align-items-center"
+                          th:attr="onsubmit=${user.active} ? 'return confirm(\'Bạn có chắc chắn muốn chặn người dùng này?\')' : 'return confirm(\'Bạn có chắc chắn muốn mở chặn người dùng này?\')'">
                       <input type="hidden" name="username" th:value="${user.username}">
-
-                      <!-- Nút bo tròn, màu nền đỏ (btn-danger) nếu đang active hoặc xanh (btn-success) nếu đang inactive -->
                       <button type="submit"
                               class="btn btn-sm rounded-pill d-flex align-items-center justify-content-center px-3 fw-bold text-white"
+                              style="padding:2px 6px; border-radius:8px; font-size:0.8rem;"
                               th:classappend="${user.active} ? ' btn-danger' : ' btn-success'">
                         <i class="bi" th:class="${user.active} ? 'bi-x-circle me-1' : 'bi-check-circle me-1'"></i>
                         <span th:text="${user.active} ? 'Chặn' : 'Bỏ chặn'"></span>
@@ -827,14 +881,15 @@
                   <td class="email" th:text="${user.email}">Email</td>
                   <td>
                     <span th:style="${user.active}
-                      ? 'display:inline-block; background-color:#2196f3; color:#fff; padding:6px 12px; border-radius:9999px;'
-                      : 'display:inline-block; background-color:#E43161; color:#fff; padding:6px 12px; border-radius:9999px;'"
+                      ? 'display:inline-block; background-color:#2196f3; color:#fff; padding:2px 6px; border-radius:8px; font-size:0.8rem;'
+                      : 'display:inline-block; background-color:#E43161; color:#fff; padding:2px 6px; border-radius:8px; font-size:0.8rem;'"
                           th:text="${user.active} ? 'Active' : 'Inactive'">
                     </span>
                   </td>
                   <td class="role text-primary" th:text="${@roleController.getRoleNameInVietnamese(user.role)}">Role</td>
                   <td class="text-center align-middle">
                     <button class="btn btn-primary btn-sm fw-bold rounded-pill d-flex align-items-center justify-content-center px-3"
+                            style="padding:2px 6px; border-radius:8px; font-size:0.8rem;"
                             data-bs-toggle="modal" data-bs-target="#userModal"
                             th:data-id="${user.id}"
                             th:data-username="${user.username}"
@@ -853,23 +908,27 @@
                       <i class="bi bi-eye me-1"></i> Xem
                     </button>
                   </td>
+
                   <td class="text-center align-middle">
-                    <form action="/admin/changeRole" method="post" class="d-inline-flex align-items-center">
+                    <form action="/admin/changeRole" method="post" class="d-inline-flex align-items-center"
+                          onsubmit="return confirm('Bạn có chắc chắn muốn đổi vai trò người dùng này?');">
                       <input type="hidden" name="username" th:value="${user.username}">
                       <select name="newRole"
-                              class="form-select form-select-sm text-white bg-dark border-0 rounded-pill px-3 me-2"
-                              style="width: auto; min-width: 130px;">
+                              class="form-select form-select-sm text-white bg-dark border-0 rounded-pill me-2"
+                              style="width: auto; min-width: 130px; padding:2px 6px; border-radius:8px; font-size:0.8rem;">
                         <option value="STUDENT" th:selected="${user.role == 'STUDENT'}">Học sinh</option>
                         <option value="TEACHER" th:selected="${user.role == 'TEACHER'}">Gíao viên</option>
                         <option value="ADMIN" th:selected="${user.role == 'ADMIN'}">Quản trị viên</option>
                         <option value="UPGRADED_USER" th:selected="${user.role == 'UPGRADED_USER'}">Tài khoản nâng cấp</option>
                         <option value="PENDING_TEACHER" th:selected="${user.role == 'PENDING_TEACHER'}">Xét duyệt giáo viên</option>
                       </select>
-                      <button type="submit" class="btn btn-success btn-sm rounded-pill d-flex align-items-center px-3">
+                      <button type="submit" class="btn btn-success btn-sm d-flex align-items-center"
+                              style="padding:2px 6px; border-radius:8px; font-size:0.8rem;">
                         <i class="bi bi-save me-1"></i> Lưu
                       </button>
                     </form>
                   </td>
+
 
                 </tr>
                 </tbody>
@@ -903,16 +962,17 @@
                   </td>
                   <td class="email" th:text="${user.email}">Email</td>
                   <td>
-              <span th:style="${user.active} ?
-                'display:inline-block; background-color:#2196f3; color:#fff; padding:6px 12px; border-radius:9999px;'
-                : 'display:inline-block; background-color:#E43161; color:#fff; padding:6px 12px; border-radius:9999px;'"
+                    <span th:style="${user.active}
+                      ? 'display:inline-block; background-color:#2196f3; color:#fff; padding:2px 6px; border-radius:8px; font-size:0.8rem;'
+                      : 'display:inline-block; background-color:#E43161; color:#fff; padding:2px 6px; border-radius:8px; font-size:0.8rem;'"
                     th:text="${user.active} ? 'Active' : 'Inactive'">
-              </span>
+                    </span>
                   </td>
                   <td class="role text-primary" th:text="${@roleController.getRoleNameInVietnamese(user.role)}">Role</td>
                   <td class="text-center align-middle">
                     <!-- Nút Xem chi tiết -->
                     <button class="btn btn-primary btn-sm fw-bold rounded-pill d-flex align-items-center justify-content-center px-3"
+                            style="padding:2px 6px; border-radius:8px; font-size:0.8rem;"
                             data-bs-toggle="modal" data-bs-target="#userModal"
                             th:data-id="${user.id}"
                             th:data-username="${user.username}"
@@ -931,30 +991,35 @@
                       <i class="bi bi-eye me-1"></i> Xem
                     </button>
                   </td>
+
                   <td class="text-center align-middle">
-                    <!-- Form đổi vai trò -->
-                    <form action="/admin/changeRole" method="post" class="d-inline-flex align-items-center">
+                    <form action="/admin/changeRole" method="post" class="d-inline-flex align-items-center"
+                          onsubmit="return confirm('Bạn có chắc chắn muốn đổi vai trò người dùng này?');">
                       <input type="hidden" name="username" th:value="${user.username}">
                       <select name="newRole"
-                              class="form-select form-select-sm text-white bg-dark border-0 rounded-pill px-3 me-2"
-                              style="width: auto; min-width: 130px;">
+                              class="form-select form-select-sm text-white bg-dark border-0 rounded-pill me-2"
+                              style="width: auto; min-width: 130px; padding:2px 6px; border-radius:8px; font-size:0.8rem;">
                         <option value="STUDENT" th:selected="${user.role == 'STUDENT'}">Học sinh</option>
-                        <option value="TEACHER" th:selected="${user.role == 'TEACHER'}">Giáo viên</option>
+                        <option value="TEACHER" th:selected="${user.role == 'TEACHER'}">Gíao viên</option>
                         <option value="ADMIN" th:selected="${user.role == 'ADMIN'}">Quản trị viên</option>
                         <option value="UPGRADED_USER" th:selected="${user.role == 'UPGRADED_USER'}">Tài khoản nâng cấp</option>
                         <option value="PENDING_TEACHER" th:selected="${user.role == 'PENDING_TEACHER'}">Xét duyệt giáo viên</option>
                       </select>
-                      <button type="submit" class="btn btn-success btn-sm rounded-pill d-flex align-items-center px-3">
+                      <button type="submit" class="btn btn-success btn-sm d-flex align-items-center"
+                              style="padding:2px 6px; border-radius:8px; font-size:0.8rem;">
                         <i class="bi bi-save me-1"></i> Lưu
                       </button>
                     </form>
                   </td>
+
                   <td style="min-width: 150px;">
                     <!-- Form chặn/bỏ chặn -->
-                    <form action="/admin/updateUserStatus" method="post" class="d-flex align-items-center">
+                    <form action="/admin/updateUserStatus" method="post" class="d-inline-flex align-items-center"
+                          th:attr="onsubmit=${user.active} ? 'return confirm(\'Bạn có chắc chắn muốn chặn người dùng này?\')' : 'return confirm(\'Bạn có chắc chắn muốn mở chặn người dùng này?\')'">
                       <input type="hidden" name="username" th:value="${user.username}">
                       <button type="submit"
                               class="btn btn-sm rounded-pill d-flex align-items-center justify-content-center px-3 fw-bold text-white"
+                              style="padding:2px 6px; border-radius:8px; font-size:0.8rem;"
                               th:classappend="${user.active} ? ' btn-danger' : ' btn-success'">
                         <i class="bi" th:class="${user.active} ? 'bi-x-circle me-1' : 'bi-check-circle me-1'"></i>
                         <span th:text="${user.active} ? 'Chặn' : 'Bỏ chặn'"></span>
@@ -994,8 +1059,8 @@
                   <td class="email" th:text="${user.email}">Email</td>
                   <td>
               <span th:style="${user.verified}
-              ? 'display:inline-block; background-color:#2196f3; color:#fff; padding:6px 12px; border-radius:9999px;'
-              : 'display:inline-block; background-color:#E43161; color:#fff; padding:6px 12px; border-radius:9999px;'"
+              ? 'display:inline-block; background-color:#2196f3; color:#fff; padding:2px 6px; border-radius:9999px;'
+              : 'display:inline-block; background-color:#E43161; color:#fff; padding:2px 6px; border-radius:9999px;'"
                     th:text="${user.verified} ? 'Đã xác thực' : 'Chưa xác thực'">
             </span>
                   </td>
@@ -1003,6 +1068,7 @@
                   <td class="text-center align-middle">
                     <!-- Nút Xem -->
                     <button class="btn btn-primary btn-sm fw-bold rounded-pill d-flex align-items-center justify-content-center px-3"
+                            style="padding:2px 6px; border-radius:8px; font-size:0.8rem;"
                             data-bs-toggle="modal" data-bs-target="#userModal"
                             th:data-id="${user.id}"
                             th:data-username="${user.username}"
@@ -1021,28 +1087,34 @@
                       <i class="bi bi-eye me-1"></i> Xem
                     </button>
                   </td>
+
                   <td class="text-center align-middle">
-                    <form action="/admin/changeRole" method="post" class="d-inline-flex align-items-center">
+                    <form action="/admin/changeRole" method="post" class="d-inline-flex align-items-center"
+                          onsubmit="return confirm('Bạn có chắc chắn muốn đổi vai trò người dùng này?');">
                       <input type="hidden" name="username" th:value="${user.username}">
                       <select name="newRole"
-                              class="form-select form-select-sm text-white bg-dark border-0 rounded-pill px-3 me-2"
-                              style="width: auto; min-width: 130px;">
+                              class="form-select form-select-sm text-white bg-dark border-0 rounded-pill me-2"
+                              style="width: auto; min-width: 130px; padding:2px 6px; border-radius:8px; font-size:0.8rem;">
                         <option value="STUDENT" th:selected="${user.role == 'STUDENT'}">Học sinh</option>
-                        <option value="TEACHER" th:selected="${user.role == 'TEACHER'}">Giáo viên</option>
+                        <option value="TEACHER" th:selected="${user.role == 'TEACHER'}">Gíao viên</option>
                         <option value="ADMIN" th:selected="${user.role == 'ADMIN'}">Quản trị viên</option>
                         <option value="UPGRADED_USER" th:selected="${user.role == 'UPGRADED_USER'}">Tài khoản nâng cấp</option>
                         <option value="PENDING_TEACHER" th:selected="${user.role == 'PENDING_TEACHER'}">Xét duyệt giáo viên</option>
                       </select>
-                      <button type="submit" class="btn btn-success btn-sm rounded-pill d-flex align-items-center px-3">
+                      <button type="submit" class="btn btn-success btn-sm d-flex align-items-center"
+                              style="padding:2px 6px; border-radius:8px; font-size:0.8rem;">
                         <i class="bi bi-save me-1"></i> Lưu
                       </button>
                     </form>
                   </td>
+
                   <td style="min-width: 150px;">
-                    <form action="/admin/updateUserStatus" method="post" class="d-flex align-items-center">
+                    <form action="/admin/updateUserStatus" method="post" class="d-inline-flex align-items-center"
+                          th:attr="onsubmit=${user.active} ? 'return confirm(\'Bạn có chắc chắn muốn chặn người dùng này?\')' : 'return confirm(\'Bạn có chắc chắn muốn mở chặn người dùng này?\')'">
                       <input type="hidden" name="username" th:value="${user.username}">
                       <button type="submit"
                               class="btn btn-sm rounded-pill d-flex align-items-center justify-content-center px-3 fw-bold text-white"
+                              style="padding:2px 6px; border-radius:8px; font-size:0.8rem;"
                               th:classappend="${user.active} ? ' btn-danger' : ' btn-success'">
                         <i class="bi" th:class="${user.active} ? 'bi-x-circle me-1' : 'bi-check-circle me-1'"></i>
                         <span th:text="${user.active} ? 'Chặn' : 'Bỏ chặn'"></span>
@@ -1061,6 +1133,62 @@
   </div> <!-- End row -->
 </div> <!-- End container-fluid -->
 
+
+<!-- New User Modal -->
+<div class="modal fade" id="newUserModal" tabindex="-1" aria-labelledby="newUserModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form th:action="@{/admin/addUser}" method="post" id="newUserForm">
+        <div class="modal-header">
+          <h5 class="modal-title" id="newUserModalLabel">Thêm Người dùng mới</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+        </div>
+        <div class="modal-body">
+          <!-- Tên đăng nhập -->
+          <div class="mb-3">
+            <label for="username" class="form-label">Tên đăng nhập</label>
+            <input type="text" class="form-control" id="username" name="username" required
+                   th:value="${usernameValue}">
+            <div class="text-danger" th:if="${usernameError != null}" th:text="${usernameError}"></div>
+          </div>
+          <!-- Email -->
+          <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input type="email" class="form-control" id="email" name="email" required
+                   th:value="${emailValue}">
+            <div class="text-danger" th:if="${emailError != null}" th:text="${emailError}"></div>
+          </div>
+          <!-- Mật khẩu với chức năng ẩn/hiện -->
+          <div class="mb-3 position-relative">
+            <label for="password" class="form-label">Mật khẩu</label>
+            <input type="password" class="form-control" id="password" name="password" required>
+            <!-- Icon toggle ẩn/hiện mật khẩu -->
+            <span class="position-absolute" style="top: 38px; right: 10px; cursor: pointer;"
+                  onclick="togglePasswordVisibility()">
+              <i class="bi bi-eye" id="togglePasswordIcon"></i>
+            </span>
+          </div>
+          <!-- Vai trò -->
+          <div class="mb-3">
+            <label for="role" class="form-label">Vai trò</label>
+            <select class="form-select" id="role" name="role" required>
+              <option value="STUDENT" th:selected="${roleValue=='STUDENT'}">Học sinh</option>
+              <option value="TEACHER" th:selected="${roleValue=='TEACHER'}">Giáo viên</option>
+              <option value="ADMIN" th:selected="${roleValue=='ADMIN'}">Quản trị viên</option>
+              <!-- Thêm các tùy chọn khác nếu cần -->
+            </select>
+          </div>
+          <!-- Các trường khác nếu cần -->
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+          <button type="submit" class="btn btn-primary">Thêm Người dùng</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 <!-- Chèn Fragment modal từ file userModal.html (nếu có) -->
 <div th:replace="~{fragments/userModal :: userModalFragment}"></div>
 
@@ -1069,6 +1197,19 @@
 
 <!-- Chart.js Script (nếu cần) -->
 <script th:inline="javascript">
+  function togglePasswordVisibility() {
+    var passwordInput = document.getElementById("password");
+    var toggleIcon = document.getElementById("togglePasswordIcon");
+    if (passwordInput.type === "password") {
+      passwordInput.type = "text";
+      toggleIcon.classList.remove("bi-eye");
+      toggleIcon.classList.add("bi-eye-slash");
+    } else {
+      passwordInput.type = "password";
+      toggleIcon.classList.remove("bi-eye-slash");
+      toggleIcon.classList.add("bi-eye");
+    }
+  }
   /*<![CDATA[*/
   var studentCount = /*[[${studentCount}]]*/ 0;
   var teacherCount = /*[[${teacherCount}]]*/ 0;
@@ -1109,6 +1250,6 @@
     }
   });
 </script>
-
+<div th:insert="~{fragments/logoutModal :: logoutModal}"></div>
 </body>
 </html>
