@@ -38,9 +38,19 @@ public class AdminReportController {
         List<ReportRequest> reportList = new ArrayList<>();
         ApiFuture<QuerySnapshot> future = db.collection("report").get();
         List<QueryDocumentSnapshot> documents = future.get().getDocuments();
+
         for (QueryDocumentSnapshot doc : documents) {
             ReportRequest report = doc.toObject(ReportRequest.class);
             report.setId(doc.getId()); // Giả sử ReportRequest có trường id để lưu document ID
+            // Lấy thông tin bài đăng từ postService
+            if (report.getPostId() != null) {
+                var post = postService.getPostById(report.getPostId()); // Bạn cần viết hàm này nếu chưa có
+                if (post != null) {
+                    report.setPostContent(post.getContent()); // thêm getter/setter vào ReportRequest
+                    report.setPostAuthor(post.getUsername());
+                }
+            }
+
             reportList.add(report);
         }
         return reportList;

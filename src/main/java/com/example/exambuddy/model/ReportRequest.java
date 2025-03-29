@@ -10,6 +10,9 @@ public class ReportRequest {
     private String description;
     private String reporter;   // Người báo cáo
     private Date timestamp;    // Thời gian báo cáo
+    private String postContent;
+    private String postAuthor;
+
 
     public ReportRequest() {
     }
@@ -61,5 +64,18 @@ public class ReportRequest {
 
     public void setTimestamp(Date timestamp) {
         this.timestamp = timestamp;
+    }
+    public String getPostContent() {
+        return postContent;
+    }
+    public void setPostContent(String postContent) {
+        this.postContent = postContent;
+    }
+
+    public String getPostAuthor() {
+        return postAuthor;
+    }
+    public void setPostAuthor(String postAuthor) {
+        this.postAuthor = postAuthor;
     }
 }

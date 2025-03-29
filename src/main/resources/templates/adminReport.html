@@ -15,6 +15,7 @@
             overflow-y: auto;
             z-index: 10;
         }
+
         .header-sticky {
             position: sticky;
             top: 0;
@@ -22,15 +23,45 @@
             background: #fff;
         }
 
-        /* Custom CSS để điều chỉnh độ rộng cột theo nội dung */
-        .table-auto-width {
-            width: auto !important;
-            table-layout: auto !important;
+        /* Table styling */
+        .table-custom {
+            table-layout: auto;
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
         }
 
-        .table-auto-width th,
-        .table-auto-width td {
-            white-space: nowrap; /* không xuống dòng */
+        .table-custom th {
+            background-color: #f1f1f1;
+            text-align: center;
+            padding: 12px;
+            white-space: nowrap;
+        }
+
+        .table-custom td {
+            padding: 12px;
+            text-align: left;
+            white-space: normal;
+            border-right: 1px solid #dee2e6;
+            vertical-align: middle;
+        }
+
+        .table-custom td:last-child {
+            border-right: none;
+        }
+
+        .table-custom tbody tr:nth-child(odd) {
+            background-color: #ffffff;
+        }
+
+        .table-custom tbody tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        .btn-sm-rounded {
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-size: 0.8rem;
         }
     </style>
 </head>
@@ -67,6 +98,7 @@
                 </li>
             </ul>
         </div>
+
         <!-- Main Content -->
         <div class="col-10 px-0">
             <div class="header-sticky shadow-sm p-4 mb-4">
@@ -74,18 +106,20 @@
                     <h1 class="h3 fw-bold m-0">Dashboard</h1>
                     <div class="d-flex align-items-center">
                         <span class="fw-semibold me-2" th:text="${adminUser.username}">Admin</span>
-                        <img th:src="${adminUser.avatarUrl}" alt="Admin Avatar" class="rounded-circle border border-secondary" style="width:40px; height:40px;">
+                        <img th:src="${adminUser.avatarUrl}" alt="Admin Avatar"
+                             class="rounded-circle border border-secondary" style="width:40px; height:40px;">
                     </div>
                 </div>
             </div>
+
             <div class="px-4">
                 <h2 class="h5 fw-bold mb-3">⚠️ Quản Lý Báo cáo</h2>
                 <div class="table-responsive bg-light rounded shadow-sm">
-                    <table class="table table-hover align-middle mb-0 table-auto-width">
-                        <thead class="table-secondary text-center">
+                    <table class="table table-hover align-middle mb-0 table-custom">
+                        <thead class="text-center">
                         <tr>
-                            <th>ID Báo cáo</th>
-                            <th>Mã bài đăng</th>
+                            <th>Người đăng</th>
+                            <th>Nội dung</th>
                             <th>Lý do</th>
                             <th>Mô tả</th>
                             <th>Người báo cáo</th>
@@ -93,27 +127,37 @@
                             <th>Hành động</th>
                         </tr>
                         </thead>
-                        <tbody class="text-center">
+                        <tbody>
                         <tr th:each="report : ${reports}">
-                            <td th:text="${report.id}"></td>
-                            <td th:text="${report.postId}"></td>
+                            <td th:text="${report.postAuthor}"></td>
+                            <td th:text="${report.postContent}"></td>
                             <td th:text="${#strings.listJoin(report.reason, ', ')}"></td>
                             <td th:text="${report.description}"></td>
                             <td th:text="${report.reporter}"></td>
                             <td th:text="${#dates.format(report.timestamp, 'yyyy-MM-dd HH:mm:ss')}"></td>
-                            <td>
-                                <form action="/admin/reports/lockPost" method="post" style="display:inline-block;">
-                                    <input type="hidden" name="postId" th:value="${report.postId}" />
-                                    <button type="submit" class="btn btn-danger btn-sm">Khoá bài</button>
+                            <td class="text-center">
+                                <form action="/admin/reports/lockPost" method="post"
+                                      th:onsubmit="|return confirm('Bạn có chắc chắn muốn khoá bài này không?')|"
+                                      class="d-inline-flex align-items-center">
+                                    <input type="hidden" name="postId" th:value="${report.postId}"/>
+                                    <button type="submit"
+                                            class="btn btn-danger btn-sm-rounded d-flex align-items-center justify-content-center">
+                                        <i class="bi bi-lock-fill me-1"></i> Khoá bài
+                                    </button>
                                 </form>
-                                <form action="/admin/reports/delete" method="post" style="display:inline-block;">
-                                    <input type="hidden" name="reportId" th:value="${report.id}" />
-                                    <button type="submit" class="btn btn-warning btn-sm">Xoá báo cáo</button>
+                                <form action="/admin/reports/delete" method="post"
+                                      th:onsubmit="|return confirm('Bạn có chắc chắn muốn xoá báo cáo này?')|"
+                                      class="d-inline-flex align-items-center ms-1">
+                                    <input type="hidden" name="reportId" th:value="${report.id}"/>
+                                    <button type="submit"
+                                            class="btn btn-warning btn-sm-rounded d-flex align-items-center justify-content-center">
+                                        <i class="bi bi-trash-fill me-1"></i> Xoá báo cáo
+                                    </button>
                                 </form>
                             </td>
                         </tr>
                         <tr th:if="${#lists.isEmpty(reports)}">
-                            <td colspan="7" class="text-muted">Chưa có báo cáo nào.</td>
+                            <td colspan="7" class="text-muted text-center">Chưa có báo cáo nào.</td>
                         </tr>
                         </tbody>
                     </table>
