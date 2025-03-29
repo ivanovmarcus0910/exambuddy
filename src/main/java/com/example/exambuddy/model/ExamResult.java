@@ -16,12 +16,12 @@ public class ExamResult {
     private long submittedAt;
     private List<String> correctAnswers;
     private String username;
-
+    private Exam exam;
 
     public ExamResult() {}
 
     public ExamResult(String resultId, String examID, String examName, double score,
-                      Map<String, List<String>> answers, long submittedAt, List<String> correctAnswers, String username) {
+                      Map<String, List<String>> answers, long submittedAt, List<String> correctAnswers, String username, Exam exam) {
         this.resultId = resultId;
         this.examID = examID;
         this.examName = examName;
@@ -30,6 +30,7 @@ public class ExamResult {
         this.submittedAt = submittedAt;
         this.correctAnswers = correctAnswers;
         this.username = username;
+        this.exam = exam;
     }
 
     // Getters và Setters
@@ -60,5 +61,13 @@ public class ExamResult {
     public String getFormattedSubmittedAt() {
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
         return sdf.format(new Date(submittedAt));
+    }
+
+    public Exam getExam() {
+        return exam;
+    }
+
+    public void setExam(Exam exam) {
+        this.exam = exam;
     }
 }
