@@ -7,9 +7,11 @@ import com.example.exambuddy.service.*;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -33,6 +35,9 @@ public class AdminController {
 
     @Autowired
     private EmailService emailService;
+
+    @Autowired
+    private PasswordService passwordService;
 
     // Trang chủ (Dashboard): admin.html
     @GetMapping("")
@@ -64,19 +69,34 @@ public class AdminController {
     // Quản lý Người dùng (gộp danh sách và phân loại theo tab vào 1 trang adminUser.html)
     @GetMapping("/users")
     public String adminUsers(Model model, HttpSession session,
-                             @RequestParam(defaultValue = "0") int page) throws Exception {
+                             @RequestParam(defaultValue = "0") int page,
+                             @RequestParam(required = false) String search) throws Exception {
+
+        // Kiểm tra admin đã đăng nhập hay chưa
         String loggedInUser = (String) session.getAttribute("loggedInUser");
         if (loggedInUser == null || !authService.isAdmin(loggedInUser)) {
             return "redirect:/login";
         }
 
         int pageSize = 10;
-        List<User> userPage = userService.getUserPage(page, pageSize);
+        List<User> userPage;
+        // Nếu có từ khóa tìm kiếm, lọc theo username, email, và tên
+        if (search != null && !search.trim().isEmpty()) {
+            userPage = userService.searchUsers(search.trim(), page, pageSize);
+            model.addAttribute("searchParam", search.trim());
+        } else {
+            userPage = userService.getUserPage(page, pageSize);
+        }
         model.addAttribute("userPage", userPage);
         model.addAttribute("currentPage", page);
 
         // Lấy toàn bộ người dùng
-        List<User> allUsers = userService.getAllUsers();
+        List<User> allUsers;
+        if (search != null && !search.trim().isEmpty()) {
+            allUsers = userService.searchUsers(search.trim());
+        } else {
+            allUsers = userService.getAllUsers();
+        }
 
         // Kiểm tra nếu trang hiện tại chưa đủ 10 phần tử
         boolean hasNextPage = userPage.size() == pageSize;
@@ -133,6 +153,59 @@ public class AdminController {
         }
 
         return "adminUser"; // Trả về view adminUser.html (đã gộp chức năng tab)
+    }
+
+    @PostMapping("/addUser")
+    public String addUser(@RequestParam String username,
+                          @RequestParam String email,
+                          @RequestParam String password,
+                          @RequestParam String role,
+                          Model model,
+                          HttpSession session) {
+        // Kiểm tra admin đã đăng nhập chưa
+        String loggedInUser = (String) session.getAttribute("loggedInUser");
+        if (loggedInUser == null || !authService.isAdmin(loggedInUser)) {
+            return "redirect:/login";
+        }
+
+        boolean hasError = false;
+
+        // Kiểm tra xem username đã tồn tại chưa
+        if (authService.isUsernameExists(username)) {
+            model.addAttribute("usernameError", "Tên đăng nhập đã tồn tại!");
+            hasError = true;
+        }
+
+        // Kiểm tra xem email đã tồn tại chưa (giả sử isEmailExists trả về CompletableFuture<Boolean>)
+        if (authService.isEmailExists(email).join()) {
+            model.addAttribute("emailError", "Email đã được sử dụng!");
+            hasError = true;
+        }
+
+        // Lưu lại giá trị nhập vào để giữ nguyên khi có lỗi
+        model.addAttribute("usernameValue", username);
+        model.addAttribute("emailValue", email);
+        model.addAttribute("roleValue", role);
+
+        if (hasError) {
+            // Nếu có lỗi, quay lại trang quản lí người dùng để hiển thị thông báo lỗi (có thể tự động mở lại modal bằng JS nếu cần)
+            return "adminUser";
+        }
+
+        // Chuyển đổi vai trò (nếu không hợp lệ, mặc định STUDENT)
+        User.Role userRole;
+        try {
+            userRole = User.Role.valueOf(role.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            userRole = User.Role.STUDENT;
+        }
+
+        // Đăng ký người dùng mới (theo cách của bạn, OTP được gửi để xác thực tài khoản)
+        String result = authService.registerUser(email, username, password, userRole);
+        // Thông báo thành công (bạn có thể sử dụng flash attributes để thông báo sau khi redirect)
+        session.setAttribute("successMessage", result);
+
+        return "redirect:/admin/users";
     }
 
     // POST: Xác nhận yêu cầu trở thành giáo viên
