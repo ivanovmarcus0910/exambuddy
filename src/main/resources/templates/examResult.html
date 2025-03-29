@@ -47,6 +47,17 @@
                 <!-- Đánh dấu câu đúng/sai -->
                 <p class="fw-bold text-danger mt-2" th:if="${!correctQuestions.contains('q' + i.index)}">❌ Sai</p>
                 <p class="fw-bold text-success mt-2" th:if="${correctQuestions.contains('q' + i.index)}">✅ Đúng</p>
+
+                <!-- Nút Xem Giải Thích -->
+                <button class="btn btn-info btn-sm mt-2"
+                        th:attr="onclick='getExplanation(this, \'' + ${question.questionText} + '\', \'' + ${#strings.listJoin(question.options, '|')} + '\')'">
+                    Đáp án tham khảo từ AI
+                </button>
+
+
+                <!-- Khu vực hiển thị giải thích -->
+                <p class="mt-2 text-muted explanation" style="display: none;"></p>
+
             </li>
         </ul>
 
@@ -56,5 +67,44 @@
     </div>
 </div>
 <div th:insert="fragments/footer :: footer"></div>
+
+
+
+<script>
+    function getExplanation(button, question, options) {
+        let explanationBox = button.nextElementSibling;
+        button.disabled = true;
+        button.innerText = "Đang tải...";
+
+        let query = `Câu hỏi: ${question}. Các đáp án: ${options.replace(/\|/g, ', ')}. Hãy chọn đáp án đúng và giải thích lý do.`;
+
+        fetch('/api/explain?question=' + encodeURIComponent(query))
+            .then(response => response.text())
+            .then(data => {
+                explanationBox.innerText = data;
+                explanationBox.style.display = "block";
+                button.innerText = "Ẩn giải thích";
+                button.setAttribute("onclick", "toggleExplanation(this)");
+            })
+            .catch(error => {
+                console.error("Lỗi khi lấy giải thích:", error);
+                explanationBox.innerText = "Không thể lấy giải thích.";
+                explanationBox.style.display = "block";
+                button.innerText = "Thử lại";
+                button.disabled = false;
+            });
+    }
+
+    function toggleExplanation(button) {
+        let explanationBox = button.nextElementSibling;
+        if (explanationBox.style.display === "none") {
+            explanationBox.style.display = "block";
+            button.innerText = "Ẩn giải thích";
+        } else {
+            explanationBox.style.display = "none";
+            button.innerText = "Xem giải thích";
+        }
+    }
+</script>
 </body>
 </html>
