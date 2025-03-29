@@ -445,6 +445,12 @@ public class ExamService {
         db.collection("exams").document(examId)
                 .update("participantCount", FieldValue.increment(1));
     }
+    public void deleteProcess(String userId, String examId) {
+        DocumentReference docRef = db.collection("examSessions").document(userId + "_" + examId);
+        docRef.delete();
+        docRef = db.collection("examProgress").document(userId + "_" + examId);
+        docRef.delete();
+    }
 
     public void saveExamResult(String userId, String examId, double score, Exam exam, MultiValueMap<String, String> userAnswers, List<String> correctAnswers) {
         String idRandom = UUID.randomUUID().toString();
@@ -458,7 +464,8 @@ public class ExamService {
                 "answers", userAnswers,
                 "submittedAt", System.currentTimeMillis(),
                 "correctAnswers", correctAnswers,
-                "username", userId
+                "username", userId,
+                "exam",exam
 
         ), SetOptions.merge());
     }
