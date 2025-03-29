@@ -34,7 +34,8 @@ public class PostService {
         post.setImageUrls(imageUrls);
         post.setLikeCount(0);
         post.setLikedUsernames(new ArrayList<>());
-
+        // Thiết lập bài đăng mới tạo mặc định chưa duyệt
+        post.setActive(false);
         try {
             DocumentReference newPostRef = posts.add(post).get();
             String postId = newPostRef.getId();
@@ -104,6 +105,7 @@ public class PostService {
             // Truy vấn chỉ lấy bài có status = "public"
             ApiFuture<QuerySnapshot> future = db.collection(COLLECTION_NAME)
                     .whereEqualTo("status", "public")  // Lọc bài viết public
+                    .whereEqualTo("active", true)
                     .get();
 
             List<QueryDocumentSnapshot> documents = future.get().getDocuments();

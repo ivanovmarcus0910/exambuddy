@@ -290,7 +290,7 @@ public class AdminController {
             return "redirect:/login";
         }
 
-        List<Post> posts = PostService.getPublicPostsFromFirestore();
+        List<Post> posts = PostService.getPostsFromFirestore();
         model.addAttribute("posts", posts);
 
         // Thông tin admin
