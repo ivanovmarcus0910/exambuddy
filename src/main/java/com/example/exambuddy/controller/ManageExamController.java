@@ -51,17 +51,17 @@ public class ManageExamController {
     private UserService userService;
     @Autowired
     private FeedbackService feedbackService;
-    @GetMapping("/exams")
-    public String listExams(Model model) {
-        try {
-            List<Exam> exams = examService.getExamList(0, 6);
-            model.addAttribute("exams", exams);
-            return "examList"; // Trả về trang hiển thị danh sách đề thi
-        } catch (Exception e) {
-            model.addAttribute("error", "Lỗi khi tải danh sách đề thi: " + e.getMessage());
-            return "error";
-        }
-    }
+//    @GetMapping("/exams")
+//    public String listExams(Model model) {
+//        try {
+//            List<Exam> exams = examService.getExamList(0, 6);
+//            model.addAttribute("exams", exams);
+//            return "examList"; // Trả về trang hiển thị danh sách đề thi
+//        } catch (Exception e) {
+//            model.addAttribute("error", "Lỗi khi tải danh sách đề thi: " + e.getMessage());
+//            return "error";
+//        }
+//    }
 
     @GetMapping("/exams/{examId}/detail")
     public String getExamDetail(@PathVariable String examId,Model model, HttpServletRequest request, HttpSession session) {
@@ -463,7 +463,7 @@ public class ManageExamController {
         if (examName != null && !examName.isEmpty()) {
             examList = examService.searchExamByName(examName);
         } else {
-            examList = examService.getExamList(0, 10);
+            examList = examService.getExamList();
         }
         model.addAttribute("examList", examList);
         return "resultSearchExam";

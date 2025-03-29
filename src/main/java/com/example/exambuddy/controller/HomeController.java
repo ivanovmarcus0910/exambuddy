@@ -23,19 +23,16 @@ public class HomeController {
     @Autowired
     private LeaderBoardService leaderBoardService;
     @GetMapping({"/*", "/home"})
-    public String homePage(@RequestParam(defaultValue = "0") int page,
-                           @RequestParam(defaultValue = "6") int size,
-                           Model model) {
+    public String homePage(Model model) {
         try {
             long x = System.currentTimeMillis();
 
-            List<Exam> exams = examService.getExamList(page, size);
-              System.out.println("Exams in " + (System.currentTimeMillis() - x) + "ms");
-            model.addAttribute("exams", exams);
-            model.addAttribute("currentPage", page);
-            model.addAttribute("size", size);
-            model.addAttribute("nextPage", page + 1);
-            model.addAttribute("prevPage", page > 0 ? page - 1 : 0);
+            Map<String, List<Exam>> examsMap = examService.getExamPopular();
+
+            model.addAttribute("grade10Exams", examsMap.get("grade10Exams"));
+            model.addAttribute("grade11Exams", examsMap.get("grade11Exams"));
+            model.addAttribute("grade12Exams", examsMap.get("grade12Exams"));
+
             return "home";
         } catch (Exception e) {
             model.addAttribute("error", "Lỗi khi tải danh sách đề thi: " + e.getMessage());
