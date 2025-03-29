@@ -28,13 +28,17 @@ public class MessageController {
     @ResponseBody
     @PostMapping("/reportPost")
     public ResponseEntity<String> reportPost(@RequestBody ReportRequest request, HttpSession session) {
+        System.out.println("📥 [CONTROLLER] Nhận request báo cáo!");
+
         String username = (String) session.getAttribute("loggedInUser");
 
         if (username == null) {
+            System.out.println("❌ [CONTROLLER] Chưa đăng nhập!");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Bạn cần đăng nhập để báo cáo bài viết.");
         }
 
-        request.setReporter(username); // Lưu người báo cáo vào request
+        System.out.println("✅ [CONTROLLER] Người báo cáo: " + username);
+        request.setReporter(username);
         messageService.saveReport(request);
 
         return ResponseEntity.ok("Báo cáo đã được gửi thành công");

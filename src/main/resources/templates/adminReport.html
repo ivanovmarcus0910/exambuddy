@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Quản lí Báo cáo</title>
+    <link rel="icon" type="image/x-icon" href="https://res.cloudinary.com/dsuav027e/image/upload/v1740393796/favicon_llcueu.ico">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+    <style>
+        .sidebar-sticky {
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 10;
+        }
+        .header-sticky {
+            position: sticky;
+            top: 0;
+            z-index: 999;
+            background: #fff;
+        }
+
+        /* Custom CSS để điều chỉnh độ rộng cột theo nội dung */
+        .table-auto-width {
+            width: auto !important;
+            table-layout: auto !important;
+        }
+
+        .table-auto-width th,
+        .table-auto-width td {
+            white-space: nowrap; /* không xuống dòng */
+        }
+    </style>
+</head>
+<body class="bg-white">
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-2 bg-light px-3 py-4 sidebar-sticky">
+            <div class="text-center mb-4">
+                <img src="/img/logo.png" alt="Logo" class="img-fluid mb-3">
+            </div>
+            <h2 class="h5 fw-bold text-center">🎩 Dashboard</h2>
+            <ul class="nav flex-column mt-4">
+                <li class="nav-item mb-2">
+                    <a href="/admin/users" class="nav-link">👥 Quản lí Người dùng</a>
+                </li>
+                <li class="nav-item mb-2">
+                    <a href="/admin/exams" class="nav-link">📝 Quản lí Đề thi</a>
+                </li>
+                <li class="nav-item mb-2">
+                    <a href="/admin/posts" class="nav-link">📄 Quản lí Bài viết</a>
+                </li>
+                <li class="nav-item mb-2">
+                    <a href="/admin/reports" class="nav-link active">⚠️ Quản lí Báo cáo</a>
+                </li>
+                <li class="nav-item mb-2">
+                    <a href="/admin/logs" class="nav-link">📝 Lịch sử Admin</a>
+                </li>
+                <li class="nav-item mb-2">
+                    <a href="/admin/stats" class="nav-link">📊 Thống kê</a>
+                </li>
+                <li class="nav-item mt-3">
+                    <a href="/logout" class="nav-link text-danger">🚪 Đăng xuất</a>
+                </li>
+            </ul>
+        </div>
+        <!-- Main Content -->
+        <div class="col-10 px-0">
+            <div class="header-sticky shadow-sm p-4 mb-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h1 class="h3 fw-bold m-0">Dashboard</h1>
+                    <div class="d-flex align-items-center">
+                        <span class="fw-semibold me-2" th:text="${adminUser.username}">Admin</span>
+                        <img th:src="${adminUser.avatarUrl}" alt="Admin Avatar" class="rounded-circle border border-secondary" style="width:40px; height:40px;">
+                    </div>
+                </div>
+            </div>
+            <div class="px-4">
+                <h2 class="h5 fw-bold mb-3">⚠️ Quản Lý Báo cáo</h2>
+                <div class="table-responsive bg-light rounded shadow-sm">
+                    <table class="table table-hover align-middle mb-0 table-auto-width">
+                        <thead class="table-secondary text-center">
+                        <tr>
+                            <th>ID Báo cáo</th>
+                            <th>Mã bài đăng</th>
+                            <th>Lý do</th>
+                            <th>Mô tả</th>
+                            <th>Người báo cáo</th>
+                            <th>Thời gian</th>
+                            <th>Hành động</th>
+                        </tr>
+                        </thead>
+                        <tbody class="text-center">
+                        <tr th:each="report : ${reports}">
+                            <td th:text="${report.id}"></td>
+                            <td th:text="${report.postId}"></td>
+                            <td th:text="${#strings.listJoin(report.reason, ', ')}"></td>
+                            <td th:text="${report.description}"></td>
+                            <td th:text="${report.reporter}"></td>
+                            <td th:text="${#dates.format(report.timestamp, 'yyyy-MM-dd HH:mm:ss')}"></td>
+                            <td>
+                                <form action="/admin/reports/lockPost" method="post" style="display:inline-block;">
+                                    <input type="hidden" name="postId" th:value="${report.postId}" />
+                                    <button type="submit" class="btn btn-danger btn-sm">Khoá bài</button>
+                                </form>
+                                <form action="/admin/reports/delete" method="post" style="display:inline-block;">
+                                    <input type="hidden" name="reportId" th:value="${report.id}" />
+                                    <button type="submit" class="btn btn-warning btn-sm">Xoá báo cáo</button>
+                                </form>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(reports)}">
+                            <td colspan="7" class="text-muted">Chưa có báo cáo nào.</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div> <!-- End Main Content -->
+    </div>
+</div>
+</body>
+</html>
