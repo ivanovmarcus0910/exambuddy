@@ -17,7 +17,13 @@
         </aside>
 
         <main class="col-md-6 mx-auto overflow-auto p-3" id="scrollableMain">
-            <div th:insert="~{fragments/post :: post}"></div>
+            <th:block th:if="${postNotFound}">
+                <h4 style="color: red;">Không tìm thấy bài viết</h4>
+            </th:block>
+            <th:block th:unless="${postNotFound}">
+                <div th:insert="~{fragments/post :: post}"></div>
+            </th:block>
+
 <!--            <div id="post-container">-->
 <!--                <div class="text-center mt-3">-->
 <!--                    <div class="spinner-border text-primary" role="status">-->

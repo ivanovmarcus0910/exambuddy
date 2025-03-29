@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -19,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
-@RestController
+@Controller
 @RequestMapping("/api/theory")
 public class TheoryController {
     @Autowired
@@ -27,62 +28,82 @@ public class TheoryController {
     @Autowired
     private CloudinaryService cloudinaryService;
 
+    @GetMapping("/createTheory")
+    public String createTheory() {
+        return "createTheory"; // Trả về tên file HTML (không cần đuôi .html)
+    }
+
+    @GetMapping("/viewTheory")
+    public String viewTheory() {
+        return "viewTheory"; // Trả về tên file HTML (không cần đuôi .html)
+    }
+
     // Lấy danh sách môn học
     @GetMapping("/subjects/{classId}")
+    @ResponseBody
     public List<Subject> getSubjects(@PathVariable String classId) throws ExecutionException, InterruptedException {
         return theoryService.getSubjects(classId);
     }
 
     // Thêm môn học
     @PostMapping("/subjects/{classId}")
+    @ResponseBody
     public void addSubject(@PathVariable String classId, @RequestBody Subject subject) throws ExecutionException, InterruptedException {
         theoryService.addSubject(classId, subject);
     }
 
     // Xóa môn học
     @DeleteMapping("/subjects/{classId}/{subjectId}")
+    @ResponseBody
     public void deleteSubject(@PathVariable String classId, @PathVariable String subjectId) throws ExecutionException, InterruptedException {
         theoryService.deleteSubject(classId, subjectId);
     }
 
     // Lấy danh sách chương
     @GetMapping("/chapters/{classId}/{subjectId}")
+    @ResponseBody
     public List<Chapter> getChapters(@PathVariable String classId, @PathVariable String subjectId) throws ExecutionException, InterruptedException {
         return theoryService.getChapters(classId, subjectId);
     }
 
     // Thêm chương
     @PostMapping("/chapters/{classId}/{subjectId}")
+    @ResponseBody
     public void addChapter(@PathVariable String classId, @PathVariable String subjectId, @RequestBody Chapter chapter) throws ExecutionException, InterruptedException {
         theoryService.addChapter(classId, subjectId, chapter);
     }
 
     // Xóa chương
     @DeleteMapping("/chapters/{classId}/{subjectId}/{chapterId}")
+    @ResponseBody
     public void deleteChapter(@PathVariable String classId, @PathVariable String subjectId, @PathVariable String chapterId) throws ExecutionException, InterruptedException {
         theoryService.deleteChapter(classId, subjectId, chapterId);
     }
 
     // Lấy danh sách bài học
     @GetMapping("/lessons/{classId}/{subjectId}/{chapterId}")
+    @ResponseBody
     public List<Lesson> getLessons(@PathVariable String classId, @PathVariable String subjectId, @PathVariable String chapterId) throws ExecutionException, InterruptedException {
         return theoryService.getLessons(classId, subjectId, chapterId);
     }
 
     // Thêm bài học
     @PostMapping("/lessons/{classId}/{subjectId}/{chapterId}")
+    @ResponseBody
     public void addLesson(@PathVariable String classId, @PathVariable String subjectId, @PathVariable String chapterId, @RequestBody Lesson lesson) throws ExecutionException, InterruptedException {
         theoryService.addLesson(classId, subjectId, chapterId, lesson);
     }
 
     // Xóa bài học
     @DeleteMapping("/lessons/{classId}/{subjectId}/{chapterId}/{lessonId}")
+    @ResponseBody
     public void deleteLesson(@PathVariable String classId, @PathVariable String subjectId, @PathVariable String chapterId, @PathVariable String lessonId) throws ExecutionException, InterruptedException {
         theoryService.deleteLesson(classId, subjectId, chapterId, lessonId);
     }
 
     // Cập nhật nội dung bài học
     @PutMapping("/lessons/{classId}/{subjectId}/{chapterId}/{lessonId}")
+    @ResponseBody
     public ResponseEntity<String> updateLessonContent(@PathVariable String classId, @PathVariable String subjectId, @PathVariable String chapterId, @PathVariable String lessonId, @RequestBody Lesson lesson) {
         System.out.println("Received update request for lessonId: " + lessonId + " with content: " + lesson.getContent());
         try {
@@ -95,11 +116,13 @@ public class TheoryController {
 
     // Lấy bài học theo ID
     @GetMapping("/lesson/{classId}/{subjectId}/{chapterId}/{lessonId}")
+    @ResponseBody
     public Lesson getLessonById(@PathVariable String classId, @PathVariable String subjectId, @PathVariable String chapterId, @PathVariable String lessonId) throws ExecutionException, InterruptedException {
         return theoryService.getLessonById(classId, subjectId, chapterId, lessonId);
     }
 
     @PostMapping("/import")
+    @ResponseBody
     public String importFile(@RequestParam("file") MultipartFile multipartFile) throws IOException {
         File file = File.createTempFile("temp", multipartFile.getOriginalFilename());
         multipartFile.transferTo(file);
@@ -107,6 +130,7 @@ public class TheoryController {
     }
 
     @PutMapping("/subjects/{classId}/{subjectId}")
+    @ResponseBody
     public ResponseEntity<String> updateSubject(
             @PathVariable String classId,
             @PathVariable String subjectId,
@@ -123,6 +147,7 @@ public class TheoryController {
     }
 
     @PutMapping("/chapters/{classId}/{subjectId}/{chapterId}")
+    @ResponseBody
     public ResponseEntity<String> updateChapter(
             @PathVariable String classId,
             @PathVariable String subjectId,
@@ -141,6 +166,7 @@ public class TheoryController {
 
 
     @PostMapping(value = "/upload-image", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
     public ResponseEntity<Map<String, Object>> uploadImage(
             @RequestParam("upload") MultipartFile file) {
         Map<String, Object> response = new HashMap<>();

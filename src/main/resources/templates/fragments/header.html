@@ -26,11 +26,15 @@
                             <a class="nav-link text-white fw-bold" href="/forum">Diễn đàn</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-white fw-bold" href="/viewTheory">Lý thuyết</a>
+                            <a class="nav-link text-white fw-bold" href="/api/theory/viewTheory">Lý thuyết</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white fw-bold" href="/leaderboard">BXH </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link text-white fw-bold" href="/contact">Liên hệ </a>
                         </li>
+
                         <th:block th:if="${session.role != null and (session.role == 'TEACHER' or session.role == 'ADMIN')}">
                             <li class="nav-item">
                                 <a class="nav-link text-white fw-bold" href="/api/question-bank/question-bank">QuestionBank</a>

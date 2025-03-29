@@ -17,6 +17,8 @@
     </style>
 </head>
 <body>
+<div th:insert="~{fragments/header :: header}"></div>
+
 <div class="container">
     <h1 class="mb-4">Kho Câu Hỏi</h1>
     <ul class="nav nav-tabs mb-3" id="repoTabs" role="tablist">
@@ -642,5 +644,7 @@
         </div>
     </div>
 </div>
+<div th:insert="~{fragments/footer :: footer}"></div>
+
 </body>
 </html>

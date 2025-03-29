@@ -96,7 +96,10 @@
                 <option value="">Chọn thành phố</option>
             </select>
 
-            <button type="submit" class="btn btn-primary w-100 mt-2">Tìm kiếm</button>
+            <div class="d-flex w-100 mt-2 gap-2">
+                <button type="submit" class="btn btn-primary flex-grow-1">Tìm kiếm</button>
+                <a href="/search-by-filter" class="btn btn-secondary w-20">Xem tất cả</a>
+            </div>
         </form>
     </div>
 
@@ -133,6 +136,9 @@
                                     th:text="${exam.examType}"></span></p>
                             <p><i class="fa-solid fa-map-marker-alt text-danger"></i> <b>Tỉnh-Thành Phố:</b> <span
                                     th:text="${exam.city}"></span></p>
+                            <p><i class="fa-solid fa-users text-primary"></i> <b>Số lượt tham gia:</b> <span
+                                    th:text="${exam.participantCount}"></span></p>
+
                             <div class="d-flex justify-content-between align-items-center">
                                 <a th:href="@{/exams/{id}/detail(id=${exam.examID})}" class="btn btn-primary btn-sm">
                                     <i class="fa-solid fa-eye"></i> Xem
@@ -231,8 +237,13 @@
             let leaderboard = document.querySelector("#leaderboard");
             leaderboard.innerHTML = "";
             data.forEach(record => {
-                let formattedScore = record.totalScore.toFixed(1);
-                let row = `<li class="list-group-item">${record.username} - ${formattedScore} Điểm</li>`;
+                let formattedScore = record.totalScore.toFixed(0);
+                let row = `<li class="list-group-item d-flex justify-content-between">
+    <span class="text-truncate" style="max-width: 50%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
+        ${record.username}
+    </span>
+    <span>${formattedScore} Điểm</span>
+</li>`;
                 leaderboard.innerHTML += row;
             });
         } catch (error) {
@@ -247,9 +258,14 @@
             let contributionBoard = document.querySelector("#contribution-board");
             contributionBoard.innerHTML = "";
             data.forEach(record => {
-                let formattedScore = record.totalScore.toFixed(1);
+                let formattedScore = record.totalScore.toFixed(0);
 
-                let row = `<li class="list-group-item">${record.username} - ${formattedScore} Điểm</li>`;
+                let row = `<li class="list-group-item d-flex justify-content-between">
+    <span class="text-truncate" style="max-width: 50%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
+        ${record.username}
+    </span>
+    <span>${formattedScore} Điểm</span>
+</li>`;
                 contributionBoard.innerHTML += row;
             });
         } catch (error) {
@@ -263,8 +279,8 @@
         updateContributionBoard();
 
         // Tự động cập nhật BXH mỗi 5 giây
-        setInterval(updateLeaderboard, 5000);
-        setInterval(updateContributionBoard, 5000);
+        // setInterval(updateLeaderboard, 5000);
+        // setInterval(updateContributionBoard, 5000);
     });
 </script>
 <div th:insert="~{fragments/logoutModal :: logoutModal}"></div>

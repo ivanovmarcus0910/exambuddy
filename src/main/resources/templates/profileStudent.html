@@ -71,6 +71,9 @@
             <div th:if="${success}" class="alert alert-success" style="font-size:0.9rem;">
                 [[${success}]]
             </div>
+            <div th:if="${messageUpload}" class="alert alert-danger" style="font-size:0.9rem;">
+                [[${messageUpload}]]
+            </div>
 
             <!-- Nội dung các tab -->
             <div class="tab-content">
@@ -104,6 +107,7 @@
                                         <i class="bi bi-camera"></i> Thay đổi ảnh
                                     </label>
                                 </form>
+
                                 <!-- Badges và EB Coin -->
                                 <div class="mt-3 d-flex flex-column align-items-center gap-1">
                                     <div>

@@ -100,15 +100,11 @@
         </button>
         <button type="button" class="btn btn-danger" onclick="submitQuestions()">Đăng đề</button>
     </div>
+    <div id="messageContainer"></div>
 
     <h3 class="text-primary mt-4">Danh sách câu hỏi:</h3>
     <ul id="questionList" class="list-group"></ul>
 </div>
-<main class="d-flex flex-column align-items-center justify-content-center">
-    <section class="text-center bg-white rounded shadow-lg">
-        <a href="/home" class="btn btn-primary">Trở về trang chủ</a>
-    </section>
-</main>
 
 <div th:replace="fragments/footer :: footer"></div>
 <script src="/js/addExam.js"></script>

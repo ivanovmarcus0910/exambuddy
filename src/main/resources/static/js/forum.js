@@ -516,7 +516,7 @@ function editComment(element) {
 
 function submitEditComment() {
     let commentId = document.getElementById("editCommentId").value;
-    let postId = document.querySelector("input[name='postId']").value;
+    let postId = document.getElementById("comment-form").querySelector("input[name='postId']").value;
     let content = document.getElementById("editCommentContent").value;
     let keepOldImages = document.getElementById("editCommentImage").files.length === 0;
     let formData = new FormData();
@@ -532,8 +532,10 @@ function submitEditComment() {
             formData.append("newImages", file);
         }
     }
+    console.log(" commentId: ", commentId);
+    console.log("🔍 postId:", postId);
 
-    fetch("forum/comment/edit", {
+    fetch("/forum/comment/edit", {
         method: "POST",
         body: formData
     }).then(response => response.json()).then(data => {
@@ -544,34 +546,6 @@ function submitEditComment() {
             alert("Lỗi: " + data.message);
         }
     }).catch(error => console.error("❌ Lỗi:", error));
-}
-
-function updateCommentOnPage(commentId, newContent, newImages, keepOldImages) {
-    const commentElement = document.getElementById(`comment-${commentId}`);
-
-    if (!commentElement) {
-        console.warn("❌ Không tìm thấy bình luận với ID:", commentId);
-        return;
-    }
-    // Cập nhật nội dung
-    commentElement.querySelector(".comment-content").textContent = newContent;
-
-    // Cập nhật ảnh
-    const imagesContainer = commentElement.querySelector(".comment-images");
-
-    if (!keepOldImages) {
-        imagesContainer.innerHTML = ""; // Nếu có ảnh mới, xóa ảnh cũ luôn
-    }
-
-    if (newImages && newImages.length > 0) {
-        newImages.forEach(url => {
-            const img = document.createElement("img");
-            img.src = url;
-            img.classList.add("comment-image");
-            img.onclick = () => openImageModal(img);
-            imagesContainer.appendChild(img);
-        });
-    }
 }
 
 function confirmDeleteComment(element) {

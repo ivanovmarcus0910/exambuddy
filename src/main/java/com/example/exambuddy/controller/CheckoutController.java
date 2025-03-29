@@ -85,11 +85,16 @@ public class CheckoutController {
 
             String checkoutUrl = data.getCheckoutUrl();
             UserService userService = new UserService();
-            userService.addPaymentTransaction(orderCode, amount, checkoutUrl, data.getStatus(), username);
+            userService.addPaymentTransaction(orderCode, amount, checkoutUrl, data.getStatus(), username, "Deposit");
             httpServletResponse.setHeader("Location", checkoutUrl);
             httpServletResponse.setStatus(302);
         } catch (Exception e) {
-            e.printStackTrace();
+            try {
+                request.setAttribute("error", "Payment gateway is currently unavailable."); // Truyền thông tin lỗi
+                request.getRequestDispatcher("error").forward(request, httpServletResponse);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
         }
     }
 

@@ -170,12 +170,12 @@ public class UserService {
         }
     }
 
-    public boolean addPaymentTransaction(long paymentCode, int amount, String link, String status, String username) {
+    public boolean addPaymentTransaction(long paymentCode, long amount, String link, String status, String username, String note) {
         try {
             Firestore firestore = FirestoreClient.getFirestore();
             CollectionReference transaction = firestore.collection("Transactions");
             Long time = System.currentTimeMillis();
-            Payment payment = new Payment(paymentCode, amount, link, status, username, time);
+            Payment payment = new Payment(paymentCode, amount, link, status, username, time, note);
             transaction.document().set(payment);
             return true;
         }
@@ -197,6 +197,21 @@ public class UserService {
         if (lastTimestamp != null) {
             query = query.startAfter(lastTimestamp);
         }
+
+        ApiFuture<QuerySnapshot> querySnapshot = query.get();
+        List<Payment> payments = new ArrayList<>();
+
+        for (DocumentSnapshot document : querySnapshot.get().getDocuments()) {
+            payments.add(document.toObject(Payment.class));
+        }
+        return payments;
+    }
+    public static List<Payment> getPayments(String username) throws ExecutionException, InterruptedException {
+        Firestore firestore = FirestoreClient.getFirestore();
+        CollectionReference transaction = firestore.collection("Transactions");
+
+        Query query = transaction.whereEqualTo("username", username);
+
 
         ApiFuture<QuerySnapshot> querySnapshot = query.get();
         List<Payment> payments = new ArrayList<>();

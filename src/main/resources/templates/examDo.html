@@ -56,7 +56,7 @@
                 <h4 class="text-primary fw-bold" th:text="${exam.examName}"></h4>
                 <p><b>Môn học:</b> <span th:text="${exam.subject}"></span></p>
                 <form id="exam-form" th:action="@{/exams/{id}/submit(id=${exam.examID})}" method="post">
-                    <div th:each="question, i : ${exam.questions}"
+                    <div th:each="question, i : ${questions}"
                          th:id="'question-' + ${i.index}"
                          class="question-content"
                          style="display:none;">

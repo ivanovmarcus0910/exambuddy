@@ -50,7 +50,7 @@ public class AdminController {
         // Lấy số liệu tổng hợp (dùng để hiển thị trên trang dashboard)
         List<User> users = userService.getAllUsers();
         List<Exam> exams = examService.getAllExams();
-        List<Post> posts = PostService.getPostsFromFirestore();
+        List<Post> posts = PostService.getPublicPostsFromFirestore();
 
         model.addAttribute("totalUser", users.size());
         model.addAttribute("totalExam", exams.size());
@@ -290,7 +290,7 @@ public class AdminController {
             return "redirect:/login";
         }
 
-        List<Post> posts = PostService.getPostsFromFirestore();
+        List<Post> posts = PostService.getPublicPostsFromFirestore();
         model.addAttribute("posts", posts);
 
         // Thông tin admin
@@ -313,7 +313,7 @@ public class AdminController {
         // Lấy số liệu tổng hợp
         List<User> users = userService.getAllUsers();
         List<Exam> exams = examService.getAllExams();
-        List<Post> posts = PostService.getPostsFromFirestore();
+        List<Post> posts = PostService.getPublicPostsFromFirestore();
 
         model.addAttribute("totalUser", users.size());
         model.addAttribute("totalExam", exams.size());

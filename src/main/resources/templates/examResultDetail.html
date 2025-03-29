@@ -23,6 +23,7 @@
                 </p>
 
                 <h3 class="mt-4 text-secondary">Chi tiết bài làm</h3>
+                <div th:if="${err}" class="alert alert-danger text-center" th:text="${err}"></div>
                 <div class="list-group mt-3">
                     <div class="list-group-item border-0" th:each="question, i : ${exam.questions}">
                         <h5 class="fw-bold mb-3">
