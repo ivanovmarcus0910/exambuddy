@@ -39,38 +39,73 @@ public class ExamService {
     private final ExecutorService executor = Executors.newCachedThreadPool();
     private final Firestore db = FirestoreClient.getFirestore();
     private final LeaderBoardService leaderBoardService = new LeaderBoardService();
-    public List<Exam> getExamList(int page, int size) {
+    public List<Exam> getExamList() {
         List<Exam> exams = new ArrayList<>();
         try {
-            // Lấy danh sách theo thứ tự mới nhất và giới hạn số lượng theo trang
-            Query query = db.collection("exams").orderBy("participantCount", Query.Direction.DESCENDING).limit(size);
-            if (page > 0) {
-                ApiFuture<QuerySnapshot> previousFuture = db.collection("exams")
-                        .orderBy("date", Query.Direction.DESCENDING)
-                        .limit(size * page).get();
-                List<QueryDocumentSnapshot> previousDocs = previousFuture.get().getDocuments();
-                if (!previousDocs.isEmpty()) {
-                    query = query.startAfter(previousDocs.get(previousDocs.size() - 1));
-                }
-            }
-
+            // Lấy toàn bộ danh sách exam, sắp xếp theo số lượng người tham gia giảm dần
+            Query query = db.collection("exams").orderBy("participantCount", Query.Direction.DESCENDING);
             ApiFuture<QuerySnapshot> future = query.get();
             List<QueryDocumentSnapshot> documents = future.get().getDocuments();
 
             for (QueryDocumentSnapshot doc : documents) {
                 Exam exam = doc.toObject(Exam.class);
                 System.out.println(exam.isActive());
-                if (exam.isActive()){
-                exam.setExamID(doc.getId());
-                exams.add(exam);}
+                if (exam.isActive()) {
+                    exam.setExamID(doc.getId());
+                    exams.add(exam);
+                }
             }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return exams;
+    }
+
+    public Map<String, List<Exam>> getExamPopular() {
+        Map<String, List<Exam>> result = new HashMap<>();
+        try {
+            // Lấy toàn bộ danh sách exam, sắp xếp theo số lượng người tham gia giảm dần
+            Query query = db.collection("exams").orderBy("participantCount", Query.Direction.DESCENDING);
+            ApiFuture<QuerySnapshot> future = query.get();
+            List<QueryDocumentSnapshot> documents = future.get().getDocuments();
+
+            // Danh sách riêng cho từng lớp
+            List<Exam> grade10Exams = new ArrayList<>();
+            List<Exam> grade11Exams = new ArrayList<>();
+            List<Exam> grade12Exams = new ArrayList<>();
+
+            for (QueryDocumentSnapshot doc : documents) {
+                Exam exam = doc.toObject(Exam.class);
+                if (exam.isActive()) {
+                    exam.setExamID(doc.getId());
+
+                    // Phân loại theo lớp và giới hạn 4 bài mỗi lớp
+                    switch (exam.getGrade()) {
+                        case "10":
+                            if (grade10Exams.size() < 4) grade10Exams.add(exam);
+                            break;
+                        case "11":
+                            if (grade11Exams.size() < 4) grade11Exams.add(exam);
+                            break;
+                        case "12":
+                            if (grade12Exams.size() < 4) grade12Exams.add(exam);
+                            break;
+                    }
+                }
+            }
+
+            // Lưu kết quả vào Map
+            result.put("grade10Exams", grade10Exams);
+            result.put("grade11Exams", grade11Exams);
+            result.put("grade12Exams", grade12Exams);
 
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-        return exams;
+        return result;
     }
+
+
     // Phương thức format lại ngày
     public static String formatDate(String dateString) {
         try {
