@@ -2,471 +2,196 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tạo Đề Thi - ExamBuddy</title>
+    <title>Tạo đề từ Ngân hàng câu hỏi - ExamBuddy</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        .question-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        .question-table th, .question-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        .question-table th { background-color: #f2f2f2; }
-        .difficulty-input { width: 100px; display: inline-block; }
-        .selected-questions { margin-top: 20px; }
+        .chapter-row {
+            border-bottom: 1px solid #eee;
+            padding: 10px 0;
+        }
+        .form-section-title {
+            margin-top: 30px;
+            font-weight: bold;
+            font-size: 1.2rem;
+            border-bottom: 2px solid #ccc;
+            padding-bottom: 5px;
+        }
     </style>
 </head>
 <body>
-<div th:insert="~{fragments/header :: header}"></div>
+<div class="container py-4">
+    <h1 class="mb-4 text-primary">Tạo đề thi từ Ngân hàng câu hỏi</h1>
 
-<div class="container mt-4">
-    <h1>Tạo Đề Thi</h1>
-    <div class="row mb-3">
-        <div class="col">
-            <label for="subjectName" class="form-label">Môn Học</label>
-            <select class="form-control" id="subjectName">
-                <option value="">Chọn môn</option>
+    <!-- Form chọn môn/lớp -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <label class="form-label">Môn học</label>
+            <select id="subject" class="form-select" onchange="loadChapters()">
+                <option value="">-- Chọn môn --</option>
                 <option value="Toán">Toán</option>
-                <option value="Văn">Văn</option>
-                <option value="Anh">Anh</option>
-                <option value="Lý">Lý</option>
-                <option value="Hóa">Hóa</option>
-                <option value="Sinh">Sinh</option>
-                <option value="Sử">Sử</option>
-                <option value="Địa">Địa</option>
-                <option value="GDCD">GDCD</option>
+                <option value="Lý">Vật lý</option>
+                <option value="Hóa">Hóa học</option>
             </select>
         </div>
-        <div class="col">
-            <label for="bookType" class="form-label">Loại Sách</label>
-            <select class="form-control" id="bookType">
-                <option value="">Chọn sách</option>
-                <option value="Cánh Diều">Cánh Diều</option>
-                <option value="Kết Nối Tri Thức">Kết Nối Tri Thức</option>
-                <option value="Chân Trời Sáng Tạo">Chân Trời Sáng Tạo</option>
-            </select>
-        </div>
-        <div class="col">
-            <label for="classGrade" class="form-label">Lớp</label>
-            <select class="form-control" id="classGrade">
-                <option value="">Chọn lớp</option>
+        <div class="col-md-6">
+            <label class="form-label">Lớp</label>
+            <select id="grade" class="form-select" onchange="loadChapters()">
+                <option value="">-- Chọn lớp --</option>
                 <option value="10">10</option>
                 <option value="11">11</option>
                 <option value="12">12</option>
             </select>
         </div>
-        <div class="col">
-            <label for="chapterName" class="form-label">Chương</label>
-            <select class="form-control" id="chapterName">
-                <option value="">Chọn chương</option>
-                <!-- Load động -->
-            </select>
-        </div>
-        <div class="col">
-            <label for="lessonName" class="form-label">Bài</label>
-            <select class="form-control" id="lessonName">
-                <option value="">Chọn bài</option>
-                <!-- Load động -->
-            </select>
-        </div>
-        <div class="col">
-            <label for="difficulty" class="form-label">Độ Khó</label>
-            <select class="form-control" id="difficulty">
-                <option value="">Tất cả</option>
-                <option value="easy">Dễ</option>
-                <option value="medium">Trung bình</option>
-                <option value="hard">Khó</option>
-            </select>
-        </div>
-        <div class="col d-flex align-items-end">
-            <button class="btn btn-primary" onclick="loadQuestions()">Tìm Kiếm</button>
-        </div>
     </div>
 
-    <div class="row mb-3">
-        <div class="col">
-            <h3>Danh Sách Câu Hỏi</h3>
-            <div class="mb-2">
-                <label for="randomCount" class="form-label">Số câu ngẫu nhiên: </label>
-                <input type="number" id="randomCount" class="form-control d-inline-block" style="width: 100px;" min="1" value="5">
-                <button class="btn btn-secondary" onclick="selectRandomQuestions()">Chọn Ngẫu Nhiên</button>
-            </div>
-            <div id="question-list" class="question-list"></div>
-            <button class="btn btn-success mt-2" onclick="addToDraft()">Thêm Vào Đề</button>
-        </div>
-    </div>
+    <div class="form-section-title">Số câu từ mỗi chương</div>
+    <div id="chapterContainer" class="mb-4"></div>
 
-    <div class="row mb-3 selected-questions">
-        <div class="col">
-            <h3>Danh Sách Câu Hỏi Đã Chọn</h3>
-            <div id="draft-list" class="question-list"></div>
-            <button class="btn btn-success mt-2" id="createExamBtn" style="display: none;" data-bs-toggle="modal" data-bs-target="#examInfoModal">Tạo Đề Ngay</button>
-        </div>
-    </div>
+    <button class="btn btn-success w-100" onclick="showMetadataModal()">Tiếp tục tạo đề</button>
 </div>
 
-<!-- Modal để nhập thông tin đề thi -->
-<div class="modal fade" id="examInfoModal" tabindex="-1" aria-labelledby="examInfoModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+<!-- Modal nhập thông tin đề thi -->
+<div class="modal fade" id="examModal" tabindex="-1" aria-labelledby="examModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="examInfoModalLabel">Thông Tin Đề Thi</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="mb-3">
-                    <label for="examName" class="form-label">Tên Đề Thi</label>
-                    <input type="text" class="form-control" id="examName" required>
+            <form onsubmit="submitExam(); return false;">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="examModalLabel">Nhập thông tin đề thi</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
                 </div>
-                <div class="mb-3">
-                    <label for="examType" class="form-label">Loại Đề Thi</label>
-                    <select class="form-control" id="examType" required>
-                        <option value="">Chọn loại đề</option>
-                        <option value="Đề kiểm tra">Đề kiểm tra</option>
-                        <option value="Đề luyện tập">Đề luyện tập</option>
-                        <option value="Đề THPT">Đề THPT QUỐC GIA</option>
-                    </select>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Tên đề thi</label>
+                        <input type="text" id="examName" class="form-control" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label class="form-label">Dạng đề</label>
+                            <select id="examType" class="form-select">
+                                <option value="Đề kiểm tra">Đề kiểm tra</option>
+                                <option value="Đề luyện tập">Đề luyện tập</option>
+                                <option value="Đề THPT">Đề THPT Quốc gia</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Thành phố</label>
+                            <select id="city" class="form-select">
+                                <option value="Hà Nội">Hà Nội</option>
+                                <option value="Hồ Chí Minh">TP.HCM</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Thời lượng (phút)</label>
+                            <input type="number" id="timeduration" class="form-control" value="60" min="1">
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <label class="form-label">Tags (cách nhau bởi dấu phẩy)</label>
+                        <input type="text" id="tags" class="form-control" placeholder="ví dụ: đại số, hình học, kiểm tra 1 tiết">
+                    </div>
                 </div>
-                <div class="mb-3">
-                    <label for="grade" class="form-label">Lớp</label>
-                    <select class="form-control" id="grade" required>
-                        <option value="">Chọn lớp</option>
-                        <option value="10">10</option>
-                        <option value="11">11</option>
-                        <option value="12">12</option>
-                    </select>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Huỷ</button>
+                    <button type="submit" class="btn btn-primary">Tạo đề</button>
                 </div>
-                <div class="mb-3">
-                    <label for="subject" class="form-label">Môn Học</label>
-                    <select class="form-control" id="subject" required>
-                        <option value="">Chọn môn</option>
-                        <option value="Toán">Toán</option>
-                        <option value="Văn">Văn</option>
-                        <option value="Anh">Anh</option>
-                        <option value="Lý">Lý</option>
-                        <option value="Hóa">Hóa</option>
-                        <option value="Sinh">Sinh</option>
-                        <option value="Sử">Sử</option>
-                        <option value="Địa">Địa</option>
-                        <option value="GDCD">GDCD</option>
-                    </select>
-                </div>
-                <div class="mb-3">
-                    <label for="city" class="form-label">Thành Phố</label>
-                    <select class="form-control" id="city" required>
-                        <option value="">Chọn thành phố</option>
-                        <!-- Load động trong JS -->
-                    </select>
-                </div>
-                <div class="mb-3">
-                    <label for="tags" class="form-label">Tags (cách nhau bằng dấu phẩy)</label>
-                    <input type="text" class="form-control" id="tags" placeholder="VD: thi thử, kiểm tra">
-                </div>
-                <div class="mb-3">
-                    <label for="timeduration" class="form-label">Thời lượng (phút)</label>
-                    <input type="number" class="form-control" id="timeduration" min="1" value="60" required>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                <button type="button" class="btn btn-primary" onclick="submitExam()">Lưu Đề Thi</button>
-            </div>
+            </form>
         </div>
     </div>
 </div>
 
+<!-- JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    const BASE_URL = '/api/question-bank';
-    let allQuestions = [];
-    let draftQuestions = [];
-
-    // Ánh xạ độ khó sang tiếng Việt
-    const difficultyMap = {
-        'easy': 'Dễ',
-        'medium': 'Trung bình',
-        'hard': 'Khó'
-    };
-
-    // Danh sách thành phố
-    const cities = ["Hà Nội", "Hồ Chí Minh", "Đà Nẵng", "Hải Phòng", "Cần Thơ", "An Giang", "Bà Rịa - Vũng Tàu", "Bắc Giang", "Bắc Kạn", "Bạc Liêu", "Bắc Ninh", "Bến Tre", "Bình Định", "Bình Dương", "Bình Phước", "Bình Thuận", "Cà Mau", "Cao Bằng", "Đắk Lắk", "Đắk Nông", "Điện Biên", "Đồng Nai", "Đồng Tháp", "Gia Lai", "Hà Giang", "Hà Nam", "Hà Tĩnh", "Hải Dương", "Hậu Giang", "Hòa Bình", "Hưng Yên", "Khánh Hòa", "Kiên Giang", "Kon Tum", "Lai Châu", "Lâm Đồng", "Lạng Sơn", "Lào Cai", "Long An", "Nam Định", "Nghệ An", "Ninh Bình", "Ninh Thuận", "Phú Thọ", "Phú Yên", "Quảng Bình", "Quảng Nam", "Quảng Ngãi", "Quảng Ninh", "Quảng Trị", "Sóc Trăng", "Sơn La", "Tây Ninh", "Thái Bình", "Thái Nguyên", "Thanh Hóa", "Thừa Thiên Huế", "Tiền Giang", "Trà Vinh", "Tuyên Quang", "Vĩnh Long", "Vĩnh Phúc", "Yên Bái"];
-    const citySelect = document.getElementById('city');
-    cities.forEach(city => {
-        const option = document.createElement('option');
-        option.value = city;
-        option.textContent = city;
-        citySelect.appendChild(option);
-    });
-
-    // Load chương khi chọn môn, sách, lớp
-    document.getElementById('bookType').addEventListener('change', loadChapters);
-    document.getElementById('subjectName').addEventListener('change', loadChapters);
-    document.getElementById('classGrade').addEventListener('change', loadChapters);
-
-    function loadChapters() {
-        const subjectName = document.getElementById('subjectName').value;
-        const bookType = document.getElementById('bookType').value;
-        const classGrade = document.getElementById('classGrade').value;
-        if (!subjectName || !bookType || !classGrade) return;
-
-        fetch(`${BASE_URL}/private/${bookType}/${classGrade}/${subjectName}/all/all?page=1&limit=1000`)
-            .then(response => response.json())
-            .then(data => {
-                const chapters = [...new Set(data.map(q => q.chapterName))];
-                const chapterSelect = document.getElementById('chapterName');
-                chapterSelect.innerHTML = '<option value="">Chọn chương</option>';
-                chapters.forEach(chapter => {
-                    chapterSelect.innerHTML += `<option value="${chapter}">${chapter}</option>`;
-                });
-            })
-            .catch(err => console.error('Lỗi khi tải chương:', err));
-    }
-
-    // Load bài khi chọn chương
-    document.getElementById('chapterName').addEventListener('change', loadLessons);
-
-    function loadLessons() {
-        const subjectName = document.getElementById('subjectName').value;
-        const bookType = document.getElementById('bookType').value;
-        const classGrade = document.getElementById('classGrade').value;
-        const chapterName = document.getElementById('chapterName').value;
-        if (!chapterName) return;
-
-        fetch(`${BASE_URL}/private/${bookType}/${classGrade}/${subjectName}/${chapterName}/all?page=1&limit=1000`)
-            .then(response => response.json())
-            .then(data => {
-                const lessons = [...new Set(data.map(q => q.lessonName))];
-                const lessonSelect = document.getElementById('lessonName');
-                lessonSelect.innerHTML = '<option value="">Chọn bài</option>';
-                lessons.forEach(lesson => {
-                    lessonSelect.innerHTML += `<option value="${lesson}">${lesson}</option>`;
-                });
-            })
-            .catch(err => console.error('Lỗi khi tải bài:', err));
-    }
-
-    // Load câu hỏi theo bộ lọc
-    function loadQuestions() {
-        const subjectName = document.getElementById('subjectName').value || 'all';
-        const bookType = document.getElementById('bookType').value || 'all';
-        const classGrade = document.getElementById('classGrade').value || 'all';
-        const chapterName = document.getElementById('chapterName').value || 'all';
-        const lessonName = document.getElementById('lessonName').value || 'all';
-        const difficulty = document.getElementById('difficulty').value || 'all';
-
-        fetch(`${BASE_URL}/private/${bookType}/${classGrade}/${subjectName}/${chapterName}/${lessonName}?page=1&limit=1000`)
-            .then(response => response.json())
-            .then(data => {
-                allQuestions = difficulty === 'all' ? data : data.filter(q => q.difficulty === difficulty);
-                renderQuestions(allQuestions);
-            })
-            .catch(err => alert('Lỗi khi tải câu hỏi: ' + err));
-    }
-
-    // Hiển thị danh sách câu hỏi
-    function renderQuestions(questions) {
-        const list = document.getElementById('question-list');
-        list.innerHTML = '';
-        const table = document.createElement('table');
-        table.className = 'question-table';
-        table.innerHTML = `
-            <thead>
-                <tr>
-                    <th>Chọn</th>
-                    <th>STT</th>
-                    <th>Câu Hỏi</th>
-                    <th>Đáp Án</th>
-                    <th>Đáp Án Đúng</th>
-                    <th>Độ Khó</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        `;
-        const tbody = table.querySelector('tbody');
-        questions.forEach((q, index) => {
-            const optionsHtml = q.options.map((opt, idx) => `${String.fromCharCode(97 + idx)}. ${opt}`).join('<br>');
-            const correctAnswerLabel = String.fromCharCode(97 + q.correctAnswers[0]);
-            const difficultyText = difficultyMap[q.difficulty] || q.difficulty;
-            tbody.innerHTML += `
-                <tr>
-                    <td><input type="checkbox" class="question-checkbox" data-id="${q.questionId}"></td>
-                    <td>${index + 1}</td>
-                    <td>${q.questionText}</td>
-                    <td>${optionsHtml}</td>
-                    <td>${correctAnswerLabel}</td>
-                    <td>${difficultyText}</td>
-                </tr>
-            `;
-        });
-        list.appendChild(table);
-    }
-
-    // Chọn ngẫu nhiên số câu hỏi
-    function selectRandomQuestions() {
-        const randomCount = parseInt(document.getElementById('randomCount').value);
-        if (randomCount > allQuestions.length) {
-            alert('Số câu yêu cầu vượt quá số câu hỏi hiện có!');
-            return;
-        }
-
-        const shuffled = [...allQuestions].sort(() => 0.5 - Math.random());
-        const selected = shuffled.slice(0, randomCount);
-        document.querySelectorAll('.question-checkbox').forEach(cb => cb.checked = false);
-        selected.forEach(q => {
-            const checkbox = document.querySelector(`.question-checkbox[data-id="${q.questionId}"]`);
-            if (checkbox) checkbox.checked = true;
-        });
-    }
-
-    // Thêm câu hỏi vào danh sách tạm
-    function addToDraft() {
-        const selectedIds = Array.from(document.querySelectorAll('.question-checkbox:checked')).map(cb => cb.getAttribute('data-id'));
-        const newQuestions = allQuestions.filter(q => selectedIds.includes(q.questionId) && !draftQuestions.some(dq => dq.questionId === q.questionId));
-        draftQuestions = [...draftQuestions, ...newQuestions];
-        renderDraftQuestions();
-        document.querySelectorAll('.question-checkbox').forEach(cb => cb.checked = false);
-        updateCreateExamButton();
-    }
-
-    // Hiển thị danh sách câu hỏi tạm
-    function renderDraftQuestions() {
-        const list = document.getElementById('draft-list');
-        list.innerHTML = '';
-        const table = document.createElement('table');
-        table.className = 'question-table';
-        table.innerHTML = `
-            <thead>
-                <tr>
-                    <th>STT</th>
-                    <th>Câu Hỏi</th>
-                    <th>Đáp Án</th>
-                    <th>Đáp Án Đúng</th>
-                    <th>Độ Khó</th>
-                    <th>Hành Động</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        `;
-        const tbody = table.querySelector('tbody');
-        draftQuestions.forEach((q, index) => {
-            const optionsHtml = q.options.map((opt, idx) => `${String.fromCharCode(97 + idx)}. ${opt}`).join('<br>');
-            const correctAnswerLabel = String.fromCharCode(97 + q.correctAnswers[0]);
-            const difficultyText = difficultyMap[q.difficulty] || q.difficulty;
-            tbody.innerHTML += `
-                <tr>
-                    <td>${index + 1}</td>
-                    <td>${q.questionText}</td>
-                    <td>${optionsHtml}</td>
-                    <td>${correctAnswerLabel}</td>
-                    <td>${difficultyText}</td>
-                    <td><button class="btn btn-danger btn-sm" onclick="removeFromDraft('${q.questionId}')">Xóa</button></td>
-                </tr>
-            `;
-        });
-        list.appendChild(table);
-    }
-
-    // Xóa câu hỏi khỏi danh sách tạm
-    function removeFromDraft(questionId) {
-        draftQuestions = draftQuestions.filter(q => q.questionId !== questionId);
-        renderDraftQuestions();
-        updateCreateExamButton();
-    }
-
-    // Cập nhật trạng thái nút "Tạo Đề Ngay"
-    function updateCreateExamButton() {
-        const createBtn = document.getElementById('createExamBtn');
-        createBtn.style.display = draftQuestions.length > 0 ? 'inline-block' : 'none';
-    }
-
-    // Lấy username từ cookie
-    function getCookie(name) {
-        let cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            let cookie = cookies[i].trim();
-            if (cookie.startsWith(name + '=')) {
-                return cookie.substring(name.length + 1);
-            }
-        }
-        return null;
-    }
-
-    // Gửi dữ liệu đề thi lên server
-    function submitExam() {
-        const username = getCookie('noname');
-        if (!username) {
-            alert('Bạn cần đăng nhập để tạo đề thi!');
-            window.location.href = '/login';
-            return;
-        }
-
-        const examName = document.getElementById('examName').value.trim();
-        const examType = document.getElementById('examType').value;
-        const grade = document.getElementById('grade').value;
+    async function loadChapters() {
         const subject = document.getElementById('subject').value;
+        const grade = document.getElementById('grade').value;
+        if (!subject || !grade) return;
+
+        const res = await fetch(`/api/exams/chapters?subject=${subject}&grade=${grade}`);
+        if (res.ok) {
+            const chapters = await res.json();
+            renderChapterInputs(chapters);
+        }
+    }
+
+    function renderChapterInputs(chapters) {
+        const container = document.getElementById('chapterContainer');
+        container.innerHTML = '';
+
+        for (const [chapterName, totalAvailable] of Object.entries(chapters)) {
+            container.innerHTML += `
+                <div class="row align-items-center chapter-row">
+                    <div class="col-md-6">
+                        <strong>${chapterName}</strong>
+                        <div class="text-muted small">${totalAvailable} câu có trong ngân hàng</div>
+                    </div>
+                    <div class="col-md-6">
+                        <input type="number" class="form-control chapter-input"
+                               data-chapter="${chapterName}"
+                               min="0" max="${totalAvailable}" value="0"
+                               placeholder="Số câu muốn chọn">
+                    </div>
+                </div>`;
+        }
+    }
+
+    function showMetadataModal() {
+        const chapterInputs = document.querySelectorAll('.chapter-input');
+        let totalSelected = 0;
+
+        chapterInputs.forEach(input => {
+            const value = parseInt(input.value);
+            if (value > 0) totalSelected += value;
+        });
+
+        if (totalSelected === 0) {
+            alert('Vui lòng chọn ít nhất 1 câu hỏi.');
+            return;
+        }
+
+        const examModal = new bootstrap.Modal(document.getElementById('examModal'));
+        examModal.show();
+    }
+
+    async function submitExam() {
+        const examName = document.getElementById('examName').value;
+        const subject = document.getElementById('subject').value;
+        const grade = document.getElementById('grade').value;
+        const examType = document.getElementById('examType').value;
         const city = document.getElementById('city').value;
-        const tags = document.getElementById('tags').value.split(',').map(tag => tag.trim()).filter(tag => tag);
         const timeduration = document.getElementById('timeduration').value;
+        const tags = document.getElementById('tags').value.split(',').map(tag => tag.trim());
 
-        if (!examName || !examType || !grade || !subject || !city || !timeduration) {
-            alert('Vui lòng điền đầy đủ thông tin đề thi!');
-            return;
-        }
+        const chapterConfig = {};
+        document.querySelectorAll('.chapter-input').forEach(input => {
+            const count = parseInt(input.value);
+            if (count > 0) {
+                chapterConfig[input.dataset.chapter] = count;
+            }
+        });
 
-        // Kiểm tra timeduration là số hợp lệ
-        if (isNaN(timeduration) || parseInt(timeduration) <= 0) {
-            alert('Thời lượng phải là một số lớn hơn 0!');
-            return;
-        }
-
-        const examData = {
-            examName,
-            examType,
-            grade,
-            subject,
-            city,
-            tags,
-            username,
-            date: new Date().toISOString(),
-            timeduration: timeduration, // Gửi dưới dạng chuỗi
-            questions: draftQuestions.map(q => ({
-                questionText: q.questionText,
-                options: q.options,
-                correctAnswers: q.correctAnswers
-            }))
+        const data = {
+            examName, subject, grade, examType, city, timeduration, tags, chapterConfig
         };
 
-        console.log('Submitting exam data:', examData);
-
-        fetch('/exams/addExam', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(examData)
-        })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Response from server:', data);
-
-                alert(data.message);
-
-                if (data.status === 'success') {
-                    draftQuestions = [];
-                    renderDraftQuestions();
-                    updateCreateExamButton();
-                    bootstrap.Modal.getInstance(document.getElementById('examInfoModal')).hide();
-                } else if (data.message === 'redirect:/login') {
-                    alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại!');
-                    window.location.href = '/login';
-                } else if (data.status === 'error') {
-                    alert(data.message);
-                }
-            })
-            .catch(err => {
-                console.error('Fetch error:', err);
-                alert('Lỗi khi lưu đề thi: ' + err.message);
+        try {
+            const res = await fetch('/exams/create-from-bank', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
             });
+
+            if (res.ok) {
+                alert('Tạo đề thành công!');
+                window.location.href = '/exams';
+            } else {
+                const error = await res.text();
+                alert('Lỗi: ' + error);
+            }
+        } catch (err) {
+            alert('Lỗi kết nối: ' + err.message);
+        }
     }
 </script>
-<div th:insert="~{fragments/footer :: footer}"></div>
-
 </body>
 </html>

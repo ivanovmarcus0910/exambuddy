@@ -376,7 +376,9 @@ public class AdminController {
 
     // POST: Cập nhật trạng thái hoạt động của bài đăng
     @PostMapping("/updatePostStatus")
-    public String updatePostStatus(@RequestParam String postId, HttpSession session) {
+    public String updatePostStatus(@RequestParam String postId,
+                                   @RequestParam(required = false, defaultValue = "/admin/posts") String redirectTo,
+                                   HttpSession session) {
         String loggedInUser = (String) session.getAttribute("loggedInUser");
         if (loggedInUser == null || !authService.isAdmin(loggedInUser)) {
             return "redirect:/login";
@@ -388,6 +390,8 @@ public class AdminController {
             post.setActive(newStatus);
             postService.updatePostStatus(postId, newStatus);
         }
-        return "redirect:/admin/posts";
+
+        return "redirect:" + redirectTo;
     }
+
 }
