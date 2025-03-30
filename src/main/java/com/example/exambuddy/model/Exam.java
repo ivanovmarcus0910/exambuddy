@@ -158,12 +158,18 @@ public class Exam {
     }
     public static String formatDate(String dateString) {
         try {
+            SimpleDateFormat targetFormat = new SimpleDateFormat("dd/MM/yyyy");
+
+            // Nếu đầu vào đã là dd/MM/yyyy, không cần format lại
+            if (dateString.matches("\\d{2}/\\d{2}/\\d{4}")) {
+                return dateString;
+            }
+
+            // Xử lý nếu đầu vào ở dạng yyyy-MM-dd'T'HH:mm:ss.SSS'Z'
             SimpleDateFormat originalFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
             originalFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 
             Date date = originalFormat.parse(dateString);
-
-            SimpleDateFormat targetFormat = new SimpleDateFormat("dd/MM/yyyy");
             return targetFormat.format(date);
         } catch (Exception e) {
             e.printStackTrace();

@@ -52,7 +52,7 @@ public class LeaderBoardService {
         }
         return CompletableFuture.completedFuture(topUsers);
     }
-    public void updateUserContribute(String username, double newScore) {
+    public void updateUserContribute(String username, double newScore,String avatarUrl) {
         DocumentReference userScoreRef = db.collection("userContribute").document(username);
 
         try {
@@ -66,6 +66,7 @@ public class LeaderBoardService {
                 Map<String, Object> data = new HashMap<>();
                 data.put("username", username);
                 data.put("totalScore", newScore);
+                data.put("avatarUrl", avatarUrl);
                 userScoreRef.set(data).get();
                 System.out.println("Tạo mới và cập nhật điểm thành công!");
             }
@@ -74,7 +75,7 @@ public class LeaderBoardService {
         }
     }
 
-    public void updateUserScore(String username, double newScore) {
+    public void updateUserScore(String username, double newScore, String avatarUrl) {
         DocumentReference userScoreRef = db.collection("userScores").document(username);
 
         try {
@@ -88,6 +89,7 @@ public class LeaderBoardService {
                 Map<String, Object> data = new HashMap<>();
                 data.put("username", username);
                 data.put("totalScore", newScore);
+                data.put("avatarUrl", avatarUrl);
                 userScoreRef.set(data).get();
                 System.out.println("Tạo mới và cập nhật điểm thành công!");
             }

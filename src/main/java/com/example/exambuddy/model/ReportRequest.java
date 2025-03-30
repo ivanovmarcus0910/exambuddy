@@ -7,6 +7,7 @@ public class ReportRequest {
     private List<String> reasons;
     private String description;
     private String reporter; // Người báo cáo
+    private String avatarUrl;
 
     public ReportRequest() {
     }
@@ -27,4 +28,12 @@ public class ReportRequest {
     public void setDescription(String description) { this.description = description; }
     public String getReporter() { return reporter; }
     public void setReporter(String reporter) { this.reporter = reporter; }
+
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+
+    public void setAvatarUrl(String avartaUrl) {
+        this.avatarUrl = avartaUrl;
+    }
 }

@@ -16,6 +16,10 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -179,10 +183,12 @@ public class ManageExamController {
 //                    System.out.println(questionID + " => " + answers)
 //            );
             String username = session.getAttribute("loggedInUser").toString();
+            User user = userService.getUserByUsername(username);
+            String avatarUrl = user != null ? user.getAvatarUrl() : "";
             session.removeAttribute("shuffledQuestions_"+examId);
             examService.submitExam(username, examId);
             examService.saveExamResult(username, examId, score, exam, userAnswers, correctQuestions);
-            leaderBoardService.updateUserScore(username, score);
+            leaderBoardService.updateUserScore(username, score, avatarUrl);
             model.addAttribute("exam", exam);
             model.addAttribute("score", score);
             model.addAttribute("totalQuestions", questions.size());
@@ -270,16 +276,30 @@ public class ManageExamController {
     }
     //Lấy danh sách lịch sử làm bài
     @GetMapping("exams/result-list")
-    public String getResultList(HttpServletRequest request, HttpSession session, Model model) {
+    public String getResultList(HttpServletRequest request, HttpSession session, Model model,
+                                @RequestParam(defaultValue = "0") int page, // Thêm tham số page
+                                @RequestParam(defaultValue = "10") int size) { // Thêm tham số size
         if (session.getAttribute("loggedInUser") == null) {
             return "redirect:/home"; // Nếu chưa đăng nhập, chuyển hướng về home
         }
+
         String username = cookieService.getCookie(request, "noname");
-        User user =userService.getUserByUsername(username);
+        User user = userService.getUserByUsername(username);
         model.addAttribute("user", user);
-        List<ExamResult> results = username != null ? examService.getExamResultByUsername(username) : new ArrayList<>();
-        model.addAttribute("results", results);
+
+        // Tạo đối tượng Pageable để truyền vào ExamService
+        Pageable pageable = PageRequest.of(page, size);
+
+        // Gọi ExamService để lấy danh sách phân trang
+        Page<ExamResult> resultPage = username != null ? examService.getExamResultByUsername(username, pageable) : Page.empty();
+
+        // Thêm các thuộc tính vào model để giao diện sử dụng
+        model.addAttribute("results", resultPage.getContent()); // Danh sách kết quả trong trang hiện tại
+        model.addAttribute("currentPage", resultPage.getNumber()); // Trang hiện tại
+        model.addAttribute("totalPages", resultPage.getTotalPages()); // Tổng số trang
+        model.addAttribute("totalItems", resultPage.getTotalElements()); // Tổng số kết quả
         model.addAttribute("username", username);
+
         return "examResultList";
     }
 
@@ -365,11 +385,14 @@ public class ManageExamController {
 
     //Created List
     @GetMapping("/exams/created")
-        public String showCreatedExams(
+    public String showCreatedExams(
             @RequestParam(value = "subject", required = false) String subject,
             @RequestParam(value = "grade", required = false) String grade,
             @RequestParam(value = "searchQuery", required = false) String searchQuery,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size,
             Model model, HttpServletRequest request, HttpSession session) {
+
         if (session.getAttribute("loggedInUser") == null) {
             return "redirect:/login"; // Nếu chưa đăng nhập, chuyển hướng về login
         }
@@ -378,8 +401,15 @@ public class ManageExamController {
         User user = userService.getUserByUsername(username);
         model.addAttribute("user", user);
 
-        // Lấy danh sách bài kiểm tra đã tạo bởi username
-        List<Exam> createdExams = examService.getHtoryCreateExamsByUsername(username);
+        // Tạo đối tượng Pageable để truyền vào service
+        Pageable pageable = PageRequest.of(page, size, Sort.by("date").descending());
+
+        // Lấy danh sách bài kiểm tra đã tạo bởi username với phân trang
+        Page<Exam> examPage = examService.getHistoryCreateExamsByUsername(username, pageable);
+
+        // Lấy danh sách exams từ Page
+        List<Exam> createdExams = examPage.getContent();
+        System.out.println("createdExams: " + createdExams);
 
         // Áp dụng tìm kiếm theo tên
         if (searchQuery != null && !searchQuery.trim().isEmpty()) {
@@ -394,6 +424,10 @@ public class ManageExamController {
 
         // Truyền dữ liệu sang view
         model.addAttribute("createdExams", createdExams);
+        model.addAttribute("currentPage", examPage.getNumber());
+        model.addAttribute("totalPages", examPage.getTotalPages());
+        model.addAttribute("totalItems", examPage.getTotalElements());
+        model.addAttribute("pageSize", size);
         model.addAttribute("selectedSubject", subject);
         model.addAttribute("selectedGrade", grade);
         model.addAttribute("searchQuery", searchQuery);

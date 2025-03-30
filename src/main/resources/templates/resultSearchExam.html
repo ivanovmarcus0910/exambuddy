@@ -106,7 +106,7 @@
                             <p class="card-text">
                                 <i class="bi bi-calendar-event text-secondary"></i>
                                 <strong>Ngày đăng:</strong>
-                                <span th:text="${#dates.format(exam.date, 'dd/MM/yyyy')}"></span>
+                                <span th:text="${exam.getFormattedDate()}"></span>
                             </p>
                         </div>
                         <div class="card-footer bg-transparent text-center">

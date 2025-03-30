@@ -18,6 +18,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+
 import java.io.InputStream;
 import java.text.Normalizer;
 import java.text.SimpleDateFormat;
@@ -39,6 +43,13 @@ public class ExamService {
     private final ExecutorService executor = Executors.newCachedThreadPool();
     private final Firestore db = FirestoreClient.getFirestore();
     private final LeaderBoardService leaderBoardService = new LeaderBoardService();
+
+    private final PaginationService<ExamResult> paginationService;
+
+    // Inject PaginationService qua constructor
+    public ExamService(PaginationService<ExamResult> paginationService) {
+        this.paginationService = paginationService;
+    }
     public List<Exam> getExamList() {
         List<Exam> exams = new ArrayList<>();
         try {
@@ -505,32 +516,42 @@ public class ExamService {
         ), SetOptions.merge());
     }
 
-    public List<ExamResult> getExamResultByUsername(String userId) {
+    public Page<ExamResult> getExamResultByUsername(String userId, Pageable pageable) {
         List<ExamResult> results = new ArrayList<>();
+        long totalItems = 0;
 
         try {
+            Firestore db = FirestoreClient.getFirestore();
             CollectionReference collectionReference = db.collection("examResults");
 
-            // Tạo truy vấn với điều kiện lọc và sắp xếp theo ngày giảm dần
+            // Lọc ngay trong query để lấy đúng dữ liệu của user
             Query query = collectionReference
-                    .whereGreaterThanOrEqualTo(FieldPath.documentId(), userId + "_")
-                    .whereLessThan(FieldPath.documentId(), userId + "_\uf8ff")
-                    .orderBy("submittedAt", Query.Direction.DESCENDING); // Sắp xếp theo submittedAt giảm dần (mới nhất trước)
+                    .whereGreaterThanOrEqualTo(FieldPath.documentId(), userId + "_")  // Chỉ lấy tài liệu có userId đầu tiên
+                    .whereLessThan(FieldPath.documentId(), userId + "_\uf8ff")       // Giới hạn trong phạm vi userId
+                    .orderBy("submittedAt", Query.Direction.DESCENDING);             // Sắp xếp giảm dần
+
+            // Lấy tổng số bài thi của user
+            ApiFuture<QuerySnapshot> countFuture = query.get();
+            List<QueryDocumentSnapshot> allDocs = countFuture.get().getDocuments();
+            totalItems = allDocs.size();
+
+            // Áp dụng phân trang
+            query = query.limit(pageable.getPageSize())
+                    .offset((int) pageable.getOffset());  // Bỏ qua số lượng cần thiết
 
             ApiFuture<QuerySnapshot> future = query.get();
             List<QueryDocumentSnapshot> documents = future.get().getDocuments();
 
-            for (QueryDocumentSnapshot doc : documents) {
-                ExamResult examResult = doc.toObject(ExamResult.class);
-                results.add(examResult);
-            }
+            results = documents.stream()
+                    .map(doc -> doc.toObject(ExamResult.class))
+                    .collect(Collectors.toList());
+
         } catch (Exception e) {
-            // Thêm log chi tiết để debug nếu cần
             System.err.println("Lỗi khi lấy kết quả bài thi cho userId: " + userId + " - " + e.getMessage());
         }
-        return results;
-    }
 
+        return new PageImpl<>(results, pageable, totalItems);
+    }
     public void likeExam(String userId, String examId) {
         try {
             // 1. Lấy thông tin bài thi từ collection "exams"
@@ -627,35 +648,45 @@ public class ExamService {
         return batches;
     }
 
-    public List<Exam> getHtoryCreateExamsByUsername(String username) {
-        List<Exam> exams = new ArrayList<>();
+    public Page<Exam> getHistoryCreateExamsByUsername(String username, Pageable pageable) {
+        List<Exam> exams;
+        long totalItems = 0;
 
         try {
             CollectionReference collectionReference = db.collection("exams");
-            ApiFuture<QuerySnapshot> future = collectionReference
-                    .whereEqualTo("username", username)
-                    .get();
 
+            // Truy vấn chỉ lấy dữ liệu của user
+            Query query = collectionReference
+                    .whereEqualTo("username", username)
+                    .whereEqualTo("active", true) // Chỉ lấy các bài thi đang hoạt động
+                    .orderBy("date", Query.Direction.DESCENDING); // Sắp xếp theo ngày giảm dần
+
+            // Lấy tổng số bài thi của user
+            ApiFuture<QuerySnapshot> countFuture = query.get();
+            List<QueryDocumentSnapshot> allDocs = countFuture.get().getDocuments();
+            totalItems = allDocs.size();
+
+            // Áp dụng phân trang
+            query = query.limit(pageable.getPageSize())
+                    .offset((int) pageable.getOffset());
+
+            ApiFuture<QuerySnapshot> future = query.get();
             List<QueryDocumentSnapshot> documents = future.get().getDocuments();
 
-            for (DocumentSnapshot doc : documents) {
-                if (doc.exists() && doc.contains("date")) { // Bỏ qua nếu thiếu date
-                    Exam exam = doc.toObject(Exam.class);
-                    if (exam.isActive()) {
-                        exam.setExamID(doc.getId());
-                        exams.add(exam);
-                    }
-                }
-            }
+            exams = documents.stream()
+                    .map(doc -> {
+                        Exam exam = doc.toObject(Exam.class);
+                        exam.setExamID(doc.getId()); // Gán ID từ Firestore
+                        return exam;
+                    })
+                    .collect(Collectors.toList());
 
-            // Sắp xếp thủ công theo ngày giảm dần
-            exams.sort((e1, e2) -> e2.getDate().compareTo(e1.getDate()));
-
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (InterruptedException | ExecutionException e) {
+            System.err.println("Lỗi khi lấy danh sách bài kiểm tra của username: " + username + " - " + e.getMessage());
+            return Page.empty();
         }
 
-        return exams;
+        return new PageImpl<>(exams, pageable, totalItems);
     }
 
     public ExamResult getExamResult(String resultId) {
@@ -739,6 +770,9 @@ public class ExamService {
                 query = query.whereEqualTo("city", city); // Lọc theo thành phố
             }
 
+
+            // Sắp xếp kết quả theo ngày (mới nhất trước)
+            query = query.orderBy("date", Query.Direction.DESCENDING);
             // Thực hiện truy vấn
             ApiFuture<QuerySnapshot> future = query.get();
             List<QueryDocumentSnapshot> documents = future.get().getDocuments();
