@@ -13,6 +13,7 @@
 <!-- Header -->
 <div th:insert="~{fragments/header :: header}"></div>
 
+
 <!-- Container -->
 <div class="container py-5">
     <h2 class="text-center fw-bold mb-4" >Chi tiết đề thi</h2>
@@ -39,10 +40,14 @@
             </div>
         </div>
 
+
         <!-- Feedback Section -->
         <div class="col-md-4">
             <div class="card shadow-sm p-4">
                 <h5 class="text-primary fw-bold">Feedback</h5>
+                <button class="btn btn-outline-secondary btn-sm share-button" type="button" th:data-exam-id="${exam.examID}">
+                    <i class="fas fa-share-alt"></i> Share
+                </button>
                 <!-- Feedback Form -->
                 <div th:if="${isLoggedIn and not hasCommented and not isExamCreator}">
                     <form id="feedback-form" th:action="@{/exams/{examId}/feedback(examId=${exam.examID})}" method="post" class="mb-3">
@@ -68,6 +73,7 @@
                     <p>Vui lòng <a href="/login">đăng nhập</a> để gửi phản hồi.</p>
                 </div>
 
+
                 <!-- Feedback List -->
                 <div id="feedback-list">
                     <div th:each="feedback : ${feedbacks}" th:if="${!feedback.isReply}" class="feedback-item mb-3 border-bottom pb-2" th:id="'feedback-' + ${feedback.feedbackId}" th:data-exam-id="${exam.examID}">
@@ -88,17 +94,20 @@
                         <div class="feedback-content">
                             <p class="mt-1" th:text="${feedback.content}"></p>
                             <div class="star-display">
-                                <span th:each="i : ${#numbers.sequence(1, 5)}">
-                                    <i class="fa-star" th:classappend="${i <= feedback.rate} ? 'fas' : 'far'"></i>
-                                </span>
+                               <span th:each="i : ${#numbers.sequence(1, 5)}">
+                                   <i class="fa-star" th:classappend="${i <= feedback.rate} ? 'fas' : 'far'"></i>
+                               </span>
                             </div>
                             <small class="text-muted" th:text="${feedback.timeAgo}"></small>
                         </div>
+
 
                         <!-- Reply Section -->
                         <div th:each="reply : ${feedbacks}" th:if="${reply.isReply and reply.parentFeedbackId == feedback.feedbackId}" class="reply-item ms-4 mt-2" th:id="'feedback-' + ${reply.feedbackId}" th:data-exam-id="${exam.examID}">
                             <div class="d-flex align-items-center justify-content-between">
                                 <div>
+                                    <img th:src="${reply.avatarUrl}" alt="Avatar" width="30" class="rounded-circle me-2" th:if="${reply.avatarUrl != null && reply.avatarUrl != ''}" />
+                                    <img src="https://via.placeholder.com/30" alt="Avatar" width="30" class="rounded-circle me-2" th:if="${reply.avatarUrl == null || reply.avatarUrl == ''}" />
                                     <strong th:text="${reply.username}"></strong>
                                     <span class="ms-2" th:text="'(Người tạo đề)'"></span>
                                 </div>
@@ -131,6 +140,8 @@
                         </div>
 
 
+
+
                         <!-- Reply Form (for exam creator) -->
                         <div th:if="${isExamCreator}">
                             <form th:action="@{/exams/{examId}/feedback/{feedbackId}/reply(examId=${exam.examID}, feedbackId=${feedback.feedbackId})}" method="post" class="ms-4 mt-2">
@@ -138,6 +149,7 @@
                                 <button type="submit" class="btn btn-sm btn-primary mt-2">Trả lời</button>
                             </form>
                         </div>
+
 
                         <!-- Edit Feedback Form -->
                         <form class="edit-feedback-inline" th:action="@{/exams/{id}/feedback/edit(id=${exam.examID})}" method="post" style="display: none;" th:id="'edit-form-' + ${feedback.feedbackId}">
@@ -166,16 +178,20 @@
     </div>
 </div>
 
+
 <!-- Back to Exam List -->
 <div class="text-center mt-4">
-    <a href="/search-by-filter"><i class="fas fa-arrow-left"></i> Quay lại danh sách bài kiểm tra</a>
+    <a href="/exams"><i class="fas fa-arrow-left"></i> Quay lại danh sách bài kiểm tra</a>
 </div>
+
 
 <!-- Footer -->
 <div th:replace="~{fragments/footer :: footer}"></div>
 
+
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 
 <!-- Modal Thông báo -->
 <div class="modal fade" id="feedbackModal" tabindex="-1" aria-labelledby="feedbackModalLabel" aria-hidden="true">
@@ -194,6 +210,7 @@
         </div>
     </div>
 </div>
+
 
 <!-- Modal Xác nhận xóa -->
 <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
@@ -214,5 +231,36 @@
     </div>
 </div>
 
+
 </body>
+<script>
+    document.addEventListener('click', function (event) {
+        const shareButton = event.target.closest('.share-button');
+        if (!shareButton) return;
+
+
+        const examId = shareButton.getAttribute('data-exam-id');
+        const examUrl = `${window.location.origin}/exams/${examId}`;
+
+
+        navigator.clipboard.writeText(examUrl).then(() => {
+            console.log('🔗 Link đã sao chép:', examUrl);
+        }).catch(error => console.error('Lỗi sao chép:', error));
+
+
+        if (navigator.share) {
+            navigator.share({
+                title: document.title,
+                url: examUrl
+            }).then(() => {
+                alert('🔗 Link đề thi đã được sao chép!');
+            }).catch(error => console.error('Lỗi chia sẻ:', error));
+        } else {
+            alert('🔗 Link đề thi đã được sao chép vào clipboard!');
+        }
+    });
+</script>
+
+
 </html>
+
