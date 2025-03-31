@@ -63,7 +63,8 @@ public class FirebaseAuthService {
 
             // Lưu OTP vào Firestore (khởi tạo resendCount = 0, lockTime = 0)
             OtpRecord otpRecord = new OtpRecord(otp, expiryTime);
-            FirestoreClient.getFirestore().collection(ACCOUNT_OTP_COLLECTION).document(email).set(otpRecord);
+            firestore.collection(ACCOUNT_OTP_COLLECTION).document(email).set(otpRecord);
+            users.document(username).set(user);
 
             // ✅ Gửi OTP qua email
             emailService.sendOtpEmailAccount(email, otp);
@@ -416,15 +417,19 @@ public class FirebaseAuthService {
     }
 
     // Kiểm tra xem username đã tồn tại chưa
-    public boolean isUsernameExists(String username) {
+    public CompletableFuture<Boolean> isUsernameExists(String username) {
         Firestore firestore = FirestoreClient.getFirestore();
-        try {
-            DocumentSnapshot userSnapshot = firestore.collection(COLLECTION_NAME).document(username).get().get();
-            return userSnapshot.exists();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
+        DocumentReference docRef = firestore.collection(COLLECTION_NAME).document(username);
+        ApiFuture<DocumentSnapshot> future = docRef.get();
+
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                return future.get().exists();
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
+        });
     }
 
     // ✅ Kiểm tra xem user có phải Admin không

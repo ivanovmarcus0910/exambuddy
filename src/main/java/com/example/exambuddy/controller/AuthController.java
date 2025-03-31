@@ -296,7 +296,7 @@ public class AuthController {
 
         // Chạy kiểm tra tồn tại email và username song song
         CompletableFuture<Boolean> emailExistsFuture = authService.isEmailExists(email);
-        CompletableFuture<Boolean> usernameExistsFuture = CompletableFuture.supplyAsync(() -> authService.isUsernameExists(username));
+        CompletableFuture<Boolean> usernameExistsFuture = authService.isUsernameExists(username);
 
         try {
             boolean emailExists = emailExistsFuture.get();

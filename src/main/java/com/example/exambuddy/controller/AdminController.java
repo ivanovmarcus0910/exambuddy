@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
@@ -160,52 +161,95 @@ public class AdminController {
                           @RequestParam String email,
                           @RequestParam String password,
                           @RequestParam String role,
+                          RedirectAttributes redirectAttributes,
                           Model model,
                           HttpSession session) {
-        // Kiểm tra admin đã đăng nhập chưa
         String loggedInUser = (String) session.getAttribute("loggedInUser");
         if (loggedInUser == null || !authService.isAdmin(loggedInUser)) {
             return "redirect:/login";
         }
 
-        boolean hasError = false;
+        // Gọi các phương thức bất đồng bộ
+        CompletableFuture<Boolean> usernameExistsFuture = authService.isUsernameExists(username);
+        CompletableFuture<Boolean> emailExistsFuture = authService.isEmailExists(email);
 
-        // Kiểm tra xem username đã tồn tại chưa
-        if (authService.isUsernameExists(username)) {
-            model.addAttribute("usernameError", "Tên đăng nhập đã tồn tại!");
-            hasError = true;
-        }
+        // Xử lý bất đồng bộ toàn bộ logic
+        return CompletableFuture.allOf(usernameExistsFuture, emailExistsFuture)
+                .thenApply(v -> {
+                    boolean hasError = false;
+                    // Kiểm tra mật khẩu với điều kiện mới
+                    if (!passwordService.isValidPassword(password)) {
+                        model.addAttribute("passwordError", "Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt!");
+                        hasError = true;
+                    }
 
-        // Kiểm tra xem email đã tồn tại chưa (giả sử isEmailExists trả về CompletableFuture<Boolean>)
-        if (authService.isEmailExists(email).join()) {
-            model.addAttribute("emailError", "Email đã được sử dụng!");
-            hasError = true;
-        }
+                    try {
+                        if (usernameExistsFuture.get()) {
+                            model.addAttribute("usernameError", "Tên đăng nhập đã tồn tại!");
+                            hasError = true;
+                        }
+                        if (emailExistsFuture.get()) {
+                            model.addAttribute("emailError", "Email đã được sử dụng!");
+                            hasError = true;
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        hasError = true;
+                    }
 
-        // Lưu lại giá trị nhập vào để giữ nguyên khi có lỗi
-        model.addAttribute("usernameValue", username);
-        model.addAttribute("emailValue", email);
-        model.addAttribute("roleValue", role);
+                    // Giữ lại giá trị đã nhập để hiển thị trong form
+                    model.addAttribute("usernameValue", username);
+                    model.addAttribute("emailValue", email);
+                    model.addAttribute("roleValue", role);
 
-        if (hasError) {
-            // Nếu có lỗi, quay lại trang quản lí người dùng để hiển thị thông báo lỗi (có thể tự động mở lại modal bằng JS nếu cần)
-            return "adminUser";
-        }
+                    // Lấy thông tin admin
+                    User adminUser = userService.getUserByUsername(loggedInUser);
+                    if (adminUser != null) {
+                        model.addAttribute("adminUser", adminUser);
+                    }
 
-        // Chuyển đổi vai trò (nếu không hợp lệ, mặc định STUDENT)
-        User.Role userRole;
-        try {
-            userRole = User.Role.valueOf(role.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            userRole = User.Role.STUDENT;
-        }
+                    // Nếu có lỗi, cung cấp dữ liệu tối ưu cho template adminUser.html
+                    if (hasError) {
+                        int page = 0;
+                        int pageSize = 10;
 
-        // Đăng ký người dùng mới (theo cách của bạn, OTP được gửi để xác thực tài khoản)
-        String result = authService.registerUser(email, username, password, userRole);
-        // Thông báo thành công (bạn có thể sử dụng flash attributes để thông báo sau khi redirect)
-        session.setAttribute("successMessage", result);
+                        try {
+                            // Chỉ tải danh sách người dùng cho trang hiện tại
+                            List<User> userPage = userService.getUserPage(page, pageSize);
+                            model.addAttribute("userPage", userPage);
+                            model.addAttribute("currentPage", page);
+                            model.addAttribute("hasNextPage", userPage.size() == pageSize);
 
-        return "redirect:/admin/users";
+                            // Không tải toàn bộ danh sách người dùng ngay lập tức
+                            // Các tab (students, teachers, v.v.) sẽ được tải qua AJAX nếu cần
+                            model.addAttribute("showNewUserModal", true);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        return "adminUser";
+                    }
+
+                    // Nếu không có lỗi, tiến hành đăng ký người dùng
+                    User.Role userRole;
+                    try {
+                        userRole = User.Role.valueOf(role.toUpperCase());
+                    } catch (IllegalArgumentException e) {
+                        userRole = User.Role.STUDENT;
+                    }
+
+                    String result = authService.registerUser(email, username, password, userRole);
+                    redirectAttributes.addFlashAttribute("successMessage", "🎉 Đã thêm người dùng '" + username + "' thành công!");
+                    return "redirect:/admin/users";
+                })
+                .exceptionally(throwable -> {
+                    // Xử lý lỗi hệ thống
+                    model.addAttribute("error", "Lỗi hệ thống: " + throwable.getMessage());
+                    model.addAttribute("usernameValue", username);
+                    model.addAttribute("emailValue", email);
+                    model.addAttribute("roleValue", role);
+                    return "adminUser";
+                })
+                .join(); // Đợi kết quả và trả về
     }
 
     // POST: Xác nhận yêu cầu trở thành giáo viên
@@ -221,11 +265,7 @@ public class AdminController {
             userService.updateUserRole(username, User.Role.TEACHER);
 
             // Gửi thông báo về việc yêu cầu đã được chấp nhận
-            try {
-                emailService.sendTeacherStatusNotification(user.getEmail(), true,user);  // Gửi email thông báo đã chấp nhận
-            } catch (MessagingException e) {
-                e.printStackTrace();
-            }
+            emailService.sendTeacherStatusNotification(user.getEmail(), true,user);  // Gửi email thông báo đã chấp nhận
 
             // Gửi thông báo tới người dùng về việc yêu cầu đã được chấp nhận
             //userService.sendNotification(user, "Yêu cầu của bạn đã được chấp nhận. Bạn đã trở thành giáo viên.");
@@ -248,11 +288,7 @@ public class AdminController {
             userService.updateUserRole(username, User.Role.PENDING_TEACHER);
 
             // Gửi thông báo về việc yêu cầu đã bị từ chối
-            try {
-                emailService.sendTeacherStatusNotification(user.getEmail(), false, user);  // Gửi email thông báo đã từ chối
-            } catch (MessagingException e) {
-                e.printStackTrace();
-            }
+            emailService.sendTeacherStatusNotification(user.getEmail(), false, user);  // Gửi email thông báo đã từ chối
 
             // Gửi thông báo tới người dùng về việc yêu cầu đã bị từ chối
             //userService.sendNotification(user, "Yêu cầu của bạn đã bị từ chối.");
