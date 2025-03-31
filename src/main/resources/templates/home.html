@@ -313,14 +313,21 @@
             let data = await response.json();
             let leaderboard = document.querySelector("#leaderboard");
             leaderboard.innerHTML = "";
+
             data.forEach(record => {
                 let formattedScore = record.totalScore.toFixed(0);
-                let row = `<li class="list-group-item d-flex justify-content-between">
-    <span class="text-truncate" style="max-width: 50%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
-        ${record.username}
-    </span>
-    <span>${formattedScore} Điểm</span>
-</li>`;
+                let avatarUrl = record.avatarUrl || "https://via.placeholder.com/40"; // Avatar mặc định nếu không có
+
+                let row = `<li class="list-group-item d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center">
+                    <img src="${avatarUrl}" alt="Avatar" class="rounded-circle me-2" width="40" height="40">
+                    <span class="text-truncate" style="max-width: 70%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
+                        ${record.username}
+                    </span>
+                </div>
+                <span>${formattedScore} Điểm</span>
+            </li>`;
+
                 leaderboard.innerHTML += row;
             });
         } catch (error) {
@@ -334,15 +341,19 @@
             let data = await response.json();
             let contributionBoard = document.querySelector("#contribution-board");
             contributionBoard.innerHTML = "";
+
             data.forEach(record => {
                 let formattedScore = record.totalScore.toFixed(0);
+                let avatarUrl = record.avatarUrl || "https://via.placeholder.com/40"; // Avatar mặc định nếu không có
 
-                let row = `<li class="list-group-item d-flex justify-content-between">
-    <span class="text-truncate" style="max-width: 50%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
-        ${record.username}
-    </span>
-    <span>${formattedScore} Điểm</span>
-</li>`;
+                let row = `<li class="list-group-item d-flex align-items-center">
+                <img src="${avatarUrl}" alt="Avatar" class="rounded-circle me-2" width="40" height="40">
+                <span class="text-truncate flex-grow-1" style="max-width: 60%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
+                    ${record.username}
+                </span>
+                <span class="text-end fw-bold">${formattedScore} Điểm</span>
+            </li>`;
+
                 contributionBoard.innerHTML += row;
             });
         } catch (error) {
