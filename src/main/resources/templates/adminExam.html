@@ -12,8 +12,19 @@
   <!-- Bootstrap JS Bundle -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <style>
-    .sidebar-sticky { position: sticky; top: 0; height: 100vh; overflow-y: auto; z-index: 10; }
-    .header-sticky { position: sticky; top: 0; z-index: 999; background: #fff; }
+    .sidebar-sticky {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      z-index: 10;
+    }
+    .header-sticky {
+      position: sticky;
+      top: 0;
+      z-index: 999;
+      background: #fff;
+    }
   </style>
 </head>
 <body class="bg-white">
@@ -36,6 +47,12 @@
           <a href="/admin/posts" class="nav-link">📄 Quản lí Bài viết</a>
         </li>
         <li class="nav-item mb-2">
+          <a href="/admin/reports" class="nav-link">⚠️ Quản lí Báo cáo</a>
+        </li>
+        <li class="nav-item mb-2">
+          <a href="/admin/logs" class="nav-link active">📝 Lịch sử Admin</a>
+        </li>
+        <li class="nav-item mb-2">
           <a href="/admin/stats" class="nav-link">📊 Thống kê</a>
         </li>
         <li class="nav-item mt-3">
@@ -50,13 +67,8 @@
         <div class="d-flex justify-content-between align-items-center">
           <h1 class="h3 fw-bold m-0">Dashboard</h1>
           <div class="d-flex align-items-center">
-            <div class="me-3 position-relative">
-              <input type="text" placeholder="🔍 Tìm kiếm..." class="form-control" style="width: 200px;">
-            </div>
-            <div class="d-flex align-items-center">
-              <span class="fw-semibold me-2" th:text="${adminUser.username}">Admin</span>
-              <img th:src="${adminUser.avatarUrl}" alt="Admin Avatar" class="rounded-circle border border-secondary" style="width:40px; height:40px;">
-            </div>
+            <span class="fw-semibold me-2" th:text="${adminUser.username}">Admin</span>
+            <img th:src="${adminUser.avatarUrl}" alt="Admin Avatar" class="rounded-circle border border-secondary" style="width:40px; height:40px;">
           </div>
         </div>
       </div>
@@ -64,7 +76,9 @@
       <div class="px-4">
         <h2 class="h5 fw-bold mb-3">📚 Quản Lý Đề Thi</h2>
         <div class="text-end mb-3">
-          <a href="/exams/addExam" class="btn btn-success shadow-sm">➕ Thêm Đề Thi</a>
+          <!-- Nút Thêm đề thi được làm to hơn -->
+          <a href="/exams/addExam" class="btn btn-success shadow-sm"
+             style="padding:6px 12px; border-radius:10px; font-size:1rem;">➕ Thêm Đề Thi</a>
         </div>
         <div class="table-responsive bg-light rounded shadow-sm">
           <table class="table table-hover align-middle mb-0">
@@ -74,7 +88,9 @@
               <th>📌 Môn Học</th>
               <th>📅 Ngày Tạo</th>
               <th>👤 Người Tạo</th>
-              <th class="text-center">⚙️ Hành Động</th>
+              <th>⚙️ Trạng thái</th>
+              <th>Thao tác</th>
+              <th class="text-center">Hành động</th>
             </tr>
             </thead>
             <tbody>
@@ -83,14 +99,27 @@
               <td th:text="${exam.subject}"></td>
               <td th:text="${exam.date}"></td>
               <td class="fw-semibold text-primary" th:text="${exam.username}"></td>
+              <!-- Cột trạng thái -->
+              <td th:text="${exam.active} ? 'Đã kích hoạt' : 'Chưa kích hoạt'"></td>
+              <!-- Cột Thao tác: nút xem chi tiết -->
               <td class="text-center">
-                <a th:href="@{/exams/{examId}/detail(examId=${exam.examID})}" class="btn btn-primary btn-sm">🔍 Xem</a>
-                <a th:href="@{/exams/{examId}/edit(examId=${exam.examID})}" class="btn btn-warning btn-sm text-white">✏️ Sửa</a>
-                <form action="/admin/updateExamStatus" method="post" class="d-inline-block">
+                <a th:href="@{/exams/{examId}/detail(examId=${exam.examID})}"
+                   class="btn btn-primary btn-sm"
+                   style="padding:2px 6px; border-radius:8px; font-size:0.8rem;">
+                  🔍 Xem
+                </a>
+              </td>
+              <!-- Cột Hành động: form cập nhật trạng thái -->
+              <td class="text-center">
+                <form action="/admin/updateExamStatus" method="post" class="d-inline-flex align-items-center"
+                      th:attr="onsubmit=${exam.active} ? 'return confirm(\'Bạn có chắc chắn muốn vô hiệu hoá đề thi này?\')' : 'return confirm(\'Bạn có chắc chắn muốn kích hoạt lại đề thi này?\')'">
                   <input type="hidden" name="examId" th:value="${exam.examID}">
-                  <button type="submit" class="btn"
-                          th:classappend="${exam.active} ? ' btn-danger btn-sm' : ' btn-success btn-sm'"
-                          th:text="${exam.active} ? '🚫 Vô hiệu hóa' : '✅ Kích hoạt lại'">
+                  <button type="submit"
+                          class="btn btn-sm rounded-pill d-flex align-items-center justify-content-center px-3 fw-bold text-white"
+                          style="padding:2px 6px; border-radius:8px; font-size:0.8rem;"
+                          th:classappend="${exam.active} ? ' btn-danger' : ' btn-success'">
+                    <i class="bi" th:class="${exam.active} ? 'bi-x-circle me-1' : 'bi-check-circle me-1'"></i>
+                    <span th:text="${exam.active} ? 'Vô hiệu hoá' : 'Duyệt'"></span>
                   </button>
                 </form>
               </td>

@@ -61,7 +61,7 @@ public class FeedbackService {
         }
     }
 
-    public Feedback saveReply(String examId, String parentFeedbackId, String username, String content, String date) {
+    public Feedback saveReply(String examId, String parentFeedbackId, String username,String avatarUrl, String content, String date) {
         if (examId == null || parentFeedbackId == null || username == null || content == null || content.trim().isEmpty()) {
             log.warn("Dữ liệu đầu vào không hợp lệ khi lưu reply cho examId: {}", examId);
             return null;
@@ -72,6 +72,7 @@ public class FeedbackService {
         Feedback reply = new Feedback();
         reply.setExamId(examId);
         reply.setUsername(username);
+        reply.setAvatarUrl(avatarUrl != null ? avatarUrl : "");
         reply.setContent(content.trim());
         reply.setDate(date);
         reply.setParentFeedbackId(parentFeedbackId);

@@ -3,6 +3,7 @@ package com.example.exambuddy.model;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.TimeZone;
 
 public class Exam {
@@ -18,7 +19,9 @@ public class Exam {
     private int questionCount; // Số lượng câu hỏi
     private List<Question> questions; // Danh sách câu hỏi
     private  int participantCount;
-
+    private List<Question> questionPool; // Toàn bộ câu hỏi gốc
+    private Map<String, Integer> chapterConfig; // Ví dụ: {"Hàm số": 2, "Phương trình": 1}
+    private boolean fromQuestionBank;
     private long timeduration;
     private boolean active = true;
 
@@ -42,6 +45,7 @@ public class Exam {
         this.timeduration = timeduration;
         this.active = true; // Người dùng mới mặc định hoạt động
         this.participantCount = participantCount;
+
     }
 
     public boolean isActive() {
@@ -152,6 +156,30 @@ public class Exam {
     }
     public void setParticipantCount(int participantCount) {
         this.participantCount = participantCount;
+    }
+
+    public List<Question> getQuestionPool() {
+        return questionPool;
+    }
+
+    public void setQuestionPool(List<Question> questionPool) {
+        this.questionPool = questionPool;
+    }
+
+    public Map<String, Integer> getChapterConfig() {
+        return chapterConfig;
+    }
+
+    public void setChapterConfig(Map<String, Integer> chapterConfig) {
+        this.chapterConfig = chapterConfig;
+    }
+
+    public boolean isFromQuestionBank() {
+        return fromQuestionBank;
+    }
+
+    public void setFromQuestionBank(boolean fromQuestionBank) {
+        this.fromQuestionBank = fromQuestionBank;
     }
     public String getFormattedDate() {
         return formatDate(this.date);

@@ -51,17 +51,17 @@ public class ManageExamController {
     private UserService userService;
     @Autowired
     private FeedbackService feedbackService;
-    @GetMapping("/exams")
-    public String listExams(Model model) {
-        try {
-            List<Exam> exams = examService.getExamList(0, 6);
-            model.addAttribute("exams", exams);
-            return "examList"; // Trả về trang hiển thị danh sách đề thi
-        } catch (Exception e) {
-            model.addAttribute("error", "Lỗi khi tải danh sách đề thi: " + e.getMessage());
-            return "error";
-        }
-    }
+//    @GetMapping("/exams")
+//    public String listExams(Model model) {
+//        try {
+//            List<Exam> exams = examService.getExamList(0, 6);
+//            model.addAttribute("exams", exams);
+//            return "examList"; // Trả về trang hiển thị danh sách đề thi
+//        } catch (Exception e) {
+//            model.addAttribute("error", "Lỗi khi tải danh sách đề thi: " + e.getMessage());
+//            return "error";
+//        }
+//    }
 
     @GetMapping("/exams/{examId}/detail")
     public String getExamDetail(@PathVariable String examId,Model model, HttpServletRequest request, HttpSession session) {
@@ -100,33 +100,32 @@ public class ManageExamController {
     public String doExam(@PathVariable String examId, HttpSession session, HttpServletRequest request, HttpServletResponse response, Model model) {
         try {
             if (session.getAttribute("loggedInUser") == null) {
-                return "redirect:/home"; // Nếu chưa đăng nhập, chuyển hướng về home
+                return "redirect:/home";
             }
-            List<Question> questions;;
-            Exam exam = examService.getExam(examId);
+
             String username = session.getAttribute("loggedInUser").toString();
-            if (session.getAttribute("shuffledQuestions_"+examId) == null) {
-                examService.deleteProcess(username, examId);
-                examService.addExamSession(examId, username, 1000 * 60 * exam.getTimeduration());
+            Exam exam = examService.getExam(examId);
+
+            List<Question> questions;
+            if (exam.isFromQuestionBank()) {
+                questions = examService.generateQuestionsFromPool(exam.getQuestionPool(), exam.getChapterConfig());
+            } else {
                 questions = new ArrayList<>(exam.getQuestions());
-                System.out.println("Trước khi xáo trộn:");
-                for (Question question : questions) {
-                    System.out.println(question.getQuestionText());
-                }
-                Collections.shuffle(questions);
-                System.out.println("Đề trong Server Sau khi random: ");
-                for (Question question : questions) {
-                    System.out.println(question.getQuestionText());
-                }
             }
-            else{
+
+            if (session.getAttribute("shuffledQuestions_" + examId) == null) {
+                // Gộp cả logic từ bạn A và bạn
+                examService.deleteProcess(username, examId); // Xoá tiến trình cũ
+                examService.addExamSession(examId, username, 1000L * 60 * exam.getTimeduration());
+                Collections.shuffle(questions);
+                session.setAttribute("shuffledQuestions_" + examId, questions);
+            } else {
                 questions = (List<Question>) session.getAttribute("shuffledQuestions_" + examId);
             }
-            session.setAttribute("shuffledQuestions_" + examId, questions);
 
             model.addAttribute("exam", exam);
             model.addAttribute("username", username);
-            model.addAttribute("questions", questions); // Gửi danh sách câu hỏi qua view
+            model.addAttribute("questions", questions);
             model.addAttribute("timeduration", exam.getTimeduration());
             return "examDo";
         } catch (Exception e) {
@@ -134,6 +133,68 @@ public class ManageExamController {
             return "error";
         }
     }
+
+
+    @PostMapping("/exams/create-from-bank")
+    @ResponseBody
+    public ResponseEntity<?> createExamFromBank(
+            @RequestBody Map<String, Object> request,
+            HttpSession session) {
+        String username = (String) session.getAttribute("loggedInUser");
+        if (username == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Chưa đăng nhập");
+        }
+        try {
+            @SuppressWarnings("unchecked")
+            Map<String, Integer> chapterConfig = (Map<String, Integer>) request.get("chapterConfig");
+
+
+            int timeduration = Integer.parseInt(request.get("timeduration").toString());
+
+
+            Exam exam = examService.createExamFromBank(
+                    (String) request.get("examName"),
+                    (String) request.get("grade"),
+                    (String) request.get("subject"),
+                    (String) request.get("examType"),
+                    (String) request.get("city"),
+                    timeduration,
+                    chapterConfig,
+                    username
+            );
+
+
+            return ResponseEntity.ok(Map.of(
+                    "examId", exam.getExamID(),
+                    "message", "Tạo đề thành công"
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/api/exams/chapters")
+    @ResponseBody
+    public ResponseEntity<Map<String, Integer>> getAvailableChapters(
+            @RequestParam String subject,
+            @RequestParam String grade,
+            HttpSession session) {
+
+
+        String username = (String) session.getAttribute("loggedInUser");
+        if (username == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+
+        try {
+            Map<String, Integer> chapters = examService.getAvailableChapters(username, subject, grade);
+            return ResponseEntity.ok(chapters);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
 
     @PostMapping("exams/{examId}/submit")
     public String submitExam(@PathVariable String examId, @RequestParam MultiValueMap<String, String> userAnswers, HttpServletRequest request, Model model, HttpSession session) {
@@ -458,7 +519,7 @@ public class ManageExamController {
         if (examName != null && !examName.isEmpty()) {
             examList = examService.searchExamByName(examName);
         } else {
-            examList = examService.getExamList(0, 10);
+            examList = examService.getExamList();
         }
         model.addAttribute("examList", examList);
         return "resultSearchExam";
@@ -531,48 +592,27 @@ public class ManageExamController {
     @PostMapping("/exams/importDocx")
     public ResponseEntity<?> importExamFromDocx(
             @RequestParam("file") MultipartFile file,
-            @RequestParam("examName") String examName,
-            @RequestParam("grade") String grade,
-            @RequestParam("subject") String subject,
-            @RequestParam("examType") String examType,
-            @RequestParam("city") String city,
-            @RequestParam("tags") String tags,
-            HttpSession session,
-            HttpServletRequest request) {
+            HttpSession session) {
+
+
         if (session.getAttribute("loggedInUser") == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("message", "Bạn cần đăng nhập để import."));
         }
 
-        String username = cookieService.getCookie(request, "noname");
-        if (username == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("message", "Không tìm thấy thông tin người dùng."));
-        }
-
-        Map<String, Object> examData = new HashMap<>();
-        examData.put("examName", examName);
-        examData.put("grade", grade);
-        examData.put("subject", subject);
-        examData.put("examType", examType);
-        examData.put("city", city);
-        examData.put("tags", Arrays.asList(tags.split(","))); // Chuyển String[] thành List<String>
-        examData.put("username", username);
 
         try {
-            boolean success = examService.importExamFromDocx(file.getInputStream(), examData);
-            if (success) {
-                return ResponseEntity.ok(Map.of("message", "Đã import đề thi từ file DOCX thành công!"));
-            } else {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body(Map.of("message", "Lỗi khi import file DOCX."));
-            }
+            List<Map<String, Object>> questions = examService.extractQuestionsFromDocx(file.getInputStream());
+            return ResponseEntity.ok(Map.of("questions", questions, "message", "Import thành công!"));
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("message", "Lỗi khi xử lý file: " + e.getMessage()));
+                    .body(Map.of("message", "Lỗi xử lý file DOCX: " + e.getMessage()));
         }
     }
+
+
+
 
     @GetMapping("/participant")
     public String participant() {
@@ -781,6 +821,8 @@ public class ManageExamController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", "Lỗi khi xóa feedback: " + e.getMessage()));
         }
     }
+
+
     @PostMapping("/exams/{examId}/feedback/{feedbackId}/reply")
     public String submitReply(
             @PathVariable String examId,
@@ -796,11 +838,15 @@ public class ManageExamController {
             session.setAttribute("error", "Chỉ người tạo đề mới có thể trả lời feedback.");
             return "redirect:/exams/" + examId + "/detail";
         }
+        User user = userService.getUserByUsername(username);
         String date = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-        Feedback reply = feedbackService.saveReply(examId, feedbackId, username, content, date);
+        String avatarUrl = user != null ? user.getAvatarUrl() : "";
+        log.info("Người tạo đề reply feedback: username={}, avatarUrl={}", username, avatarUrl);
+        Feedback reply = feedbackService.saveReply(examId, feedbackId, username,avatarUrl, content, date);
         session.setAttribute(reply != null ? "success" : "error",
                 reply != null ? "Trả lời feedback thành công!" : "Lỗi khi trả lời feedback.");
         return "redirect:/exams/" + examId + "/detail";
     }
+
 }
 
