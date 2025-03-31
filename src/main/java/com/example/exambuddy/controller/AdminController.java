@@ -308,15 +308,36 @@ public class AdminController {
 
         List<Exam> exams = examService.getAllExams();
         model.addAttribute("exams", exams);
+        model.addAttribute("isAdmin", true); // Thêm để template kiểm tra quyền admin
+        model.addAttribute("currentUser", userService.getUserByUsername(loggedInUser)); // Người dùng hiện tại
 
-        // Thông tin admin
         User adminUser = userService.getUserByUsername(loggedInUser);
         if (adminUser != null) {
             model.addAttribute("adminUser", adminUser);
         }
 
-        return "adminExam"; // Trả về adminExam.html
+        return "adminExam";
     }
+
+    @PostMapping("/deleteExam")
+    public String deleteExam(@RequestParam String examId, HttpSession session, RedirectAttributes redirectAttributes) {
+        String loggedInUser = (String) session.getAttribute("loggedInUser");
+        if (loggedInUser == null) {
+            return "redirect:/login";
+        }
+
+        Exam exam = examService.getExam(examId);
+        if (exam != null) {
+            if (authService.isAdmin(loggedInUser) || exam.getUsername().equals(loggedInUser)) {
+                examService.deleteExam(examId);
+                redirectAttributes.addFlashAttribute("successMessage", "Đã xóa đề thi thành công!");
+            } else {
+                redirectAttributes.addFlashAttribute("errorMessage", "Bạn không có quyền xóa đề thi này!");
+            }
+        }
+        return "redirect:/admin/exams";
+    }
+
 
     // Quản lý Bài đăng: adminPost.html
     @GetMapping("/posts")
@@ -395,7 +416,8 @@ public class AdminController {
 
     // POST: Cập nhật trạng thái hoạt động của đề thi
     @PostMapping("/updateExamStatus")
-    public String updateExamStatus(@RequestParam String examId, HttpSession session) {
+    public String updateExamStatus(@RequestParam String examId, @RequestParam String status,
+                                   HttpSession session, RedirectAttributes redirectAttributes) {
         String loggedInUser = (String) session.getAttribute("loggedInUser");
         if (loggedInUser == null || !authService.isAdmin(loggedInUser)) {
             return "redirect:/login";
@@ -403,9 +425,9 @@ public class AdminController {
 
         Exam exam = examService.getExam(examId);
         if (exam != null) {
-            boolean newStatus = !exam.isActive();
-            exam.setActive(newStatus);
-            examService.updateExamStatus(examId, newStatus);
+            exam.setStatus(status);
+            examService.updateExamStatus(examId, status);
+            redirectAttributes.addFlashAttribute("successMessage", "Cập nhật trạng thái đề thi thành công!");
         }
         return "redirect:/admin/exams";
     }

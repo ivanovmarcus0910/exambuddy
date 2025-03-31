@@ -779,16 +779,16 @@ public class ManageExamController {
             return "redirect:/login";
         }
         Exam exam = examService.getExam(examId);
-        if (exam.getUsername().equals(username)) {
-            examService.updateExamStatus(examId, false);
+        if (exam != null && exam.getUsername().equals(username)) {
+            examService.deleteExam(examId);
+            session.setAttribute("success", "Đã xóa đề thi thành công!");
             return "redirect:/exams/created";
-        }
-        else
-        {
-            model.addAttribute("error", "Bạn đang truy cập trái phép");
+        } else {
+            model.addAttribute("error", "Bạn không có quyền xóa đề thi này hoặc đề thi không tồn tại!");
             return "error";
         }
     }
+
     @GetMapping("/exams/{examId}/feedbacks")
     public ResponseEntity<List<Feedback>> getFeedbacks(@PathVariable String examId) {
         List<Feedback> feedbacks = feedbackService.getFeedbacksByExamId(examId);

@@ -18,19 +18,22 @@ public class Exam {
     private String date;
     private int questionCount; // Số lượng câu hỏi
     private List<Question> questions; // Danh sách câu hỏi
-    private  int participantCount;
+    private int participantCount;
     private List<Question> questionPool; // Toàn bộ câu hỏi gốc
     private Map<String, Integer> chapterConfig; // Ví dụ: {"Hàm số": 2, "Phương trình": 1}
     private boolean fromQuestionBank;
     private long timeduration;
-    private boolean active = true;
+    private String status; // Status dưới dạng String
 
-    // Constructors
+    // Constructor mặc định: status mặc định là "PENDING"
     public Exam() {
+        this.status = "PENDING";
     }
 
+    // Constructor có tham số
     public Exam(String examID, String examName, String grade, String subject, String examType, String city,
-                List<String> tags, String username, String date, int questionCount, List<Question> questions, long timeduration, int participantCount) {
+                List<String> tags, String username, String date, int questionCount, List<Question> questions,
+                long timeduration, int participantCount) {
         this.examID = examID;
         this.examName = examName;
         this.grade = grade;
@@ -43,19 +46,11 @@ public class Exam {
         this.questionCount = questionCount;
         this.questions = questions;
         this.timeduration = timeduration;
-        this.active = true; // Người dùng mới mặc định hoạt động
         this.participantCount = participantCount;
-
+        this.status = "PENDING"; // Mặc định là "PENDING"
     }
 
-    public boolean isActive() {
-        return active;
-    }
-
-    public void setActive(boolean active) {
-        this.active = active;
-    }
-
+    // Getters và Setters
     public String getExamID() {
         return examID;
     }
@@ -143,6 +138,7 @@ public class Exam {
     public void setQuestions(List<Question> questions) {
         this.questions = questions;
     }
+
     public long getTimeduration() {
         return timeduration;
     }
@@ -154,6 +150,7 @@ public class Exam {
     public int getParticipantCount() {
         return participantCount;
     }
+
     public void setParticipantCount(int participantCount) {
         this.participantCount = participantCount;
     }
@@ -181,9 +178,20 @@ public class Exam {
     public void setFromQuestionBank(boolean fromQuestionBank) {
         this.fromQuestionBank = fromQuestionBank;
     }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    // Phương thức định dạng ngày
     public String getFormattedDate() {
         return formatDate(this.date);
     }
+
     public static String formatDate(String dateString) {
         try {
             SimpleDateFormat targetFormat = new SimpleDateFormat("dd/MM/yyyy");
