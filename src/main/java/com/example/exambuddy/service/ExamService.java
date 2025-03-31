@@ -174,7 +174,6 @@ public class ExamService {
             }
             batch.commit().get();
             System.out.println("Questions batch committed");
-
             return true;
         } catch (Exception e) {
             System.out.println("Error in addExam: " + e.getMessage());

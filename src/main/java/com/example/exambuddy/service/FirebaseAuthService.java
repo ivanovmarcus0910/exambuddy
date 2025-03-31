@@ -103,7 +103,6 @@ public class FirebaseAuthService {
             return "Lỗi khi gửi OTP: " + e.getMessage();
         }
     }
-
     /**
      * Gửi lại mã OTP khác
      */
@@ -229,7 +228,6 @@ public class FirebaseAuthService {
         }, Executors.newSingleThreadExecutor());
         return completableFuture;
     }
-
     /**
      * Xác thực OTP trước khi cho phép đặt lại mật khẩu khi quên mật khẩu
      */
