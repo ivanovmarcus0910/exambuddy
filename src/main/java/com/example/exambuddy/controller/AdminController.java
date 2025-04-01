@@ -89,6 +89,7 @@ public class AdminController {
             return "redirect:/login";
         }
 
+        // Lấy dữ liệu thống kê tổng quan
         List<User> users = userService.getAllUsers();
         List<Exam> exams = examService.getAllExams();
         List<Post> posts = postService.getPublicPostsFromFirestore();
@@ -97,6 +98,41 @@ public class AdminController {
         model.addAttribute("totalExam", exams.size());
         model.addAttribute("totalPost", posts.size());
 
+        // Tính tỷ lệ người dùng (5 vai trò)
+        long adminCount = users.stream()
+                .filter(u -> u.getRole() != null && u.getRole().toString().toLowerCase().contains("admin"))
+                .count();
+        long teacherCount = users.stream()
+                .filter(u -> u.getRole() != null && u.getRole().toString().toLowerCase().contains("teacher"))
+                .count();
+        long studentCount = users.stream()
+                .filter(u -> u.getRole() != null && (u.getRole().toString().toLowerCase().contains("student") || u.getRole().toString().toLowerCase().contains("upgraded_student")))
+                .count();
+        long pendingCount = users.stream()
+                .filter(u -> u.getRole() != null && u.getRole().toString().toLowerCase().contains("pending"))
+                .count();
+        long blockedCount = users.stream()
+                .filter(u -> u.getRole() != null && u.getRole().toString().toLowerCase().contains("blocked"))
+                .count();
+
+        model.addAttribute("adminCount", adminCount);
+        model.addAttribute("teacherCount", teacherCount);
+        model.addAttribute("studentCount", studentCount);
+        model.addAttribute("pendingCount", pendingCount);
+        model.addAttribute("blockedCount", blockedCount);
+
+        // Lấy 3 hành động gần đây nhất
+        PageRequest pageable = PageRequest.of(0, 3, Sort.by(Sort.Direction.DESC, "timestamp"));
+        Page<AdminLog> recentLogs = adminLogService.getAdminLogs(pageable, null, null);
+        model.addAttribute("recentLogs", recentLogs.getContent());
+        model.addAttribute("recentLogsEmpty", recentLogs.isEmpty());
+
+        // Lấy số lượng báo cáo chưa xử lý (giả sử có một service để lấy báo cáo)
+        long pendingReportsCount = 0; // Thay bằng logic thực tế nếu có
+        // Ví dụ: pendingReportsCount = reportService.getPendingReportsCount();
+        model.addAttribute("pendingReportsCount", pendingReportsCount);
+
+        // Thông tin admin
         User adminUser = userService.getUserByUsername(loggedInUser);
         if (adminUser != null) {
             model.addAttribute("adminUser", adminUser);
