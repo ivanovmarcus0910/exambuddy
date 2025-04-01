@@ -1019,22 +1019,19 @@ public class ExamService {
         return examList;
     }
 
-    // Xoá đề thi
-    public void deleteExam(String examId) {
+    // Thay thế phương thức deleteExam ban đầu bằng disableExam
+    public void disableExam(String examId) {
         DocumentReference examRef = db.collection("exams").document(examId);
         try {
-            CollectionReference questionsRef = examRef.collection("questions");
-            ApiFuture<QuerySnapshot> questionsQuery = questionsRef.get();
-            for (DocumentSnapshot questionDoc : questionsQuery.get().getDocuments()) {
-                questionDoc.getReference().delete();
-            }
-            examRef.delete().get();
-            System.out.println("Đã xóa exam " + examId);
+            // Cập nhật trường "status" thành "DISABLED"
+            examRef.update("status", "DISABLED").get();
+            System.out.println("Đã chuyển đề thi " + examId + " sang trạng thái DISABLED.");
         } catch (InterruptedException | ExecutionException e) {
-            System.out.println("Lỗi khi xóa exam " + examId);
+            System.out.println("Lỗi khi chuyển trạng thái đề thi " + examId);
             e.printStackTrace();
         }
     }
+
 
     /**
      * Phương thức mới: cập nhật trạng thái active của Exam
