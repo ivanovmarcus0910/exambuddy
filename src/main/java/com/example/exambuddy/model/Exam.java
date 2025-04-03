@@ -27,7 +27,7 @@ public class Exam {
 
     // Constructor mặc định: status mặc định là "PENDING"
     public Exam() {
-        this.status = "PENDING";
+        //this.status = "PENDING";
     }
 
     // Constructor có tham số
@@ -47,7 +47,7 @@ public class Exam {
         this.questions = questions;
         this.timeduration = timeduration;
         this.participantCount = participantCount;
-        this.status = "PENDING"; // Mặc định là "PENDING"
+        //this.status = "PENDING"; // Mặc định là "PENDING"
     }
 
     // Getters và Setters

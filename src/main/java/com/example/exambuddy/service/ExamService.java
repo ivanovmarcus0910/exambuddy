@@ -775,6 +775,7 @@ public class ExamService {
             String subject = (String) examData.get("subject");
             String grade = (String) examData.get("grade");
             String createdDate = (String) examData.get("date"); // Có thể là timestamp hoặc string tùy thiết kế
+            String status = (String) examData.get("status");
 
             // 3. Tạo map dữ liệu để lưu vào likedExams
             Map<String, Object> likeData = new HashMap<>();
@@ -784,6 +785,7 @@ public class ExamService {
             likeData.put("subject", subject);
             likeData.put("grade", grade);
             likeData.put("date", createdDate);
+            likeData.put("status", status);
 
             // 4. Lưu vào collection "likedExams"
             // Bạn có thể để Firestore tự sinh doc ID hoặc dùng userId_examId
