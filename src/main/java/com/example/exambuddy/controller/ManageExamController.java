@@ -107,10 +107,29 @@ public class ManageExamController {
             if (session.getAttribute("loggedInUser") == null) {
                 return "redirect:/home";
             }
-
             String username = session.getAttribute("loggedInUser").toString();
-            Exam exam = examService.getExam(examId);
+            User user = userService.getUserData(username);
 
+            Exam exam = examService.getExam(examId);
+            if (userService.limitAccess(user))
+            {
+                boolean isLoggedIn = username != null && !username.trim().isEmpty();
+                boolean hasCommented = isLoggedIn && feedbackService.hasUserCommented(examId, username);
+                boolean isExamCreator = isLoggedIn && userService.isExamCreator(examId, username);
+                List<Feedback> feedbacks = feedbackService.getFeedbacksByExamId(examId);
+                model.addAttribute("err", "Bạn đạt giới hạn làm bài miễn phí trong ngày, vui lòng nâng cấp lên Premium để không bị giới hạn");
+
+                model.addAttribute("exam", exam);
+                model.addAttribute("questions", exam.getQuestions());
+                model.addAttribute("feedbacks", feedbacks);
+                model.addAttribute("username", username);
+                model.addAttribute("isLoggedIn", isLoggedIn);
+                model.addAttribute("hasCommented", hasCommented);
+                model.addAttribute("isExamCreator", isExamCreator);
+                Map<String, Object> ratingSummary = feedbackService.getRatingSummary(examId);
+                model.addAttribute("ratingSummary", ratingSummary);
+                return "examDetail"; // Trả về trang HTML hiển thị đề thi
+            }
             List<Question> questions;
             if (exam.isFromQuestionBank()) {
                 questions = examService.generateQuestionsFromPool(exam.getQuestionPool(), exam.getChapterConfig());

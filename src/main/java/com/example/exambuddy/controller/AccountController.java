@@ -58,7 +58,6 @@ public class AccountController {
                                Model model) throws IOException {
         if (isImageFile(file)) {
 
-
             String url = this.cloudinaryService.upLoadImgAvt(file, "imgAvatar", username);
             System.out.println("URL=" + url);
             if (url != null) {
@@ -258,5 +257,4 @@ public class AccountController {
             return "accountbalance";
 
     }
-
 }

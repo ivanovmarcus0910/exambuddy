@@ -16,7 +16,10 @@
 
 <!-- Container -->
 <div class="container py-5">
+    <div th:if="${err}" class="alert alert-danger text-center" th:text="${err}"></div>
+
     <h2 class="text-center fw-bold mb-4" >Chi tiết đề thi</h2>
+
     <div th:if="${exam != null and exam.getStatus() == 'DISABLED'}" class="alert alert-danger text-center" role="alert">
         Xin lỗi! Bài thi đã bị xóa.
     </div>
