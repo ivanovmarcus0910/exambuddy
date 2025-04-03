@@ -90,7 +90,7 @@ public class CheckoutController {
             httpServletResponse.setStatus(302);
         } catch (Exception e) {
             try {
-                request.setAttribute("error", "Payment gateway is currently unavailable."); // Truyền thông tin lỗi
+                request.setAttribute("error", "Payment gateway is currently unavailable. Please try again later."); // Truyền thông tin lỗi
                 request.getRequestDispatcher("error").forward(request, httpServletResponse);
             } catch (Exception ex) {
                 ex.printStackTrace();

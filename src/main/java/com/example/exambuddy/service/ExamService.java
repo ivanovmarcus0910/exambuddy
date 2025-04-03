@@ -156,6 +156,7 @@ public class ExamService {
         try {
             String examId;
             if (id.isEmpty()){
+                int i;
                 examId = UUID.randomUUID().toString();
             }
             else {

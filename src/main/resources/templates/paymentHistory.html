@@ -79,12 +79,11 @@
 <div th:insert="~{fragments/headerProfile :: headerSidebar}"></div>
 
 <div class="content-area">
-  <div class="container-fluid py-4"><!-- Dùng container-fluid để rộng hết cỡ -->
+  <div class="container-fluid py-4">
     <h2 class="text-center mb-4">Lịch sử thanh toán</h2>
 
     <div class="card shadow-lg">
       <div class="card-body">
-        <!-- Thêm .table-responsive để tránh tràn lề trên mobile -->
         <div class="table-responsive">
           <table class="table table-hover text-center">
             <thead class="table-header-custom text-white text-center">
@@ -97,41 +96,22 @@
               <th>Ghi chú</th>
             </tr>
             </thead>
-            <tbody>
-            <tr th:each="payment : ${payments}">
-              <td th:text="${payment.paymentCode}"></td>
-              <td th:text="${payment.amount}" class="text-success fw-bold"></td>
-              <td>
-                  <span th:text="${payment.status}"
-                        th:class="${payment.status == 'PAID' ? 'badge bg-success'
-                                  : (payment.status == 'PENDING' ? 'badge bg-warning text-dark' : 'badge bg-danger')}">
-                  </span>
-              </td>
-              <td th:text="${#dates.format(payment.timestamp, 'dd/MM/yyyy HH:mm')}" class="text-muted"></td>
-              <td>
-                <a th:if="${payment.status == 'PENDING'}"
-                   th:href="${payment.getUrl()}"
-                   class="btn btn-primary btn-sm">
-                  Thanh toán
-                </a>
-              </td>
-              <td th:text="${payment.note}"></td>
-
-            </tr>
+            <tbody id="payment-table-body">
+            <!-- Dữ liệu sẽ được thêm vào bằng JavaScript -->
             </tbody>
           </table>
-        </div> <!-- end table-responsive -->
+        </div>
       </div>
     </div>
 
     <!-- PHÂN TRANG -->
     <div class="d-flex justify-content-between mt-3">
-      <a th:if="${currentPage > 0}" th:href="@{/payments(page=${currentPage - 1})}" class="btn btn-outline-primary">
+      <button id="prevPageBtn" class="btn btn-outline-primary" onclick="loadPayments(currentPage - 1)" disabled>
         ⬅ Trang trước
-      </a>
-      <a th:if="${hasNextPage}" th:href="@{/payments(page=${nextPage})}" class="btn btn-outline-primary">
+      </button>
+      <button id="nextPageBtn" class="btn btn-outline-primary" onclick="loadPayments(currentPage + 1)">
         Trang sau ➡
-      </a>
+      </button>
     </div>
   </div>
 </div>
@@ -144,6 +124,51 @@
 </div>
 
 <!-- Bootstrap Bundle JS -->
+<script>
+  let currentPage = 0;
+
+  function loadPayments(page) {
+    fetch(`/api/payments?page=` + page)
+            .then(response => response.json())
+            .then(data => {
+              let tbody = document.getElementById("payment-table-body");
+              tbody.innerHTML = ""; // Xóa nội dung cũ
+
+              data.payments.forEach(payment => {
+                let row = `<tr>
+            <td>${payment.paymentCode}</td>
+            <td class="text-success fw-bold">${payment.amount}</td>
+            <td><span class="badge ${getBadgeClass(payment.status)}">${payment.status}</span></td>
+            <td class="text-muted">${formatDate(payment.timestamp)}</td>
+            <td>${payment.status === 'PENDING' ? `<a href="${payment.url}" class="btn btn-primary btn-sm">Thanh toán</a>` : ''}</td>
+            <td>${payment.note || ''}</td>
+          </tr>`;
+                tbody.innerHTML += row;
+              });
+
+              // Cập nhật trạng thái phân trang
+              currentPage = data.currentPage;
+              document.getElementById("prevPageBtn").disabled = (currentPage === 0);
+              document.getElementById("nextPageBtn").disabled = !data.hasNextPage;
+            })
+            .catch(error => console.error("Error loading payments:", error));
+  }
+
+  function getBadgeClass(status) {
+    return status === "PAID" ? "bg-success" :
+            status === "PENDING" ? "bg-warning text-dark" :
+                    "bg-danger";
+  }
+
+  function formatDate(timestamp) {
+    let date = new Date(timestamp);
+    return date.toLocaleString("vi-VN");
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    loadPayments(0); // Tải dữ liệu trang đầu tiên khi trang web load
+  });
+</script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

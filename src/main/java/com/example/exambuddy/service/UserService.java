@@ -58,7 +58,8 @@ public class UserService {
         Firestore firestore = FirestoreClient.getFirestore();
         try {
             // 🔍 Tìm người dùng theo username trong Firestore
-            DocumentSnapshot userSnapshot = firestore.collection(COLLECTION_NAME).document(username).get().get();
+            DocumentSnapshot userSnapshot = firestore.collection(COLLECTION_NAME)
+                    .document(username).get().get();
             if (!userSnapshot.exists()) {
                 System.out.println("❌ Không tìm thấy tài khoản với username: " + username);
                 return false;
@@ -211,8 +212,6 @@ public class UserService {
         CollectionReference transaction = firestore.collection("Transactions");
 
         Query query = transaction.whereEqualTo("username", username);
-
-
         ApiFuture<QuerySnapshot> querySnapshot = query.get();
         List<Payment> payments = new ArrayList<>();
 

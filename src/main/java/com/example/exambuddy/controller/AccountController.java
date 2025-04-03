@@ -4,6 +4,7 @@ import com.example.exambuddy.model.Payment;
 import com.example.exambuddy.model.User;
 import com.example.exambuddy.service.*;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -142,7 +143,7 @@ public class AccountController {
 
 
     @GetMapping("/paymentHistory")
-    public String listPayments(@RequestParam(defaultValue = "0") int page, HttpServletRequest request, Model model, HttpSession session) {
+    public String listPayments(@RequestParam(defaultValue = "0") int page, HttpServletRequest request, Model model, HttpSession session, HttpServletResponse httpServletResponse) {
         try {
             String username = session.getAttribute("loggedInUser").toString();
             User user = userService.getUserByUsername(username);
@@ -158,9 +159,9 @@ public class AccountController {
             return "paymentHistory"; // Trả về trang payments.html
         }
         catch (Exception e) {
-            e.printStackTrace();
+            model.addAttribute("error", "An error occurred while retrieving transaction history. Please try again later."); // Truyền thông tin lỗi
+            return "error";
         }
-        return null;
     }
     private Long getLastTimestamp(int page, int pageSize, String username) throws ExecutionException, InterruptedException {
         List<Payment> previousPage = userService.getPaymentsByPage(username, pageSize, null);
