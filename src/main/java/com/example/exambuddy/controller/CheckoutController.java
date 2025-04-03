@@ -41,7 +41,22 @@ public class CheckoutController {
         this.payOS = payOS;
         this.userService = userService;
     }
+    @RequestMapping(value = "/payment-coin")
+    public String CreatePayment(HttpServletRequest request, HttpSession session, Model model) {
+        if (session.getAttribute("loggedInUser") == null) {
+            return "redirect:/home"; // Nếu chưa đăng nhập, chuyển hướng về home
+        }
+        String username = session.getAttribute("loggedInUser").toString();
+        User user =userService.getUserByUsername(username);
+        model.addAttribute("user", user);
+        return "createPayment";
+    }
 
+    @RequestMapping(value = "/cancel")
+    public String cancelTransaction(@RequestParam("orderCode") String paymentCode) {
+        boolean isUpdated = userService.updatePaymentStatusFail(Long.parseLong(paymentCode), "CANCELLED");
+        return "cancel"; // Quay lại danh sách thanh toán
+    }
 
     @RequestMapping(value = "/success")
     public String Success() {
