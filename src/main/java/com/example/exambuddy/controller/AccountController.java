@@ -41,23 +41,6 @@ public class AccountController {
     public AccountController(PasswordService passService) {
         this.passService = passService;
     }
-
-//    @RequestMapping("/profile")
-//    public String profilePage(HttpServletRequest request, Model model) {
-//        HttpSession session = request.getSession();
-//        String username = (String) session.getAttribute("loggedInUser");
-//
-//        if (username == null) {
-//            return "redirect:/login";
-//        }
-//
-//        // Lấy thông tin người dùng từ dịch vụ với username đã tìm thấy
-//        UserService userService = new UserService();
-//        User user = userService.getUserData(username);
-//        model.addAttribute("user", user);
-//
-//        return "profile";
-//    }
         public boolean isImageFile(MultipartFile file) {
     String contentType = file.getContentType();
     return contentType != null && contentType.startsWith("image/");
@@ -74,7 +57,6 @@ public class AccountController {
                                RedirectAttributes redirectAttributes,
                                Model model) throws IOException {
         if (isImageFile(file)) {
-
 
             String url = this.cloudinaryService.upLoadImgAvt(file, "imgAvatar", username);
             System.out.println("URL=" + url);
@@ -275,5 +257,4 @@ public class AccountController {
             return "accountbalance";
 
     }
-
 }
