@@ -128,19 +128,24 @@ public class ExamService {
     // Phương thức format lại ngày
     public static String formatDate(String dateString) {
         try {
-            // Định dạng ban đầu từ Firebase (luôn là UTC)
+            // Chuẩn hóa chuỗi đầu vào (cắt bớt micro giây và thêm 'Z' nếu cần)
+            String normalizedDate = dateString.replaceAll("\\.(\\d{3})\\d*", ".$1"); // Giữ 3 chữ số mili giây
+            if (!normalizedDate.endsWith("Z")) {
+                normalizedDate += "Z"; // Thêm 'Z' nếu thiếu
+            }
+
+            // Định dạng đầu vào từ Firestore (ISO 8601)
             SimpleDateFormat originalFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-            originalFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+            originalFormat.setTimeZone(TimeZone.getTimeZone("UTC")); // Chuỗi gốc là UTC
+            Date date = originalFormat.parse(normalizedDate);
 
-            // Chuyển chuỗi Firebase thành đối tượng Date (mặc định là UTC)
-            Date date = originalFormat.parse(dateString);
-
-            // Chuyển sang múi giờ hệ thống mà không làm sai lệch giá trị
-            SimpleDateFormat targetFormat = new SimpleDateFormat("dd/MM/yyyy");
-            return targetFormat.format(new Date(date.getTime())); // Chuyển đổi về đúng format
+            // Định dạng đầu ra mới: "dd/MM/yyyy HH:mm:ss" (24 giờ)
+            SimpleDateFormat targetFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+            targetFormat.setTimeZone(TimeZone.getDefault()); // Chuyển sang múi giờ hệ thống
+            return targetFormat.format(date);
         } catch (Exception e) {
             e.printStackTrace();
-            return "Lỗi định dạng ngày!";
+            return "Lỗi định dạng ngày: " + e.getMessage();
         }
     }
 
