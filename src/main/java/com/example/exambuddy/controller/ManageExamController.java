@@ -92,7 +92,8 @@ public class ManageExamController {
             model.addAttribute("isLoggedIn", isLoggedIn);
             model.addAttribute("hasCommented", hasCommented);
             model.addAttribute("isExamCreator", isExamCreator);
-
+            Map<String, Object> ratingSummary = feedbackService.getRatingSummary(examId);
+            model.addAttribute("ratingSummary", ratingSummary);
             return "examDetail"; // Trả về trang HTML hiển thị đề thi
         } catch (Exception e) {
             model.addAttribute("error", "Lỗi khi tải đề thi: " + e.getMessage());

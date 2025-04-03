@@ -9,7 +9,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 @Service
@@ -59,6 +61,34 @@ public class FeedbackService {
             log.error("Lỗi khi lưu feedback: {}", e.getMessage(), e);
             return null;
         }
+    }
+    public Map<String, Object> getRatingSummary(String examId) {
+        List<Feedback> feedbacks = getFeedbacksByExamId(examId);
+        Map<Integer, Integer> starCount = new HashMap<>();
+        int totalRate = 0;
+        int count = 0;
+
+        // Khởi tạo 1-5 sao
+        for (int i = 1; i <= 5; i++) {
+            starCount.put(i, 0);
+        }
+
+        for (Feedback f : feedbacks) {
+            if (!f.isReply()) {
+                int rate = f.getRate();
+                starCount.put(rate, starCount.getOrDefault(rate, 0) + 1);
+                totalRate += rate;
+                count++;
+            }
+        }
+
+        double average = count > 0 ? (double) totalRate / count : 0;
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("average", average);
+        result.put("total", count);
+        result.put("starCount", starCount);
+        return result;
     }
 
     public Feedback saveReply(String examId, String parentFeedbackId, String username,String avatarUrl, String content, String date) {
