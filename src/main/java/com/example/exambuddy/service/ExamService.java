@@ -179,6 +179,7 @@ public class ExamService {
         try {
             String examId;
             if (id.isEmpty()){
+                int i;
                 examId = UUID.randomUUID().toString();
             }
             else {
@@ -235,7 +236,6 @@ public class ExamService {
             }
             batch.commit().get();
             System.out.println("Questions batch committed");
-
             return true;
         } catch (Exception e) {
             System.out.println("Error in addExam: " + e.getMessage());
@@ -849,18 +849,6 @@ public class ExamService {
     }
 
 
-    /**
-     * Hàm helper để chia danh sách thành các nhóm nhỏ có kích thước batchSize
-     */
-    private <T> List<List<T>> splitList(List<T> list, int batchSize) {
-        List<List<T>> batches = new ArrayList<>();
-        for (int i = 0; i < list.size(); i += batchSize) {
-            int end = Math.min(i + batchSize, list.size());
-            batches.add(list.subList(i, end));
-        }
-        return batches;
-    }
-
     public Page<Exam> getHistoryCreateExamsByUsername(String username, Pageable pageable) {
         List<Exam> exams;
         long totalItems = 0;
@@ -871,6 +859,7 @@ public class ExamService {
             // Truy vấn chỉ lấy dữ liệu của user
             Query query = collectionReference
                     .whereEqualTo("username", username)
+                    .whereIn("status", Arrays.asList("APPROVED", "PENDING")) // Thêm điều kiện lọc trạng thái
                     .orderBy("date", Query.Direction.DESCENDING); // Sắp xếp theo ngày giảm dần
 
             // Lấy tổng số bài thi của user
@@ -1150,6 +1139,14 @@ public class ExamService {
         }
         return exams.stream()
                 .filter(exam -> exam.getGrade() != null && exam.getGrade().equalsIgnoreCase(grade)) // Thay classLevel bằng grade
+                .collect(Collectors.toList());
+    }
+    public List<Exam> filterExamsByStatus(List<Exam> exams, String status) {
+        if (status == null || status.equals("all")) {
+            return exams; // Nếu không có trạng thái hoặc chọn "Tất cả trạng thái", trả về danh sách gốc
+        }
+        return exams.stream()
+                .filter(exam -> exam.getStatus() != null && exam.getStatus().equals(status))
                 .collect(Collectors.toList());
     }
 }

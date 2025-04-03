@@ -263,7 +263,6 @@ public class ManageExamController {
         }
     }
 
-
     @GetMapping("/exams/addExam")
     public String addQuestionPage() {
         return "addExam.html";
@@ -310,6 +309,7 @@ public class ManageExamController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
+
 
 
     //Lấy tiến trình bài đang làm
@@ -450,6 +450,7 @@ public class ManageExamController {
     public String showCreatedExams(
             @RequestParam(value = "subject", required = false) String subject,
             @RequestParam(value = "grade", required = false) String grade,
+            @RequestParam(value = "status", required = false) String status, // Thêm tham số status
             @RequestParam(value = "searchQuery", required = false) String searchQuery,
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "size", defaultValue = "10") int size,
@@ -480,9 +481,10 @@ public class ManageExamController {
                     .collect(Collectors.toList());
         }
 
-        // Áp dụng bộ lọc theo môn học và grade
+        // Áp dụng bộ lọc theo môn học, grade và trạng thái
         createdExams = examService.filterExamsBySubject(createdExams, subject);
         createdExams = examService.filterExamsByClass(createdExams, grade);
+        createdExams = examService.filterExamsByStatus(createdExams, status); // Thêm bộ lọc theo trạng thái
 
         // Truyền dữ liệu sang view
         model.addAttribute("createdExams", createdExams);
@@ -492,6 +494,7 @@ public class ManageExamController {
         model.addAttribute("pageSize", size);
         model.addAttribute("selectedSubject", subject);
         model.addAttribute("selectedGrade", grade);
+        model.addAttribute("selectedStatus", status); // Thêm selectedStatus vào model
         model.addAttribute("searchQuery", searchQuery);
 
         return "createdExams";

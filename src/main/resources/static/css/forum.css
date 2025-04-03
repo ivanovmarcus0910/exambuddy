@@ -6,7 +6,7 @@ body {
 }
 
 #scrollableMain {
-    max-height: calc(100vh - 80px); /* Đảm bảo chỉ cuộn phần main */
+    max-height: calc(100vh - 80px);
 }
 
 .list-group-item.active {
@@ -59,3 +59,47 @@ body {
     border-radius: 8px;
     cursor: pointer;
 }
+
+/* Định dạng sidebar */
+.sidebar {
+    position: relative; /* Sử dụng relative thay vì sticky nếu cần */
+    top: 0;
+    height: 100%; /* Chiều cao sidebar để chiếm hết không gian */
+    max-height: calc(100vh - 120px); /* Chiều cao tối đa của sidebar */
+    padding-top: 20px;
+    padding-right: 10px; /* Đảm bảo khoảng cách với thanh cuộn */
+    overflow-y: auto; /* Cho phép thanh cuộn dọc khi nội dung vượt quá chiều cao */
+    min-height: 100%; /* Đảm bảo chiều cao tối thiểu */
+}
+
+.card {
+    border-radius: 10px;
+}
+
+.card-header {
+    font-weight: bold;
+}
+
+.list-group-item {
+    border-radius: 8px;
+    margin-bottom: 10px;
+    transition: background-color 0.3s ease;
+}
+
+.list-group-item:hover {
+    background-color: lightgray;
+}
+
+.list-group-item i {
+    margin-right: 10px;
+}
+
+.list-group-item.active {
+    background-color: #3b5998;
+    color: white;
+}
+
+.list-group-item i {
+    font-size: 1.2rem;
+}
+

@@ -1,6 +1,7 @@
 package com.example.exambuddy.controller;
 
 import com.example.exambuddy.model.Comment;
+import com.example.exambuddy.model.Notification;
 import com.example.exambuddy.model.Post;
 import com.example.exambuddy.service.CloudinaryService;
 import com.example.exambuddy.service.CookieService;
@@ -90,9 +91,11 @@ public class ForumController {
     }
 
     @GetMapping("/posts")
-    public ResponseEntity<List<Map<String, Object>>> getPosts(HttpSession session,
+    public ResponseEntity<List<Map<String, Object>>> getPosts(
+            HttpSession session,
             @RequestParam(value = "subject", required = false) String subject,
             @RequestParam(value = "grade", required = false) String grade) {
+
         String username = (String) session.getAttribute("loggedInUser");
         List<Post> posts = postService.getPublicPostsFromFirestore();
 
@@ -109,7 +112,7 @@ public class ForumController {
         }
 
         // Chuyển đổi danh sách bài viết thành danh sách Map (JSON)
-        List<Map<String, Object>> response = posts.stream().map(post -> {
+        List<Map<String, Object>> postList = posts.stream().map(post -> {
             Map<String, Object> map = new HashMap<>();
             map.put("postId", post.getPostId());
             map.put("avatarUrl", post.getAvatarUrl());
@@ -123,15 +126,61 @@ public class ForumController {
             map.put("imageUrls", post.getImageUrls()); // Trả về danh sách ảnh
 
             // Lấy số lượng bình luận
-            int commentCount = postService.getCommentsByPostId(post.getPostId(), username).size();
-            System.out.println("commentCount: " + commentCount);
-            post.setCommentCount(commentCount);
-            map.put("commentCount", post.getCommentCount());
+//            int commentCount = postService.getCommentsByPostId(post.getPostId(), username).size();
+//            post.setCommentCount(commentCount);
+//            map.put("commentCount", post.getCommentCount());
 
             return map;
         }).collect(Collectors.toList());
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(postList);
+    }
+
+    @GetMapping("/notifications")
+    public ResponseEntity<List<Map<String, Object>>> getNotifications(HttpSession session) {
+        String username = (String) session.getAttribute("loggedInUser");
+        List<Notification> notifications = postService.getUserNotifications(username);
+        List<Map<String, Object>> notificationMaps = new ArrayList<>();
+
+        for (Notification noti : notifications) {
+            Map<String, Object> notiMap = new HashMap<>();
+            notiMap.put("notificationId", noti.getNotificationId());
+            notiMap.put("postId", noti.getPostId());
+            notiMap.put("sender", noti.getSender());
+            notiMap.put("receiver", noti.getReceiver());
+            notiMap.put("content", noti.getContent());
+            notiMap.put("date", noti.getDate());
+            notiMap.put("type", noti.getType());
+            notiMap.put("timeAgo", noti.getTimeAgo());
+            notiMap.put("isRead", noti.isRead());
+            notificationMaps.add(notiMap);
+        }
+
+        System.out.println("📌 Notifications gửi về frontend:");
+        for (Map<String, Object> noti : notificationMaps) {
+            System.out.println(noti);
+        }
+
+        return ResponseEntity.ok(notificationMaps);
+    }
+
+    @PostMapping("/markAsRead/{postId}")
+    @ResponseBody
+    public ResponseEntity<String> markAsRead(@PathVariable String postId, HttpServletRequest request) {
+        HttpSession session = request.getSession();
+        String username = (String) session.getAttribute("loggedInUser");
+
+        if (username == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not logged in");
+        }
+
+        String result = postService.markNotificationAsRead(username, postId);
+
+        if ("Updated".equals(result)) {
+            return ResponseEntity.ok(result);
+        } else {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+        }
     }
 
     @PostMapping("/comment")
