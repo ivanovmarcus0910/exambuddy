@@ -3,66 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - Quản lí Báo cáo</title>
+    <title>Admin Dashboard - Quản lý Báo cáo & Feedback</title>
     <link rel="icon" type="image/x-icon" href="https://res.cloudinary.com/dsuav027e/image/upload/v1740393796/favicon_llcueu.ico">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
     <style>
-        .sidebar-sticky {
-            position: sticky;
-            top: 0;
-            height: 100vh;
-            overflow-y: auto;
-            z-index: 10;
-        }
-
-        .header-sticky {
-            position: sticky;
-            top: 0;
-            z-index: 999;
-            background: #fff;
-        }
-
-        /* Table styling */
-        .table-custom {
-            table-layout: auto;
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-        }
-
-        .table-custom th {
-            background-color: #f1f1f1;
-            text-align: center;
-            padding: 12px;
-            white-space: nowrap;
-        }
-
-        .table-custom td {
-            padding: 12px;
-            text-align: left;
-            white-space: normal;
-            border-right: 1px solid #dee2e6;
-            vertical-align: middle;
-        }
-
-        .table-custom td:last-child {
-            border-right: none;
-        }
-
-        .table-custom tbody tr:nth-child(odd) {
-            background-color: #ffffff;
-        }
-
-        .table-custom tbody tr:nth-child(even) {
-            background-color: #f8f9fa;
-        }
-
-        .btn-sm-rounded {
-            padding: 2px 6px;
-            border-radius: 8px;
-            font-size: 0.8rem;
-        }
+        .sidebar-sticky { position: sticky; top: 0; height: 100vh; overflow-y: auto; z-index: 10; }
+        .header-sticky { position: sticky; top: 0; z-index: 999; background: #fff; }
+        .table-custom { table-layout: auto; width: 100%; border-collapse: separate; border-spacing: 0; }
+        .table-custom th { background-color: #f1f1f1; text-align: center; padding: 12px; white-space: nowrap; }
+        .table-custom td { padding: 12px; text-align: left; white-space: normal; border-right: 1px solid #dee2e6; vertical-align: middle; }
+        .table-custom td:last-child { border-right: none; }
+        .table-custom tbody tr:nth-child(odd) { background-color: #ffffff; }
+        .table-custom tbody tr:nth-child(even) { background-color: #f8f9fa; }
+        .btn-sm-rounded { padding: 2px 6px; border-radius: 8px; font-size: 0.8rem; }
     </style>
 </head>
 <body class="bg-white">
@@ -73,43 +27,14 @@
             <div class="text-center mb-4">
                 <img src="/img/logo.png" alt="Logo" class="img-fluid mb-3">
             </div>
-
             <ul class="nav flex-column mt-4">
-                <li class="nav-item mb-2">
-                    <a href="/admin" class="nav-link text-dark">
-                        <i class="bi bi-house-fill text-primary me-2" style="transition: color 0.3s;"></i> Bảng Điều Khiển
-                    </a>
-                </li>
-                <li class="nav-item mb-2">
-                    <a href="/admin/users" class="nav-link text-dark">
-                        <i class="bi bi-people-fill text-success me-2" style="transition: color 0.3s;"></i> Quản Lý Người Dùng
-                    </a>
-                </li>
-                <li class="nav-item mb-2">
-                    <a href="/admin/exams" class="nav-link text-dark">
-                        <i class="bi bi-file-earmark-text-fill text-warning me-2" style="transition: color 0.3s;"></i> Quản Lý Đề Thi
-                    </a>
-                </li>
-                <li class="nav-item mb-2">
-                    <a href="/admin/posts" class="nav-link text-dark">
-                        <i class="bi bi-file-post-fill me-2" style="color: #6f42c1; transition: color 0.3s;"></i> Quản Lý Bài Viết
-                    </a>
-                </li>
-                <li class="nav-item mb-2">
-                    <a href="/admin/reports" class="nav-link text-dark">
-                        <i class="bi bi-exclamation-triangle-fill text-danger me-2" style="transition: color 0.3s;"></i> Quản Lý Báo Cáo
-                    </a>
-                </li>
-                <li class="nav-item mb-2">
-                    <a href="/admin/logs" class="nav-link active bg-light fw-bold">
-                        <i class="bi bi-clock-history text-info me-2" style="transition: color 0.3s;"></i> Lịch Sử Hành Động
-                    </a>
-                </li>
-                <li class="nav-item mt-3">
-                    <a href="/logout" class="nav-link text-danger" data-bs-toggle="modal" data-bs-target="#logoutModal">
-                        <i class="bi bi-box-arrow-right text-danger me-2" style="transition: color 0.3s;"></i> Đăng Xuất
-                    </a>
-                </li>
+                <li class="nav-item mb-2"><a href="/admin" class="nav-link text-dark"><i class="bi bi-house-fill text-primary me-2"></i> Bảng Điều Khiển</a></li>
+                <li class="nav-item mb-2"><a href="/admin/users" class="nav-link text-dark"><i class="bi bi-people-fill text-success me-2"></i> Quản Lý Người Dùng</a></li>
+                <li class="nav-item mb-2"><a href="/admin/exams" class="nav-link text-dark"><i class="bi bi-file-earmark-text-fill text-warning me-2"></i> Quản Lý Đề Thi</a></li>
+                <li class="nav-item mb-2"><a href="/admin/posts" class="nav-link text-dark"><i class="bi bi-file-post-fill me-2" style="color: #6f42c1;"></i> Quản Lý Bài Viết</a></li>
+                <li class="nav-item mb-2"><a href="/admin/reports" class="nav-link text-dark active bg-light fw-bold"><i class="bi bi-exclamation-triangle-fill text-danger me-2"></i> Quản Lý Báo Cáo & Feedback</a></li>
+                <li class="nav-item mb-2"><a href="/admin/logs" class="nav-link text-dark"><i class="bi bi-clock-history text-info me-2"></i> Lịch Sử Hành Động</a></li>
+                <li class="nav-item mt-3"><a href="/logout" class="nav-link text-danger" data-bs-toggle="modal" data-bs-target="#logoutModal"><i class="bi bi-box-arrow-right text-danger me-2"></i> Đăng Xuất</a></li>
             </ul>
         </div>
 
@@ -120,16 +45,29 @@
                     <h1 class="h3 fw-bold m-0">Dashboard</h1>
                     <div class="d-flex align-items-center">
                         <span class="fw-semibold me-2" th:text="${adminUser.username}">Admin</span>
-                        <img th:src="${adminUser.avatarUrl}" alt="Admin Avatar"
-                             class="rounded-circle border border-secondary" style="width:40px; height:40px;">
+                        <img th:src="${adminUser.avatarUrl}" alt="Admin Avatar" class="rounded-circle border border-secondary" style="width:40px; height:40px;">
                     </div>
                 </div>
             </div>
 
             <div class="px-4">
-                <h2 class="h5 fw-bold mb-3">⚠️ Quản Lý Báo cáo</h2>
-                <div class="table-responsive bg-light rounded shadow-sm">
-                    <table class="table table-hover align-middle mb-0 table-custom">
+                <h2 class="h5 fw-bold mb-3">⚠️ Quản Lý Báo cáo & Feedback</h2>
+                <div class="mb-3">
+                    <div class="dropdown">
+                        <button class="btn btn-secondary dropdown-toggle" type="button" id="managementDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            Chọn mục quản lý
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="managementDropdown">
+                            <li><a class="dropdown-item" href="#reportsSection" onclick="showSection('reports')">Báo cáo bài đăng</a></li>
+                            <li><a class="dropdown-item" href="#feedbacksSection" onclick="showSection('feedbacks')">Feedback đề thi</a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Reports Section -->
+                <div id="reportsSection" class="table-responsive bg-light rounded shadow-sm">
+                    <h3 class="h6 fw-bold p-3">Quản lý Báo cáo</h3>
+                    <table class="table-custom table table-hover align-middle mb-0">
                         <thead class="text-center">
                         <tr>
                             <th>Người đăng</th>
@@ -150,25 +88,19 @@
                             <td th:text="${report.reporter}"></td>
                             <td th:text="${#dates.format(report.timestamp, 'yyyy-MM-dd HH:mm:ss')}"></td>
                             <td class="text-center">
-                                <form action="/admin/updatePostStatus" method="post" class="d-inline-flex align-items-center"
+                                <form action="/admin/reports/lockPost" method="post" class="d-inline-flex align-items-center"
                                       th:attr="onsubmit=${report.postActive} ? 'return confirm(\'Bạn có chắc chắn muốn khoá bài viết này?\')' : 'return confirm(\'Bạn có chắc chắn muốn duyệt lại bài viết này?\')'">
                                     <input type="hidden" name="postId" th:value="${report.postId}">
-                                    <input type="hidden" name="redirectTo" value="/admin/reports"> <!-- 👈 Thêm dòng này -->
-                                    <button type="submit"
-                                            class="btn btn-sm rounded-pill d-flex align-items-center justify-content-center px-3 text-white"
-                                            style="padding:2px 6px; border-radius:8px; font-size:0.8rem;"
-                                            th:classappend="${report.postActive} ? ' btn-danger' : ' btn-success'">
-                                        <i class="bi"
-                                           th:class="${report.postActive} ? 'bi-x-circle me-1' : 'bi-check-circle me-1'"></i>
+                                    <button type="submit" class="btn btn-sm rounded-pill d-flex align-items-center justify-content-center px-3 text-white"
+                                            th:classappend="${report.postActive} ? 'btn-danger' : 'btn-success'">
+                                        <i class="bi" th:class="${report.postActive} ? 'bi-x-circle me-1' : 'bi-check-circle me-1'"></i>
                                         <span th:text="${report.postActive} ? 'Khoá bài' : 'Mở bài'"></span>
                                     </button>
                                 </form>
-                                <form action="/admin/reports/delete" method="post"
-                                      th:onsubmit="|return confirm('Bạn có chắc chắn muốn xoá báo cáo này?')|"
-                                      class="d-inline-flex align-items-center ms-1">
+                                <form action="/admin/reports/delete" method="post" class="d-inline-flex align-items-center ms-1"
+                                      th:onsubmit="|return confirm('Bạn có chắc chắn muốn xoá báo cáo này?')|">
                                     <input type="hidden" name="reportId" th:value="${report.id}"/>
-                                    <button type="submit"
-                                            class="btn btn-warning btn-sm-rounded d-flex align-items-center justify-content-center">
+                                    <button type="submit" class="btn btn-warning btn-sm-rounded d-flex align-items-center justify-content-center">
                                         <i class="bi bi-trash-fill me-1"></i> Xoá báo cáo
                                     </button>
                                 </form>
@@ -180,10 +112,67 @@
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Feedbacks Section -->
+                <div id="feedbacksSection" class="table-responsive bg-light rounded shadow-sm" style="display: none;">
+                    <h3 class="h6 fw-bold p-3">Quản lý Feedback</h3>
+                    <table class="table-custom table table-hover align-middle mb-0">
+                        <thead class="text-center">
+                        <tr>
+                            <th>Đề thi</th>
+                            <th>Người gửi</th>
+                            <th>Nội dung</th>
+                            <th>Đánh giá</th>
+                            <th>Thời gian</th>
+                            <th>Hành động</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="feedback : ${feedbacks}">
+                            <td th:text="${feedback.examTitle}"></td>
+                            <td th:text="${feedback.username}"></td>
+                            <td th:text="${feedback.content}"></td>
+                            <td th:text="${feedback.rate} + ' sao'"></td>
+                            <td th:text="${feedback.date}"></td> <!-- Sử dụng trực tiếp date thay vì getTimeAgo() nếu không có -->
+                            <td class="text-center">
+                                <form action="/admin/reports/lockExam" method="post" class="d-inline-flex align-items-center"
+                                      th:onsubmit="return confirm('Bạn có chắc chắn muốn khóa đề thi này?')">
+                                    <input type="hidden" name="examId" th:value="${feedback.examId}">
+                                    <button type="submit" class="btn btn-sm btn-danger rounded-pill d-flex align-items-center justify-content-center px-3 text-white">
+                                        <i class="bi bi-x-circle me-1"></i> Khóa đề
+                                    </button>
+                                </form>
+                                <form action="/admin/reports/deleteFeedback" method="post" class="d-inline-flex align-items-center ms-1"
+                                      th:onsubmit="|return confirm('Bạn có chắc chắn muốn xóa feedback này?')|">
+                                    <input type="hidden" name="examId" th:value="${feedback.examId}"/>
+                                    <input type="hidden" name="feedbackId" th:value="${feedback.feedbackId}"/>
+                                    <button type="submit" class="btn btn-warning btn-sm-rounded d-flex align-items-center justify-content-center">
+                                        <i class="bi bi-trash-fill me-1"></i> Xóa
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(feedbacks)}">
+                            <td colspan="6" class="text-muted text-center">Chưa có feedback nào.</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        </div> <!-- End Main Content -->
+        </div>
     </div>
 </div>
+
+<!-- Logout Modal -->
 <div th:insert="~{fragments/logoutModal :: logoutModal}"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function showSection(section) {
+        document.getElementById('reportsSection').style.display = section === 'reports' ? 'block' : 'none';
+        document.getElementById('feedbacksSection').style.display = section === 'feedbacks' ? 'block' : 'none';
+    }
+    showSection('reports');
+</script>
 </body>
 </html>

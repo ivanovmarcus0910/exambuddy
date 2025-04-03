@@ -17,6 +17,7 @@ public class Feedback {
     private int rate;
     private String parentFeedbackId; // ID của feedback cha (nếu là reply)
     private boolean isReply;
+    private String examTitle;
 
     // Constructor không tham số
     public Feedback() {
@@ -31,6 +32,7 @@ public class Feedback {
         this.date = date;
         this.avatarUrl = avatarUrl;
         this.rate = rate;
+        this.examTitle = examTitle;
     }
 
     // Getter và Setter
@@ -89,6 +91,8 @@ public class Feedback {
     public void setRate(int rate) {
         this.rate = rate;
     }
+    public String getExamTitle() { return examTitle; }
+    public void setExamTitle(String examTitle) { this.examTitle = examTitle; }
 
     public String getParentFeedbackId() {
         return parentFeedbackId;
