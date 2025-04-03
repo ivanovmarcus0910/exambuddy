@@ -125,13 +125,20 @@
                                 <div class="mt-3 d-flex flex-column align-items-center gap-1">
                                     <div>
                                         <span class="badge bg-info me-1" th:text="${session.roleInVietnamese}"></span>
-                                        <span class="badge bg-warning text-dark">
-                                            <i class="bi bi-star-fill"></i> Premium User
-                                        </span>
+                                        <th:block th:if="${user.timeExpriredPremium > #dates.createNow().getTime()}">
+                                            <span class="badge bg-warning text-dark">
+                                                <i class="bi bi-star-fill"></i> Premium User
+                                            </span>
+                                        </th:block>
                                     </div>
                                     <div class="px-3 py-2 text-white" style="background-color:#007bff; border-radius:8px;">
                                         <h6 style="margin:0; font-size:1rem;">EB Coin</h6>
                                         <h5 style="margin:0; font-size:1.2rem;" th:text="${user.coin != null ? user.coin : 0}">0</h5>
+                                        <th:block th:if="${user.timeExpriredPremium > #dates.createNow().getTime()}">
+                                            <small style="font-size:0.75rem;"
+                                                   th:text="'Hết hạn Premium User: ' + ${#dates.format(user.timeExpriredPremium, 'dd/MM/yyyy')}">
+                                            </small>
+                                        </th:block>
                                     </div>
                                 </div>
                             </div>

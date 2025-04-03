@@ -348,7 +348,6 @@ public class ManageExamController {
         String username = cookieService.getCookie(request, "noname");
         User user = userService.getUserByUsername(username);
         model.addAttribute("user", user);
-
         // Tạo đối tượng Pageable để truyền vào ExamService
         Pageable pageable = PageRequest.of(page, size);
 
@@ -687,7 +686,7 @@ public class ManageExamController {
             return "redirect:/login";
         }
 
-        String username = cookieService.getCookie(request, "noname");
+        String username = session.getAttribute("loggedInUser").toString();
         User user = userService.getUserByUsername(username);
         model.addAttribute("user", user);
 
@@ -719,7 +718,7 @@ public class ManageExamController {
         if (session.getAttribute("loggedInUser") == null) {
             return "redirect:/login"; // Nếu chưa đăng nhập, chuyển hướng về home
         }
-        String username = cookieService.getCookie(request, "noname");
+        String username = session.getAttribute("loggedInUser").toString();
         User user =userService.getUserByUsername(username);
         model.addAttribute("user", user);
         return "likedExams";
