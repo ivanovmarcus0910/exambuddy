@@ -89,6 +89,15 @@
                 </select>
             </div>
 
+            <!-- Dropdown lọc theo trạng thái -->
+            <div class="form-group">
+                <select class="form-select" name="status">
+                    <option value="all" th:selected="${selectedStatus == null or selectedStatus == 'all'}">Tất cả trạng thái</option>
+                    <option value="APPROVED" th:selected="${selectedStatus == 'APPROVED'}">Đã được duyệt</option>
+                    <option value="PENDING" th:selected="${selectedStatus == 'PENDING'}">Chờ duyệt</option>
+                </select>
+            </div>
+
             <!-- Nút Lọc -->
             <div class="form-group">
                 <button type="submit" class="btn btn-success">
@@ -106,6 +115,7 @@
                     <th>Môn học</th>
                     <th>Lớp</th>
                     <th>Ngày đăng</th>
+                    <th>Trạng thái</th>
                     <th>Hành động</th>
                 </tr>
                 </thead>
@@ -115,6 +125,11 @@
                     <td th:text="${exam.subject}"></td>
                     <td th:text="${exam.grade}"></td>
                     <td th:text="${exam.getFormattedDate()}"></td>
+                    <td>
+                        <span th:if="${exam.getStatus() == 'APPROVED'}" class="badge bg-success">Đã được duyệt</span>
+                        <span th:if="${exam.getStatus() == 'PENDING'}" class="badge bg-warning">Chờ duyệt</span>
+
+                    </td>
                     <td>
                         <div class="d-flex gap-2">
                             <form th:action="@{/exams/{id}/detail(id=${exam.examID})}" method="get">

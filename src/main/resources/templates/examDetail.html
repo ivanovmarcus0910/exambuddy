@@ -17,6 +17,10 @@
 <!-- Container -->
 <div class="container py-5">
     <h2 class="text-center fw-bold mb-4" >Chi tiết đề thi</h2>
+    <div th:if="${exam != null and exam.getStatus() == 'DISABLED'}" class="alert alert-danger text-center" role="alert">
+        Xin lỗi! Bài thi đã bị xóa.
+    </div>
+    <div th:unless="${exam != null and exam.getStatus() == 'DISABLED'}">
     <div class="row">
         <!-- Exam Details -->
         <div class="col-md-8">
@@ -32,7 +36,7 @@
                         <p><b>Câu [[${iterStat.index + 1}]]:</b> <span th:text="${question.questionText}"></span></p>
                     </li>
                 </ul>
-                <div class="text-center mt-4">
+                <div class="text-center mt-4" th:unless="${exam != null and exam.getStatus() == 'PENDING'}">
                     <form th:action="@{/exams/{id}/do(id=${exam.examID})}" method="get">
                         <button class="btn btn-primary">Bắt đầu làm bài</button>
                     </form>
@@ -176,14 +180,16 @@
             </div>
         </div>
     </div>
+    </div>
 </div>
 
 
 <!-- Back to Exam List -->
-<div class="text-center mt-4">
-    <a href="/exams"><i class="fas fa-arrow-left"></i> Quay lại danh sách bài kiểm tra</a>
+<div class="mb-3 text-center">
+    <a href="/search-by-filter" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Quay lại danh sách bài kiểm tra
+    </a>
 </div>
-
 
 <!-- Footer -->
 <div th:replace="~{fragments/footer :: footer}"></div>
