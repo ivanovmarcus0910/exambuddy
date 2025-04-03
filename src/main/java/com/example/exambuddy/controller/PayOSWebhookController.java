@@ -4,11 +4,13 @@ package com.example.exambuddy.controller;
 import com.example.exambuddy.config.PayOSConfig;
 import com.example.exambuddy.model.PayOSWebhookData;
 import com.example.exambuddy.model.PayOSWebhookRequest;
+import com.example.exambuddy.model.User;
 import com.example.exambuddy.service.LeaderBoardService;
 import com.example.exambuddy.service.UserService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,7 +29,7 @@ public class PayOSWebhookController {
     @Autowired
     private LeaderBoardService leaderBoardService;
     @PostMapping
-    public ResponseEntity<String> handleWebhook(@RequestBody PayOSWebhookRequest request) {
+    public ResponseEntity<String> handleWebhook(@RequestBody PayOSWebhookRequest request, HttpSession session) {
         try {
             PayOSWebhookData detail = request.getData();
             long orderCode = detail.getOrderCode();
@@ -36,8 +38,10 @@ public class PayOSWebhookController {
             if (request.isSuccess()) {
 
                 String username = userService.updatePaymentStatus(orderCode, amount, "PAID");
+                User user = userService.getUserByUsername(username);
+                String avatarUrl = user != null ? user.getAvatarUrl() : "";
                 userService.changeCoinBalance(amount, username);
-                leaderBoardService.updateUserContribute(username, amount/1000);
+                leaderBoardService.updateUserContribute(username, amount/1000 , avatarUrl );
                 return ResponseEntity.ok("Success");
             } else {
                 String username = userService.updatePaymentStatus(orderCode, amount, "FAIL");

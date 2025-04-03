@@ -61,8 +61,10 @@ public class FirebaseAuthService {
             String otp = emailService.generateOtp();
             long expiryTime = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(1); // Hết hạn sau 1 phút
 
-            // ✅ Lưu OTP vào Firestore
-            firestore.collection(ACCOUNT_OTP_COLLECTION).document(email).set(new OtpRecord(otp, expiryTime));
+            // Lưu OTP vào Firestore (khởi tạo resendCount = 0, lockTime = 0)
+            OtpRecord otpRecord = new OtpRecord(otp, expiryTime);
+            firestore.collection(ACCOUNT_OTP_COLLECTION).document(email).set(otpRecord);
+            users.document(username).set(user);
 
             // ✅ Gửi OTP qua email
             emailService.sendOtpEmailAccount(email, otp);
@@ -94,7 +96,8 @@ public class FirebaseAuthService {
         long expiryTime = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(1); // Hết hạn sau 1 phút
 
         try {
-            otpCollection.document(email).set(new OtpRecord(otp, expiryTime));
+            OtpRecord otpRecord = new OtpRecord(otp, expiryTime);
+            otpCollection.document(email).set(otpRecord);
             emailService.sendOtpEmail(email, otp);
             return "OTP đã được gửi đến email.";
         } catch (Exception e) {
@@ -105,13 +108,14 @@ public class FirebaseAuthService {
     /**
      * Gửi lại mã OTP khác
      */
-    public CompletableFuture<String> resendOtp(String email, String actionType) {
+    /*public CompletableFuture<String> resendOtp(String email, String actionType) {
         Firestore firestore = FirestoreClient.getFirestore();
         String collectionName = actionType.equals("register") ? ACCOUNT_OTP_COLLECTION : OTP_COLLECTION;
         String newOtp = emailService.generateOtp();
         long expiryTime = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(1);
 
         DocumentReference docRef = firestore.collection(collectionName).document(email);
+
         ApiFuture<DocumentSnapshot> snapshotApiFuture = docRef.get();
 
         return toCompletableFuture(snapshotApiFuture)
@@ -144,7 +148,74 @@ public class FirebaseAuthService {
                     });
                 })
                 .exceptionally(ex -> "Lỗi khi gửi lại OTP: " + ex.getMessage());
+    }*/
+    public CompletableFuture<String> resendOtp(String email, String actionType) {
+        Firestore firestore = FirestoreClient.getFirestore();
+        String collectionName = actionType.equals("register") ? ACCOUNT_OTP_COLLECTION : OTP_COLLECTION;
+        DocumentReference docRef = firestore.collection(collectionName).document(email);
+        long now = System.currentTimeMillis();
+
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                // Sử dụng transaction để đảm bảo tính nguyên tử
+                String result = firestore.runTransaction(transaction -> {
+                    DocumentSnapshot snapshot = transaction.get(docRef).get();
+                    OtpRecord record;
+                    if (snapshot.exists()) {
+                        record = snapshot.toObject(OtpRecord.class);
+                        if (record == null) {
+                            record = new OtpRecord();
+                        }
+                    } else {
+                        record = new OtpRecord();
+                    }
+
+                    // Kiểm tra resendCount và lockTime
+                    if (record.getResendCount() >= 1) {
+                        if (now - record.getLockTime() < TimeUnit.MINUTES.toMillis(2)) {
+                            // Nếu chưa hết thời gian khóa, trả về thông báo lỗi
+                            return "Bạn đã gửi OTP quá nhiều lần. Vui lòng thử lại sau 1 phút.";
+                        } else {
+                            // Sau 1 phút, reset lại số lần gửi và lockTime
+                            record.setResendCount(0);
+                            record.setLockTime(0);
+                        }
+                    }
+
+                    // Tạo OTP mới và cập nhật thời gian hết hạn
+                    String newOtp = emailService.generateOtp();
+                    long expiryTime = now + TimeUnit.MINUTES.toMillis(1);
+                    record.setOtp(newOtp);
+                    record.setExpiryTime(expiryTime);
+
+                    // Cập nhật số lần gửi
+                    int newCount = record.getResendCount() + 1;
+                    record.setResendCount(newCount);
+                    // Nếu số lần gửi đạt giới hạn, đặt lockTime
+                    if (newCount >= 1) {
+                        record.setLockTime(now);
+                    }
+
+                    // Lưu lại record đã cập nhật trong transaction
+                    transaction.set(docRef, record);
+
+                    // Gửi OTP qua email
+                    if (actionType.equals("register")) {
+                        System.out.println("📧 Gửi lại OTP xác thực tài khoản đến: " + email);
+                        emailService.sendOtpEmailAccount(email, newOtp);
+                    } else {
+                        System.out.println("📧 Gửi lại OTP đặt lại mật khẩu đến: " + email);
+                        emailService.sendOtpEmail(email, newOtp);
+                    }
+                    return "Mã OTP mới đã được gửi!";
+                }).get();
+                return result;
+            } catch (Exception e) {
+                return "Lỗi khi gửi lại OTP: " + e.getMessage();
+            }
+        });
     }
+
     /**
      * Chuyển đổi ApiFuture<T> thành CompletableFuture<T>
      */
@@ -215,24 +286,54 @@ public class FirebaseAuthService {
         return false;
     }
 
-    static class OtpRecord {
+    public static class OtpRecord {
         private String otp;
         private long expiryTime;
+        private int resendCount;
+        private long lockTime;
 
         public OtpRecord() {
+            this.resendCount = 0;
+            this.lockTime = 0;
         }
 
         public OtpRecord(String otp, long expiryTime) {
             this.otp = otp;
             this.expiryTime = expiryTime;
+            this.resendCount = 0;
+            this.lockTime = 0;
         }
 
         public String getOtp() {
             return otp;
         }
 
+        public void setOtp(String otp) {
+            this.otp = otp;
+        }
+
         public long getExpiryTime() {
             return expiryTime;
+        }
+
+        public void setExpiryTime(long expiryTime) {
+            this.expiryTime = expiryTime;
+        }
+
+        public int getResendCount() {
+            return resendCount;
+        }
+
+        public void setResendCount(int resendCount) {
+            this.resendCount = resendCount;
+        }
+
+        public long getLockTime() {
+            return lockTime;
+        }
+
+        public void setLockTime(long lockTime) {
+            this.lockTime = lockTime;
         }
     }
 
@@ -316,15 +417,19 @@ public class FirebaseAuthService {
     }
 
     // Kiểm tra xem username đã tồn tại chưa
-    public boolean isUsernameExists(String username) {
+    public CompletableFuture<Boolean> isUsernameExists(String username) {
         Firestore firestore = FirestoreClient.getFirestore();
-        try {
-            DocumentSnapshot userSnapshot = firestore.collection(COLLECTION_NAME).document(username).get().get();
-            return userSnapshot.exists();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
+        DocumentReference docRef = firestore.collection(COLLECTION_NAME).document(username);
+        ApiFuture<DocumentSnapshot> future = docRef.get();
+
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                return future.get().exists();
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
+        });
     }
 
     // ✅ Kiểm tra xem user có phải Admin không

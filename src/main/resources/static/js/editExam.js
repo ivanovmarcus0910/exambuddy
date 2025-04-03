@@ -184,9 +184,34 @@ function getCookie(name) {
     }
     return null;
 }
+function validateForm() {
+    let fields = ["examName", "grade", "subject", "timeduration", "examType", "city"];
+    let isValid = true;
 
+    fields.forEach(id => {
+        let field = document.getElementById(id);
+        if (field.value.trim() === "") {
+            field.classList.add("border-danger");
+            isValid = false;
+        } else {
+            field.classList.remove("border-danger");
+        }
+    });
+
+    if (!isValid) {
+        alert("Please complete all required fields before submitting.");
+        return false;
+    }
+
+    return true;
+}
 function submitQuestions() {
+    document.getElementById("messageContainer").innerHTML =
+        '<div class="alert alert-warning" style="font-size:0.9rem;">Uploading</div>';
 
+    if (!validateForm()) {
+        return;
+    }
     if (!name) {
         alert("Bạn chưa đăng nhập!");
         return;
@@ -225,6 +250,9 @@ function submitQuestions() {
             return response.text();
         })
         .then(message => {
+            document.getElementById("messageContainer").innerHTML =
+                '<div class="alert alert-success" style="font-size:0.9rem;">Edit successful</div>';
+
             alert(message); // Hiển thị thông báo từ server
             questions = [];
             displayQuestions();
@@ -232,6 +260,9 @@ function submitQuestions() {
         .catch(error => {
             console.error("Lỗi:", error);
             alert(error.message);
+            document.getElementById("messageContainer").innerHTML =
+                '<div class="alert alert-danger" style="font-size:0.9rem;">Có lỗi xảy ra khi lưu đề thi!</div>';
+
         });
 }
 

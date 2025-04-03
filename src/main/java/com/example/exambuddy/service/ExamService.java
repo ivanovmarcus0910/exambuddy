@@ -7,6 +7,7 @@ import com.example.exambuddy.model.ExamStatistics;
 import com.example.exambuddy.model.Question;
 import com.google.api.core.ApiFuture;
 import com.google.api.core.ApiFutures;
+import com.google.api.gax.rpc.FailedPreconditionException;
 import com.google.cloud.firestore.*;
 import com.google.common.collect.Table;
 import com.google.firebase.cloud.FirestoreClient;
@@ -17,6 +18,10 @@ import org.apache.poi.xwpf.usermodel.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
+
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 
 import java.io.InputStream;
 import java.text.Normalizer;
@@ -39,38 +44,87 @@ public class ExamService {
     private final ExecutorService executor = Executors.newCachedThreadPool();
     private final Firestore db = FirestoreClient.getFirestore();
     private final LeaderBoardService leaderBoardService = new LeaderBoardService();
-    public List<Exam> getExamList(int page, int size) {
+
+    private final PaginationService<ExamResult> paginationService;
+
+    // Inject PaginationService qua constructor
+    public ExamService(PaginationService<ExamResult> paginationService) {
+        this.paginationService = paginationService;
+    }
+    public List<Exam> getExamList() {
         List<Exam> exams = new ArrayList<>();
         try {
-            // Lấy danh sách theo thứ tự mới nhất và giới hạn số lượng theo trang
-            Query query = db.collection("exams").orderBy("participantCount", Query.Direction.DESCENDING).limit(size);
-            if (page > 0) {
-                ApiFuture<QuerySnapshot> previousFuture = db.collection("exams")
-                        .orderBy("date", Query.Direction.DESCENDING)
-                        .limit(size * page).get();
-                List<QueryDocumentSnapshot> previousDocs = previousFuture.get().getDocuments();
-                if (!previousDocs.isEmpty()) {
-                    query = query.startAfter(previousDocs.get(previousDocs.size() - 1));
-                }
-            }
-
+            // Lấy toàn bộ danh sách exam, sắp xếp theo số lượng người tham gia giảm dần
+            Query query = db.collection("exams")
+                    .whereEqualTo("status", "APPROVED")
+                    .orderBy("participantCount", Query.Direction.DESCENDING);
             ApiFuture<QuerySnapshot> future = query.get();
             List<QueryDocumentSnapshot> documents = future.get().getDocuments();
 
             for (QueryDocumentSnapshot doc : documents) {
                 Exam exam = doc.toObject(Exam.class);
-                System.out.println(exam.isActive());
-                if (exam.isActive()){
                 exam.setExamID(doc.getId());
-                exams.add(exam);}
+                exams.add(exam);
             }
-
         } catch (Exception e) {
             e.printStackTrace();
         }
-
         return exams;
     }
+
+    public Map<String, List<Exam>> getExamPopular() {
+        Map<String, List<Exam>> result = new HashMap<>();
+        try {
+            // Lấy toàn bộ danh sách exam, sắp xếp theo số lượng người tham gia giảm dần
+            Query query = db.collection("exams")
+                    .whereEqualTo("status", "APPROVED")
+                    .orderBy("participantCount", Query.Direction.DESCENDING);
+            ApiFuture<QuerySnapshot> future = query.get();
+            List<QueryDocumentSnapshot> documents = future.get().getDocuments();
+
+            // Danh sách riêng cho từng lớp
+            List<Exam> grade10Exams = new ArrayList<>();
+            List<Exam> grade11Exams = new ArrayList<>();
+            List<Exam> grade12Exams = new ArrayList<>();
+
+            for (QueryDocumentSnapshot doc : documents) {
+                Exam exam = doc.toObject(Exam.class);
+                exam.setExamID(doc.getId());
+
+                // Phân loại theo lớp và giới hạn 4 bài mỗi lớp
+                switch (exam.getGrade()) {
+                    case "10":
+                        if (grade10Exams.size() < 4) grade10Exams.add(exam);
+                        break;
+                    case "11":
+                        if (grade11Exams.size() < 4) grade11Exams.add(exam);
+                        break;
+                    case "12":
+                        if (grade12Exams.size() < 4) grade12Exams.add(exam);
+                        break;
+                }
+            }
+
+            // Lưu kết quả vào Map
+            result.put("grade10Exams", grade10Exams);
+            result.put("grade11Exams", grade11Exams);
+            result.put("grade12Exams", grade12Exams);
+
+        } catch (ExecutionException e) {
+            if (e.getCause() instanceof FailedPreconditionException) {
+                System.err.println("Lỗi: Truy vấn yêu cầu một chỉ mục composite. Vui lòng tạo chỉ mục.");
+                // Ở đây bạn có thể thêm logic để thông báo lỗi này cho người dùng hoặc admin
+            } else {
+                System.err.println("Lỗi không xác định khi lấy danh sách đề thi phổ biến: " + e.getMessage());
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            System.err.println("Thread bị gián đoạn khi lấy danh sách đề thi phổ biến: " + e.getMessage());
+        }
+        return result;
+    }
+
+
     // Phương thức format lại ngày
     public static String formatDate(String dateString) {
         try {
@@ -159,8 +213,10 @@ public class ExamService {
             examDataMap.put("timeduration", Long.parseLong(timedurationStr));
             examDataMap.put("questionCount", x);
             examDataMap.put("participantCount", 0); // Mặc định là 0 khi tạo mới
+            // Đặt trạng thái active là false để yêu cầu duyệt của admin
+            examDataMap.put("status", "PENDING");
 
-// Thêm dữ liệu vào collection "exams"
+            // Thêm dữ liệu vào collection "exams"
             db.collection("exams").document(examId).set(examDataMap).get();
             System.out.println("Exam document set");
 
@@ -186,48 +242,43 @@ public class ExamService {
     public boolean importExamFromExcel(InputStream inputStream, Map<String, Object> examData) {
         try {
             Workbook workbook = WorkbookFactory.create(inputStream);
-            Sheet sheet = workbook.getSheetAt(0); // Lấy sheet đầu tiên
+            Sheet sheet = workbook.getSheetAt(0);
 
 
-            // Tạo danh sách câu hỏi từ các dòng trong Excel
             List<Map<String, Object>> questions = new ArrayList<>();
+
+
             for (int i = 0; i <= sheet.getLastRowNum(); i++) {
                 Row row = sheet.getRow(i);
                 if (row == null) continue;
+
+
+                int lastCellNum = row.getLastCellNum(); // tổng số cột
+                if (lastCellNum < 3) continue; // cần ít nhất 1 câu hỏi + 1 đáp án + 1 đáp án đúng
 
 
                 Map<String, Object> questionData = new HashMap<>();
                 questionData.put("questionText", row.getCell(0).getStringCellValue());
 
 
-                // Lấy các lựa chọn (cột 1-4: A, B, C, D)
                 List<String> options = new ArrayList<>();
-                for (int j = 1; j <= 4; j++) {
+                for (int j = 1; j < lastCellNum - 1; j++) {
                     Cell cell = row.getCell(j);
                     options.add(cell != null ? cell.getStringCellValue() : "");
                 }
                 questionData.put("options", options);
 
 
-                // Lấy đáp án đúng (cột 5, dạng chuỗi: "A", "B", "C", "D" hoặc nhiều đáp án cách nhau bởi dấu phẩy)
+                // Cột cuối cùng là đáp án đúng
+                Cell answerCell = row.getCell(lastCellNum - 1);
+                String correctAnswerStr = answerCell != null ? answerCell.getStringCellValue().toUpperCase() : "";
                 List<Integer> correctAnswers = new ArrayList<>();
-                String correctAnswerStr = row.getCell(5).getStringCellValue().toUpperCase(); // Chuyển thành chữ in hoa
-                for (String answer : correctAnswerStr.split(",")) {
-                    switch (answer.trim()) {
-                        case "A":
-                            correctAnswers.add(0);
-                            break;
-                        case "B":
-                            correctAnswers.add(1);
-                            break;
-                        case "C":
-                            correctAnswers.add(2);
-                            break;
-                        case "D":
-                            correctAnswers.add(3);
-                            break;
-                        default:
-                            throw new IllegalArgumentException("Đáp án không hợp lệ: " + answer);
+                for (String ans : correctAnswerStr.split(",")) {
+                    int index = ans.trim().charAt(0) - 'A'; // A=0, B=1, ...
+                    if (index >= 0 && index < options.size()) {
+                        correctAnswers.add(index);
+                    } else {
+                        throw new IllegalArgumentException("Đáp án không hợp lệ: " + ans);
                     }
                 }
                 questionData.put("correctAnswers", correctAnswers);
@@ -237,14 +288,11 @@ public class ExamService {
             }
 
 
-            // Thêm danh sách câu hỏi vào examData
             examData.put("questions", questions);
-            examData.put("date", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
-                    .format(new Date()));
+            examData.put("date", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(new Date()));
 
 
-            // Lưu dữ liệu vào Firestore
-            return addExam(examData,"");
+            return addExam(examData, "");
 
 
         } catch (Exception e) {
@@ -253,14 +301,14 @@ public class ExamService {
         }
     }
 
-    public boolean importExamFromDocx(InputStream inputStream, Map<String, Object> examData) {
+    public List<Map<String, Object>> extractQuestionsFromDocx(InputStream inputStream) {
+        List<Map<String, Object>> questions = new ArrayList<>();
         try {
             XWPFDocument doc = new XWPFDocument(inputStream);
-            List<Map<String, Object>> questions = new ArrayList<>();
-
-
-            // Trích xuất câu hỏi
             StringBuilder text = new StringBuilder();
+
+
+            // Đọc toàn bộ đoạn văn bản
             for (XWPFParagraph para : doc.getParagraphs()) {
                 String line = para.getText().trim();
                 if (!line.isEmpty()) {
@@ -272,103 +320,308 @@ public class ExamService {
             String questionsText = text.toString().split("-----------HẾT----------")[0].trim();
 
 
-            // Trích xuất câu hỏi và đáp án
+            // Regex tìm từng câu hỏi cùng block đáp án
             Pattern questionPattern = Pattern.compile(
-                    "Câu \\d+:(.+?)\\s*A\\.(.+?)\\s*B\\.(.+?)\\s*C\\.(.+?)\\s*D\\.(.+?)\\s*(?=Câu|$)",
+                    "Câu \\d+:(.*?)((?:\\s*[A-F]\\..*?)+)(?=\\s*Câu \\d+:|$)",
                     Pattern.DOTALL
             );
             Matcher questionMatcher = questionPattern.matcher(questionsText);
+
+
             while (questionMatcher.find()) {
                 Map<String, Object> questionData = new HashMap<>();
-                questionData.put("questionText", questionMatcher.group(1).trim());
-                List<String> options = Arrays.asList(
-                        questionMatcher.group(2).trim(),
-                        questionMatcher.group(3).trim(),
-                        questionMatcher.group(4).trim(),
-                        questionMatcher.group(5).trim()
-                );
+
+
+                String questionText = questionMatcher.group(1).trim();
+                String optionsBlock = questionMatcher.group(2).trim();
+
+
+                // Regex tách các đáp án A. đến F.
+                Pattern optionPattern = Pattern.compile("([A-F])\\.\\s*((?:.(?![A-F]\\.))+)", Pattern.DOTALL);
+                Matcher optionMatcher = optionPattern.matcher(optionsBlock);
+
+
+                List<String> options = new ArrayList<>();
+                while (optionMatcher.find() && options.size() < 6) {
+                    options.add(optionMatcher.group(2).trim());
+                }
+
+
+                questionData.put("questionText", questionText);
                 questionData.put("options", options);
                 questionData.put("correctAnswers", new ArrayList<>());
                 questions.add(questionData);
             }
 
 
-            // Tìm bảng đáp án dựa trên nội dung (không phụ thuộc vào "HẾT")
+            // Tìm bảng đáp án
             XWPFTable answerTable = null;
             for (XWPFTable table : doc.getTables()) {
-                boolean isAnswerTable = false;
                 for (XWPFTableRow row : table.getRows()) {
                     for (XWPFTableCell cell : row.getTableCells()) {
                         String cellText = cell.getText().trim();
-                        // Kiểm tra nếu ô chứa "ĐÁP ÁN" hoặc định dạng câu trả lời (ví dụ: 1.C, 2.A)
-                        if (cellText.contains("ĐÁP ÁN") || cellText.matches(".*\\d+\\s*[.\\s]\\s*[A-D].*")) {
-                            isAnswerTable = true;
+                        if (cellText.contains("ĐÁP ÁN") || cellText.matches(".*\\d+\\s*[.\\s]\\s*[A-F].*")) {
+                            answerTable = table;
                             break;
                         }
                     }
-                    if (isAnswerTable) break;
+                    if (answerTable != null) break;
                 }
-                if (isAnswerTable) {
-                    answerTable = table;
-                    break;
-                }
+                if (answerTable != null) break;
             }
 
 
-            if (answerTable == null) {
-                throw new Exception("Không tìm thấy bảng đáp án trong file.");
-            }
+            if (answerTable == null) throw new Exception("Không tìm thấy bảng đáp án trong file.");
 
-            // Trích xuất đáp án từ bảng
+
             Map<Integer, String> answerMap = new HashMap<>();
             for (XWPFTableRow row : answerTable.getRows()) {
                 for (XWPFTableCell cell : row.getTableCells()) {
                     String cellText = cell.getText().trim();
-                    Pattern answerPattern = Pattern.compile("(\\d+)[.\\s]*([A-D])");
-                    Matcher answerMatcher = answerPattern.matcher(cellText);
-                    while (answerMatcher.find()) {
-                        int qIndex = Integer.parseInt(answerMatcher.group(1).trim()) - 1;
-                        String correctAnswer = answerMatcher.group(2).trim();
-                        answerMap.put(qIndex, correctAnswer);
+                    Pattern answerPattern = Pattern.compile("(\\d+)[.\\s]*([A-F])");
+                    Matcher matcher = answerPattern.matcher(cellText);
+                    while (matcher.find()) {
+                        int qIndex = Integer.parseInt(matcher.group(1)) - 1;
+                        answerMap.put(qIndex, matcher.group(2));
                     }
                 }
             }
 
-            // Gán đáp án cho câu hỏi
+
             for (int i = 0; i < questions.size(); i++) {
                 if (answerMap.containsKey(i)) {
-                    String correctAnswer = answerMap.get(i);
-                    List<Integer> correctAnswers = (List<Integer>) questions.get(i).get("correctAnswers");
-                    correctAnswers.clear();
-                    switch (correctAnswer) {
-                        case "A":
-                            correctAnswers.add(0);
-                            break;
-                        case "B":
-                            correctAnswers.add(1);
-                            break;
-                        case "C":
-                            correctAnswers.add(2);
-                            break;
-                        case "D":
-                            correctAnswers.add(3);
-                            break;
+                    String correct = answerMap.get(i);
+                    List<Integer> correctList = new ArrayList<>();
+                    switch (correct) {
+                        case "A" -> correctList.add(0);
+                        case "B" -> correctList.add(1);
+                        case "C" -> correctList.add(2);
+                        case "D" -> correctList.add(3);
+                        case "E" -> correctList.add(4);
+                        case "F" -> correctList.add(5);
                     }
-                    questions.get(i).put("correctAnswers", correctAnswers);
+                    questions.get(i).put("correctAnswers", correctList);
                 }
             }
-
-
-            examData.put("questions", questions);
-            examData.put("date", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(new Date()));
-            return addExam(examData,"");
 
 
         } catch (Exception e) {
             e.printStackTrace();
-            return false;
         }
+        return questions;
     }
+
+
+    public Map<String, Integer> getAvailableChapters(String username, String subject, String grade)
+            throws ExecutionException, InterruptedException {
+
+
+        Query query = db.collection("users").document(username)
+                .collection("questionBank")
+                .whereEqualTo("subjectName", subject)
+                .whereEqualTo("classGrade", grade);
+
+
+        // Nhóm theo chapterName và đếm số câu hỏi
+        return query.get().get().getDocuments().stream()
+                .collect(Collectors.groupingBy(
+                        doc -> doc.getString("chapterName"),
+                        Collectors.summingInt(doc -> 1)
+                ));
+    }
+    public List<Question> generateQuestionsFromPool(List<Question> pool, Map<String, Integer> config) {
+        List<Question> result = new ArrayList<>();
+        for (Map.Entry<String, Integer> entry : config.entrySet()) {
+            String chapter = entry.getKey();
+            int count = entry.getValue();
+            List<Question> chapterQuestions = pool.stream()
+                    .filter(q -> chapter.equals(q.getChapterName()))
+                    .collect(Collectors.toList());
+            Collections.shuffle(chapterQuestions);
+            result.addAll(chapterQuestions.stream().limit(count).collect(Collectors.toList()));
+        }
+        return result;
+    }
+    public Exam createExamFromBank(
+            String examName, String grade, String subject,
+            String examType, String city, int timeduration,
+            Map<String, Integer> chapterConfig, String username
+    ) throws ExecutionException, InterruptedException {
+
+
+        // 1. Lấy toàn bộ câu hỏi từ các chương được chọn
+        List<Question> questionPool = new ArrayList<>();
+        for (String chapterName : chapterConfig.keySet()) {
+            questionPool.addAll(getQuestionsByChapter(username, subject, grade, chapterName));
+        }
+
+
+        // 2. Chọn ngẫu nhiên câu hỏi theo config
+        List<Question> displayedQuestions = new ArrayList<>();
+        for (Map.Entry<String, Integer> entry : chapterConfig.entrySet()) {
+            String chapterName = entry.getKey();
+            int requiredCount = entry.getValue();
+
+
+            List<Question> chapterQuestions = questionPool.stream()
+                    .filter(q -> q.getChapterName().equals(chapterName))
+                    .collect(Collectors.toList());
+
+
+            Collections.shuffle(chapterQuestions);
+            displayedQuestions.addAll(chapterQuestions.stream()
+                    .limit(requiredCount)
+                    .collect(Collectors.toList()));
+        }
+
+
+        // 3. Tạo đối tượng Exam và gán thông tin
+        Exam exam = new Exam();
+        exam.setFromQuestionBank(true); // 🟢 Đặt dòng này ở đây
+
+
+        String examId = UUID.randomUUID().toString();
+
+
+        exam.setExamID(examId);
+        exam.setExamName(examName);
+        exam.setGrade(grade);
+        exam.setSubject(subject);
+        exam.setExamType(examType);
+        exam.setCity(city);
+        exam.setTimeduration(timeduration);
+        exam.setUsername(username);
+        exam.setQuestions(displayedQuestions);
+        exam.setQuestionPool(questionPool); // Lưu toàn bộ pool
+        exam.setChapterConfig(chapterConfig);
+
+        exam.setParticipantCount(0);
+        exam.setDate(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(new Date()));
+
+
+        // 4. Chuyển exam thành Map và lưu vào Firestore
+        Map<String, Object> examData = new HashMap<>();
+        examData.put("examID", exam.getExamID());
+        examData.put("examName", exam.getExamName());
+        examData.put("grade", exam.getGrade());
+        examData.put("subject", exam.getSubject());
+        examData.put("examType", exam.getExamType());
+        examData.put("city", exam.getCity());
+        examData.put("timeduration", exam.getTimeduration());
+        examData.put("username", exam.getUsername());
+        examData.put("questions", exam.getQuestions()); // Có thể bỏ nếu chỉ lưu trong subcollection
+        examData.put("questionPool", exam.getQuestionPool());
+        examData.put("chapterConfig", exam.getChapterConfig());
+
+        examData.put("participantCount", exam.getParticipantCount());
+        examData.put("date", exam.getDate());
+        examData.put("fromQuestionBank", true);
+
+
+        // 5. Lưu exam vào Firestore
+        DocumentReference examRef = db.collection("exams").document(examId);
+        examRef.set(examData).get();
+
+
+        // 6. Lưu các câu hỏi hiển thị vào subcollection "questions"
+        WriteBatch batch = db.batch();
+        for (Question q : displayedQuestions) {
+            String questionId = UUID.randomUUID().toString();
+            DocumentReference qRef = examRef.collection("questions").document(questionId);
+            batch.set(qRef, q); // Question là POJO
+        }
+        batch.commit().get();
+
+
+        return exam;
+    }
+
+
+    private List<Question> getQuestionsByChapter(
+            String username, String subject, String grade, String chapterName
+    ) throws ExecutionException, InterruptedException {
+
+
+        Query query = db.collection("users").document(username)
+                .collection("questionBank")
+                .whereEqualTo("subjectName", subject)
+                .whereEqualTo("classGrade", grade)
+                .whereEqualTo("chapterName", chapterName);
+
+
+        return query.get().get().getDocuments().stream()
+                .map(doc -> {
+                    Question q = doc.toObject(Question.class);
+                    q.setQuestionId(doc.getId());
+                    return q;
+                })
+                .collect(Collectors.toList());
+    }
+    public List<Question> generateExamQuestions(String examId) throws ExecutionException, InterruptedException {
+        DocumentSnapshot examDoc = db.collection("exams").document(examId).get().get();
+
+
+        // Lấy questionPool
+        Object questionPoolObj = examDoc.get("questionPool");
+        if (!(questionPoolObj instanceof List)) {
+            throw new IllegalStateException("questionPool phải là một List");
+        }
+
+
+        List<?> rawQuestionPool = (List<?>) questionPoolObj;
+        List<Map<String, Object>> questionPool = new ArrayList<>();
+        for (Object item : rawQuestionPool) {
+            if (!(item instanceof Map)) {
+                throw new IllegalStateException("Mỗi phần tử trong questionPool phải là một Map");
+            }
+            questionPool.add((Map<String, Object>) item);
+        }
+
+
+        // Lấy chapterConfig
+        Object chapterConfigObj = examDoc.get("chapterConfig");
+        if (!(chapterConfigObj instanceof Map)) {
+            throw new IllegalStateException("chapterConfig phải là một Map");
+        }
+
+
+        Map<?, ?> rawChapterConfig = (Map<?, ?>) chapterConfigObj;
+        Map<String, Integer> chapterConfig = new HashMap<>();
+        for (Map.Entry<?, ?> entry : rawChapterConfig.entrySet()) {
+            if (!(entry.getKey() instanceof String) || !(entry.getValue() instanceof Integer)) {
+                throw new IllegalStateException("chapterConfig phải có key là String và value là Integer");
+            }
+            chapterConfig.put((String) entry.getKey(), (Integer) entry.getValue());
+        }
+
+
+        // Tạo danh sách câu hỏi ngẫu nhiên
+        List<Question> questions = new ArrayList<>();
+        for (Map.Entry<String, Integer> entry : chapterConfig.entrySet()) {
+            String chapterId = entry.getKey();
+            int count = entry.getValue();
+
+
+            List<Question> chapterQuestions = questionPool.stream()
+                    .filter(q -> chapterId.equals(q.get("chapterId")))
+                    .map(q -> {
+                        Question question = new Question();
+                        question.setQuestionText((String) q.get("questionText"));
+                        question.setChapterId((String) q.get("chapterId"));
+                        // Thêm các trường khác nếu cần
+                        return question;
+                    })
+                    .collect(Collectors.toList());
+
+
+            Collections.shuffle(chapterQuestions);
+            questions.addAll(chapterQuestions.stream().limit(count).collect(Collectors.toList()));
+        }
+
+
+        return questions;
+    }
+
 
     public boolean addExamSession(String examID, String username, long duration) {
         try {
@@ -443,6 +696,12 @@ public class ExamService {
         db.collection("exams").document(examId)
                 .update("participantCount", FieldValue.increment(1));
     }
+    public void deleteProcess(String userId, String examId) {
+        DocumentReference docRef = db.collection("examSessions").document(userId + "_" + examId);
+        docRef.delete();
+        docRef = db.collection("examProgress").document(userId + "_" + examId);
+        docRef.delete();
+    }
 
     public void saveExamResult(String userId, String examId, double score, Exam exam, MultiValueMap<String, String> userAnswers, List<String> correctAnswers) {
         String idRandom = UUID.randomUUID().toString();
@@ -456,37 +715,48 @@ public class ExamService {
                 "answers", userAnswers,
                 "submittedAt", System.currentTimeMillis(),
                 "correctAnswers", correctAnswers,
-                "username", userId
+                "username", userId,
+                "exam",exam
 
         ), SetOptions.merge());
     }
 
-    public List<ExamResult> getExamResultByUsername(String userId) {
+    public Page<ExamResult> getExamResultByUsername(String userId, Pageable pageable) {
         List<ExamResult> results = new ArrayList<>();
+        long totalItems = 0;
 
         try {
+            Firestore db = FirestoreClient.getFirestore();
             CollectionReference collectionReference = db.collection("examResults");
 
-            // Tạo truy vấn với điều kiện lọc và sắp xếp theo ngày giảm dần
+            // Lọc ngay trong query để lấy đúng dữ liệu của user
             Query query = collectionReference
-                    .whereGreaterThanOrEqualTo(FieldPath.documentId(), userId + "_")
-                    .whereLessThan(FieldPath.documentId(), userId + "_\uf8ff")
-                    .orderBy("submittedAt", Query.Direction.DESCENDING); // Sắp xếp theo submittedAt giảm dần (mới nhất trước)
+                    .whereGreaterThanOrEqualTo(FieldPath.documentId(), userId + "_")  // Chỉ lấy tài liệu có userId đầu tiên
+                    .whereLessThan(FieldPath.documentId(), userId + "_\uf8ff")       // Giới hạn trong phạm vi userId
+                    .orderBy("submittedAt", Query.Direction.DESCENDING);             // Sắp xếp giảm dần
+
+            // Lấy tổng số bài thi của user
+            ApiFuture<QuerySnapshot> countFuture = query.get();
+            List<QueryDocumentSnapshot> allDocs = countFuture.get().getDocuments();
+            totalItems = allDocs.size();
+
+            // Áp dụng phân trang
+            query = query.limit(pageable.getPageSize())
+                    .offset((int) pageable.getOffset());  // Bỏ qua số lượng cần thiết
 
             ApiFuture<QuerySnapshot> future = query.get();
             List<QueryDocumentSnapshot> documents = future.get().getDocuments();
 
-            for (QueryDocumentSnapshot doc : documents) {
-                ExamResult examResult = doc.toObject(ExamResult.class);
-                results.add(examResult);
-            }
+            results = documents.stream()
+                    .map(doc -> doc.toObject(ExamResult.class))
+                    .collect(Collectors.toList());
+
         } catch (Exception e) {
-            // Thêm log chi tiết để debug nếu cần
             System.err.println("Lỗi khi lấy kết quả bài thi cho userId: " + userId + " - " + e.getMessage());
         }
-        return results;
-    }
 
+        return new PageImpl<>(results, pageable, totalItems);
+    }
     public void likeExam(String userId, String examId) {
         try {
             // 1. Lấy thông tin bài thi từ collection "exams"
@@ -505,6 +775,7 @@ public class ExamService {
             String subject = (String) examData.get("subject");
             String grade = (String) examData.get("grade");
             String createdDate = (String) examData.get("date"); // Có thể là timestamp hoặc string tùy thiết kế
+            String status = (String) examData.get("status");
 
             // 3. Tạo map dữ liệu để lưu vào likedExams
             Map<String, Object> likeData = new HashMap<>();
@@ -514,6 +785,7 @@ public class ExamService {
             likeData.put("subject", subject);
             likeData.put("grade", grade);
             likeData.put("date", createdDate);
+            likeData.put("status", status);
 
             // 4. Lưu vào collection "likedExams"
             // Bạn có thể để Firestore tự sinh doc ID hoặc dùng userId_examId
@@ -560,9 +832,10 @@ public class ExamService {
                 // Lưu ý: Đảm bảo lớp Exam có các trường phù hợp với dữ liệu đã lưu (examName, subject, grade, createdDate, examId, ...)
                 Exam exam = doc.toObject(Exam.class);
                 // Nếu cần, có thể set examID từ field examId hoặc từ document id
-                if (exam.isActive()){
-                exam.setExamID(doc.getString("examID"));
-                likedExams.add(exam);}
+                if (exam.getStatus().equals("APPROVED")) {
+                    exam.setExamID(doc.getString("examID"));
+                    likedExams.add(exam);
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -571,47 +844,45 @@ public class ExamService {
     }
 
 
-    /**
-     * Hàm helper để chia danh sách thành các nhóm nhỏ có kích thước batchSize
-     */
-    private <T> List<List<T>> splitList(List<T> list, int batchSize) {
-        List<List<T>> batches = new ArrayList<>();
-        for (int i = 0; i < list.size(); i += batchSize) {
-            int end = Math.min(i + batchSize, list.size());
-            batches.add(list.subList(i, end));
-        }
-        return batches;
-    }
-
-    public List<Exam> getHtoryCreateExamsByUsername(String username) {
-        List<Exam> exams = new ArrayList<>();
+    public Page<Exam> getHistoryCreateExamsByUsername(String username, Pageable pageable) {
+        List<Exam> exams;
+        long totalItems = 0;
 
         try {
             CollectionReference collectionReference = db.collection("exams");
-            ApiFuture<QuerySnapshot> future = collectionReference
-                    .whereEqualTo("username", username)
-                    .get();
 
+            // Truy vấn chỉ lấy dữ liệu của user
+            Query query = collectionReference
+                    .whereEqualTo("username", username)
+                    .whereIn("status", Arrays.asList("APPROVED", "PENDING")) // Thêm điều kiện lọc trạng thái
+                    .orderBy("date", Query.Direction.DESCENDING); // Sắp xếp theo ngày giảm dần
+
+            // Lấy tổng số bài thi của user
+            ApiFuture<QuerySnapshot> countFuture = query.get();
+            List<QueryDocumentSnapshot> allDocs = countFuture.get().getDocuments();
+            totalItems = allDocs.size();
+
+            // Áp dụng phân trang
+            query = query.limit(pageable.getPageSize())
+                    .offset((int) pageable.getOffset());
+
+            ApiFuture<QuerySnapshot> future = query.get();
             List<QueryDocumentSnapshot> documents = future.get().getDocuments();
 
-            for (DocumentSnapshot doc : documents) {
-                if (doc.exists() && doc.contains("date")) { // Bỏ qua nếu thiếu date
-                    Exam exam = doc.toObject(Exam.class);
-                    if (exam.isActive()) {
-                        exam.setExamID(doc.getId());
-                        exams.add(exam);
-                    }
-                }
-            }
+            exams = documents.stream()
+                    .map(doc -> {
+                        Exam exam = doc.toObject(Exam.class);
+                        exam.setExamID(doc.getId()); // Gán ID từ Firestore
+                        return exam;
+                    })
+                    .collect(Collectors.toList());
 
-            // Sắp xếp thủ công theo ngày giảm dần
-            exams.sort((e1, e2) -> e2.getDate().compareTo(e1.getDate()));
-
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (InterruptedException | ExecutionException e) {
+            System.err.println("Lỗi khi lấy danh sách bài kiểm tra của username: " + username + " - " + e.getMessage());
+            return Page.empty();
         }
 
-        return exams;
+        return new PageImpl<>(exams, pageable, totalItems);
     }
 
     public ExamResult getExamResult(String resultId) {
@@ -649,12 +920,14 @@ public class ExamService {
         List<Exam> exams = new ArrayList<>();
         String normalizedSearchTerm = normalizeString(examName); // Chuẩn hóa chuỗi tìm kiếm
 
-        ApiFuture<QuerySnapshot> querySnapshot = db.collection("exams").get(); // Lấy tất cả đề thi từ Firestore
+        ApiFuture<QuerySnapshot> querySnapshot = db.collection("exams")
+                .whereEqualTo("status", "APPROVED")
+                .get();
         List<QueryDocumentSnapshot> documents = querySnapshot.get().getDocuments();
 
         for (QueryDocumentSnapshot doc : documents) {
             Exam exam = doc.toObject(Exam.class);
-            if (exam.isActive()){
+
             String normalizedExamName = normalizeString(exam.getExamName()); // Chuẩn hóa tên đề thi
 
             // Kiểm tra xem chuỗi tìm kiếm có nằm trong tên đề thi hay không
@@ -668,7 +941,7 @@ public class ExamService {
 
                 exams.add(exam); // Thêm đề thi vào danh sách kết quả
             }
-            }
+
         }
 
         return exams; // Trả về danh sách đề thi phù hợp
@@ -679,7 +952,8 @@ public class ExamService {
         Firestore db = FirestoreClient.getFirestore();
         try {
             CollectionReference examsRef = db.collection("exams");
-            Query query = examsRef;
+            Query query = db.collection("exams")
+                    .whereEqualTo("status", "APPROVED");;
 
             // Áp dụng các điều kiện lọc nếu có giá trị
             if (!grade.isEmpty()) {
@@ -695,13 +969,16 @@ public class ExamService {
                 query = query.whereEqualTo("city", city); // Lọc theo thành phố
             }
 
+
+            // Sắp xếp kết quả theo ngày (mới nhất trước)
+            query = query.orderBy("date", Query.Direction.DESCENDING);
             // Thực hiện truy vấn
             ApiFuture<QuerySnapshot> future = query.get();
             List<QueryDocumentSnapshot> documents = future.get().getDocuments();
             // Xử lý kết quả
             for (QueryDocumentSnapshot doc : documents) {
                 Exam exam = doc.toObject(Exam.class);
-                if (exam.isActive()){
+
                     exam.setExamID(doc.getId());
                     if (exam.getDate() != null) {
                         String formattedDate = formatDate(exam.getDate());
@@ -710,8 +987,6 @@ public class ExamService {
                     resultList.add(exam);
                 }
 
-
-            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -726,40 +1001,43 @@ public class ExamService {
             List<QueryDocumentSnapshot> documents = future.get().getDocuments();
             for (QueryDocumentSnapshot doc : documents) {
                 Exam exam = doc.toObject(Exam.class);
-                if (exam.isActive())
-                {
-                exam.setExamID(doc.getId()); // Thêm dòng này để thiết lập ID cho đề thi
+                exam.setExamID(doc.getId());
                 examList.add(exam);
-                }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
         return examList;
     }
-    // Xoá đề thi
-    public void deleteExam(String examId) {
+
+    // Thay thế phương thức deleteExam ban đầu bằng disableExam
+    public void disableExam(String examId) {
         DocumentReference examRef = db.collection("exams").document(examId);
         try {
-            examRef.update("active", false).get();
-            System.out.println("Cập nhật trạng thái active của exam " + examId + " thành " + false);
+            // Cập nhật trường "status" thành "DISABLED"
+            examRef.update("status", "DISABLED").get();
+            System.out.println("Đã chuyển đề thi " + examId + " sang trạng thái DISABLED.");
+        } catch (InterruptedException | ExecutionException e) {
+            System.out.println("Lỗi khi chuyển trạng thái đề thi " + examId);
+            e.printStackTrace();
+        }
+    }
+
+
+    /**
+     * Phương thức mới: cập nhật trạng thái active của Exam
+     */
+    public void updateExamStatus(String examId, String status) {
+        DocumentReference examRef = db.collection("exams").document(examId);
+        try {
+            examRef.update("status", status).get();
+            System.out.println("Cập nhật trạng thái của exam " + examId + " thành " + status);
         } catch (InterruptedException | ExecutionException e) {
             System.out.println("Lỗi cập nhật trạng thái của exam " + examId);
             e.printStackTrace();
         }
     }
 
-    // --- Phương thức mới: cập nhật trạng thái active của Exam ---
-    public void updateExamStatus(String examId, boolean newStatus) {
-        DocumentReference examRef = db.collection("exams").document(examId);
-        try {
-            examRef.update("active", newStatus).get();
-            System.out.println("Cập nhật trạng thái active của exam " + examId + " thành " + newStatus);
-        } catch (InterruptedException | ExecutionException e) {
-            System.out.println("Lỗi cập nhật trạng thái của exam " + examId);
-            e.printStackTrace();
-        }
-    }
 
     public List<ExamResult> getExamResultsByExamId(String examId) {
         List<ExamResult> results = new ArrayList<>();
@@ -856,6 +1134,14 @@ public class ExamService {
         }
         return exams.stream()
                 .filter(exam -> exam.getGrade() != null && exam.getGrade().equalsIgnoreCase(grade)) // Thay classLevel bằng grade
+                .collect(Collectors.toList());
+    }
+    public List<Exam> filterExamsByStatus(List<Exam> exams, String status) {
+        if (status == null || status.equals("all")) {
+            return exams; // Nếu không có trạng thái hoặc chọn "Tất cả trạng thái", trả về danh sách gốc
+        }
+        return exams.stream()
+                .filter(exam -> exam.getStatus() != null && exam.getStatus().equals(status))
                 .collect(Collectors.toList());
     }
 }

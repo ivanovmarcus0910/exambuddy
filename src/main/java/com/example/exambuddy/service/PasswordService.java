@@ -115,4 +115,13 @@ public class PasswordService {
                 MoreExecutors.directExecutor()
         );
     }
+
+    // Phương thức kiểm tra mật khẩu với điều kiện mới
+    public boolean isValidPassword(String password) {
+        if (password == null) {
+            return false;
+        }
+        // Regex: ít nhất 8 ký tự, có chữ hoa, chữ thường, số và ký tự đặc biệt
+        return password.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$");
+    }
 }

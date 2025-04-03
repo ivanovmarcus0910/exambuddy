@@ -22,23 +22,40 @@ function addOptionField() {
 }
 
 function removeOption(button) {
-    button.parentNode.remove();
+    const inputGroup = button.closest(".input-group");
+    if (inputGroup) {
+        inputGroup.remove();
+    }
 }
+
 
 function addQuestion() {
     let questionText = document.getElementById("questionText").value;
     let options = [];
     let correctAnswers = [];
 
-    document.querySelectorAll("#optionsContainer > .input-group").forEach((div, index) => {
-        let optionText = div.querySelector("input[name='option']").value;
-        let isChecked = div.querySelector("input[name='correctOption']").checked;
+    const optionDivs = document.querySelectorAll("#optionsContainer .input-group");
 
-        if (optionText.trim() !== "") {
-            options.push(optionText);
-            if (isChecked) {
-                correctAnswers.push(index);
+    optionDivs.forEach((div) => {
+        const optionInput = div.querySelector("input[name='option']");
+        const text = optionInput.value.trim();
+        if (text !== "") {
+            options.push(text);
+        }
+    });
+
+    // Duyệt lại để lấy correctAnswers theo thứ tự thực tế
+    let visibleIndex = 0;
+    optionDivs.forEach((div) => {
+        const optionInput = div.querySelector("input[name='option']");
+        const checkbox = div.querySelector("input[name='correctOption']");
+        const text = optionInput?.value.trim(); // optional chaining để an toàn
+
+        if (text !== "") {
+            if (checkbox && checkbox.checked) {
+                correctAnswers.push(visibleIndex);
             }
+            visibleIndex++;
         }
     });
 
@@ -47,8 +64,7 @@ function addQuestion() {
         return;
     }
 
-    let question = {questionText, options, correctAnswers};
-    questions.push(question);
+    questions.push({ questionText, options, correctAnswers });
     displayQuestions();
     resetForm();
 }
@@ -98,10 +114,15 @@ function editQuestion(index) {
 
     question.options.forEach((option, i) => {
         let newOptionDiv = document.createElement("div");
+        newOptionDiv.classList.add("input-group", "mb-2");
         newOptionDiv.innerHTML = `
-          <input type="text" name="option" value="${option}">
-          <input type="checkbox" name="correctOption" value="${i}" ${question.correctAnswers.includes(i) ? "checked" : ""}>
-          <button type="button" onclick="removeOption(this)">🗑️</button>
+            <input type="text" class="form-control" name="option" value="${option}">
+            <div class="input-group-append">
+                <div class="input-group-text">
+                    <input type="checkbox" name="correctOption" value="${i}" class="form-check-input mt-0" ${question.correctAnswers.includes(i) ? "checked" : ""}>
+                </div>
+                <button type="button" class="btn btn-danger" onclick="removeOption(this)">🗑️</button>
+            </div>
         `;
         optionsContainer.appendChild(newOptionDiv);
     });
@@ -113,28 +134,41 @@ function editQuestion(index) {
 function saveEdit() {
     if (editingIndex === -1) return;
 
-    let correctAnswers = [];
+    let questionText = document.getElementById("questionText").value;
     let options = [];
+    let correctAnswers = [];
 
-    document.querySelectorAll("#optionsContainer div").forEach((div, i) => {
-        let optionText = div.querySelector("input[name='option']").value;
-        let isChecked = div.querySelector("input[name='correctOption']").checked;
+    const optionDivs = document.querySelectorAll("#optionsContainer .input-group");
 
-        if (optionText.trim() !== "") {
-            options.push(optionText);
-            if (isChecked) {
-                correctAnswers.push(i);
-            }
+    optionDivs.forEach((div) => {
+        const input = div.querySelector("input[name='option']");
+        const checkbox = div.querySelector("input[name='correctOption']");
+        const text = input?.value.trim();
+
+        if (text !== "") {
+            options.push(text);
         }
     });
 
-    questions[editingIndex] = {
-        questionText: document.getElementById("questionText").value,
-        options,
-        correctAnswers
-    };
-    document.getElementById("saveEditBtn").style.display = "none";
+    let visibleIndex = 0;
+    optionDivs.forEach((div) => {
+        const input = div.querySelector("input[name='option']");
+        const checkbox = div.querySelector("input[name='correctOption']");
+        const text = input?.value.trim();
 
+        if (text !== "" && checkbox?.checked) {
+            correctAnswers.push(visibleIndex);
+        }
+
+        if (text !== "") visibleIndex++;
+    });
+
+    if (questionText.trim() === "" || options.length < 2 || correctAnswers.length === 0) {
+        alert("Vui lòng nhập đầy đủ thông tin câu hỏi và đáp án.");
+        return;
+    }
+
+    questions[editingIndex] = { questionText, options, correctAnswers };
     displayQuestions();
     resetForm();
 }
@@ -154,8 +188,35 @@ function getCookie(name) {
     }
     return null;
 }
+function validateForm() {
+    let fields = ["examName", "grade", "subject", "timeduration", "examType", "city"];
+    let isValid = true;
 
+    fields.forEach(id => {
+        let field = document.getElementById(id);
+        if (field.value.trim() === "") {
+            field.classList.add("border-danger");
+            isValid = false;
+        } else {
+            field.classList.remove("border-danger");
+        }
+    });
+
+    if (!isValid) {
+        alert("Please complete all required fields before submitting.");
+        return false;
+    }
+
+    return true;
+}
 function submitQuestions() {
+
+    if (!validateForm()) {
+        return;
+    }
+    document.getElementById("messageContainer").innerHTML =
+        '<div class="alert alert-warning" style="font-size:0.9rem;">Uploading</div>';
+
     let username = getCookie("noname"); // Lấy username từ cookie
     if (!username) {
         alert("Bạn chưa đăng nhập!");
@@ -188,11 +249,16 @@ function submitQuestions() {
     })
         .then(response => response.text())
         .then(data => {
-            alert("Đã lưu đề thi thành công!");
+            document.getElementById("messageContainer").innerHTML =
+                '<div class="alert alert-success" style="font-size:0.9rem;">Đã lưu đề thi thành công!</div>';
             questions = [];
             displayQuestions();
         })
-        .catch(error => console.error("Lỗi:", error));
+        .catch(error => {
+            console.error("Lỗi:", error);
+            document.getElementById("messageContainer").innerHTML =
+                '<div class="alert alert-danger" style="font-size:0.9rem;">Có lỗi xảy ra khi lưu đề thi!</div>';
+        });
 }
 
 
@@ -251,43 +317,42 @@ function importFromExcel() {
 
         console.log('Rows from Excel:', rows); // Debug log
 
+        let importedCount = 0;
+
         rows.forEach(row => {
-            if (row.length >= 6) {
-                const questionText = row[0];
-                const rawOptions = [row[1], row[2], row[3], row[4]]; // Giá trị thô từ Excel
-                const correctAnswerStr = row[5].toString().toUpperCase();
-                const correctAnswers = [];
+            if (row.length < 3) return; // cần ít nhất: câu hỏi + 1 đáp án + đáp án đúng
 
-                // Chuyển đổi các option thành chuỗi
-                const options = rawOptions.map(option => String(option));
+            const questionText = String(row[0]).trim();
+            const correctAnswerStr = String(row[row.length - 1]).toUpperCase().trim();
+            const rawOptions = row.slice(1, row.length - 1); // các đáp án (B1 → Bn)
 
-                correctAnswerStr.split(',').forEach(answer => {
-                    switch (answer.trim()) {
-                        case 'A': correctAnswers.push(0); break;
-                        case 'B': correctAnswers.push(1); break;
-                        case 'C': correctAnswers.push(2); break;
-                        case 'D': correctAnswers.push(3); break;
-                        default: console.warn(`Đáp án không hợp lệ: ${answer}`);
-                    }
-                });
+            const options = rawOptions.map(opt => opt ? String(opt).trim() : "");
+            const correctAnswers = [];
 
-                if (questionText && options.every(opt => opt) && correctAnswers.length > 0) {
-                    questions.push({ questionText, options, correctAnswers });
-                    console.log('Added question:', { questionText, options, correctAnswers });
+            correctAnswerStr.split(',').forEach(ans => {
+                const index = ans.trim().charCodeAt(0) - 65; // 'A' = 0, 'B' = 1, ...
+                if (index >= 0 && index < options.length) {
+                    correctAnswers.push(index);
                 } else {
-                    console.warn('Skipped row due to invalid data:', { questionText, options, correctAnswers });
+                    console.warn(`Đáp án không hợp lệ: ${ans}`);
                 }
+            });
+
+            if (questionText && options.every(opt => opt) && correctAnswers.length > 0) {
+                questions.push({ questionText, options, correctAnswers });
+                importedCount++;
             } else {
-                console.warn('Row skipped, not enough columns:', row);
+                console.warn('Bỏ qua dòng không hợp lệ:', { questionText, options, correctAnswers });
             }
         });
 
         displayQuestions();
         fileInput.value = ''; // Reset input
-        alert(`Đã import ${questions.length} câu hỏi từ file Excel.`);
+        alert(`✅ Đã import ${importedCount} câu hỏi từ file Excel.`);
     };
     reader.readAsArrayBuffer(file);
 }
+
 
 function importFromDocx() {
     const fileInput = document.getElementById('docxFile');
@@ -299,12 +364,6 @@ function importFromDocx() {
 
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('examName', document.getElementById('examName').value);
-    formData.append('grade', document.getElementById('grade').value);
-    formData.append('subject', document.getElementById('subject').value);
-    formData.append('examType', document.getElementById('examType').value);
-    formData.append('city', document.getElementById('city').value);
-    formData.append('tags', document.getElementById('tags').value);
 
     fetch('/exams/importDocx', {
         method: 'POST',
@@ -312,12 +371,12 @@ function importFromDocx() {
     })
         .then(response => response.json())
         .then(data => {
-            alert(data.message);
-            if (data.message.includes('thành công')) {
-                // Reset danh sách câu hỏi tạm thời nếu cần
-                questions = [];
+            if (data.questions) {
+                questions = data.questions;
                 displayQuestions();
-                fileInput.value = ''; // Reset input file
+                alert(data.message);
+            } else {
+                alert(data.message || "Không có câu hỏi nào được trả về.");
             }
         })
         .catch(error => {

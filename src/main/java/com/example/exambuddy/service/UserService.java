@@ -13,11 +13,9 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -350,10 +348,52 @@ public class UserService {
      * @return Danh sách người dùng của trang hiện tại.
      * @throws Exception Nếu có lỗi trong quá trình truy vấn.
      */
-    public List<User> getUserPage(int page, int pageSize) throws Exception {
-        return paginationService.getPage("users", "joinTime", page, pageSize, User.class);
+    // Lấy trang người dùng (không tìm kiếm)
+    public List<User> getUserPage(int page, int pageSize) throws ExecutionException, InterruptedException {
+        List<User> all = getAllUsers();
+        int start = page * pageSize;
+        int end = Math.min(start + pageSize, all.size());
+        if (start >= all.size()) {
+            return Collections.emptyList();
+        }
+        return all.subList(start, end);
     }
 
+    // Tìm kiếm người dùng với phân trang (theo username, email, hoặc full name)
+    public List<User> searchUsers(String keyword, int page, int pageSize) throws ExecutionException, InterruptedException {
+        List<User> all = getAllUsers();
+        String lower = keyword.toLowerCase();
 
+        List<User> filtered = all.stream()
+                .filter(u -> (u.getUsername() != null && u.getUsername().toLowerCase().contains(lower))
+                        || (u.getEmail() != null && u.getEmail().toLowerCase().contains(lower))
+                        || ( ( (u.getFirstName() == null ? "" : u.getFirstName()) + " " +
+                        (u.getLastName() == null ? "" : u.getLastName()) ).toLowerCase().contains(lower) ))
+                .collect(Collectors.toList());
+
+        int start = page * pageSize;
+        int end = Math.min(start + pageSize, filtered.size());
+        if (start >= filtered.size()) {
+            return Collections.emptyList();
+        }
+        return filtered.subList(start, end);
+    }
+
+    // Tìm kiếm người dùng (không phân trang) – dùng cho thống kê hoặc phân loại
+    public List<User> searchUsers(String keyword) throws ExecutionException, InterruptedException {
+        List<User> all = getAllUsers();
+        String lower = keyword.toLowerCase();
+        return all.stream()
+                .filter(u -> (u.getUsername() != null && u.getUsername().toLowerCase().contains(lower))
+                        || (u.getEmail() != null && u.getEmail().toLowerCase().contains(lower))
+                        || ( ( (u.getFirstName() == null ? "" : u.getFirstName()) + " " +
+                        (u.getLastName() == null ? "" : u.getLastName()) ).toLowerCase().contains(lower) ))
+                .collect(Collectors.toList());
+    }
+
+    public void addUser(User user) {
+        Firestore firestore = FirestoreClient.getFirestore();
+        firestore.collection("users").document(user.getUsername()).set(user);
+    }
 
 }

@@ -14,6 +14,9 @@
 
 </head>
 <style>
+    body {
+        background-color: #f5f7f9;
+    }
     .toast {
         visibility: hidden;
         min-width: 250px;
@@ -31,11 +34,123 @@
         transition: opacity 0.5s, bottom 0.5s;
     }
 
+    .btn-custom {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 12px 24px; /* Tăng kích thước */
+        border-radius: 30px; /* Bo tròn hơn */
+        font-size: 16px;
+        font-weight: bold;
+        text-decoration: none;
+        transition: all 0.3s ease-in-out;
+    }
+
+    .btn-custom i {
+        margin-right: 8px; /* Tạo khoảng cách giữa icon và text */
+    }
+
+    .btn-view {
+        background: linear-gradient(to right, #007bff, #00c6ff);
+        color: white;
+        border: none;
+    }
+
+    .btn-view:hover {
+        background: linear-gradient(to right, #0056b3, #0094cc);
+    }
+
+    .btn-do {
+        background: linear-gradient(to right, #f32424, #ff5733);
+        color: white;
+        border: none;
+    }
+
+    .btn-do:hover {
+        background: linear-gradient(to right, #c71c1c, #cc4422);
+    }
+
+    .rank-section {
+        background: linear-gradient(to bottom, #ffffff, #f8f9fa); /* Gradient nhẹ */
+        border-radius: 15px;
+        border: 1px solid #dee2e6;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        transition: transform 0.3s ease-in-out;
+    }
+
+    .rank-section:hover {
+        transform: translateY(-5px); /* Hiệu ứng nâng lên khi hover */
+    }
+
+    .rank-section h4 {
+        font-size: 18px;
+        font-weight: bold;
+        color: #007bff;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .list-group {
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .list-group-item {
+        border: none;
+        padding: 12px 15px;
+        font-size: 16px;
+        font-weight: 500;
+        transition: background 0.3s ease-in-out;
+    }
+
+    .list-group-item:nth-child(odd) {
+        background: #f1f3f5;
+    }
+
+    .list-group-item:nth-child(even) {
+        background: #e9ecef;
+    }
+
+    .list-group-item:hover {
+        background: #d4edda; /* Hiệu ứng xanh nhạt khi hover */
+    }
+    .rank-section {
+        position: sticky;
+        top: 20px; /* Cách lề trên 20px khi cuộn */
+        z-index: 1000; /* Đảm bảo không bị che */
+    }
     .toast.show {
         visibility: visible;
         opacity: 1;
         bottom: 50px;
     }
+
+    .title-button {
+        display: inline-block;
+        background: linear-gradient(to right, #007bff, #00c6ff); /* Chuyển từ xanh dương đậm sang xanh dương nhạt */
+        color: white;
+        padding: 10px 20px;
+        border-radius: 20px;
+        font-size: 20px;
+        border: none;
+        cursor: pointer;
+    }
+
+
+    .exam-card {
+        border: 1px; /* Viền dày 3px, màu đậm hơn */
+        border-radius: 20px;
+        transition: all 0.3s ease;
+        background: white;
+    }
+
+    .exam-card:hover {
+        box-shadow: 4px 8px 16px rgba(0, 0, 0, 0.2);
+        transform: translateY(-5px);
+        border-color: #000; /* Làm viền đậm hơn khi hover */
+    }
+
 
 </style>
 <body>
@@ -96,7 +211,10 @@
                 <option value="">Chọn thành phố</option>
             </select>
 
-            <button type="submit" class="btn btn-primary w-100 mt-2">Tìm kiếm</button>
+            <div class="d-flex w-100 mt-2 gap-2">
+                <button type="submit" class="btn btn-primary flex-grow-1">Tìm kiếm</button>
+                <a href="/search-by-filter" class="btn btn-secondary w-20">Xem tất cả</a>
+            </div>
         </form>
     </div>
 
@@ -121,30 +239,80 @@
         <div class="row px-md-5">
             <!-- Cột đề thi -->
             <div class="col-12 col-md-9 pe-md-3">
-                <div class="row">
-                    <div class="col-12 col-md-4 mb-4" th:each="exam : ${exams}">
-                        <div class="exam-card p-3 shadow-sm rounded border">
-                            <strong th:text="${exam.examName}" class="text-primary d-block mb-2 fs-5"></strong>
-                            <p><i class="fa-solid fa-graduation-cap text-success"></i> <b>Lớp:</b> <span
-                                    th:text="${exam.grade}"></span></p>
-                            <p><i class="fa-solid fa-book text-info"></i> <b>Môn học:</b> <span
-                                    th:text="${exam.subject}"></span></p>
-                            <p><i class="fa-solid fa-file-lines text-warning"></i> <b>Dạng đề:</b> <span
-                                    th:text="${exam.examType}"></span></p>
-                            <p><i class="fa-solid fa-map-marker-alt text-danger"></i> <b>Tỉnh-Thành Phố:</b> <span
-                                    th:text="${exam.city}"></span></p>
-                            <p><i class="fa-solid fa-users text-primary"></i> <b>Số lượt tham gia:</b> <span
-                                    th:text="${exam.participantCount}"></span></p>
+                <!-- Tiêu đề chính -->
+                <h1 class="title-button">Phổ biến nhất</h1>
 
+                <!-- Danh mục lớp 10 -->
+                <h3 class="text-primary">Lớp 10</h3>
+                <div class="row">
+                    <div class="col-12 col-md-6 mb-4" th:each="exam : ${grade10Exams}">
+                        <div class="exam-card p-3 shadow-sm ">
+                            <h4 th:text="${exam.examName}" class="text-primary d-block mb-2 text-center"></h4>
+                            <p><i class="fa-solid fa-graduation-cap text-success"></i> <b>Lớp:</b> <span th:text="${exam.grade}"></span></p>
+                            <p><i class="fa-solid fa-book text-info"></i> <b>Môn học:</b> <span th:text="${exam.subject}"></span></p>
+                            <p><i class="fa-solid fa-file-lines text-warning"></i> <b>Dạng đề:</b> <span th:text="${exam.examType}"></span></p>
+                            <p><i class="fa-solid fa-map-marker-alt text-danger"></i> <b>Tỉnh-Thành Phố:</b> <span th:text="${exam.city}"></span></p>
+                            <p><i class="fa-solid fa-users text-primary"></i> <b>Số lượt tham gia:</b> <span th:text="${exam.participantCount}"></span></p>
                             <div class="d-flex justify-content-between align-items-center">
-                                <a th:href="@{/exams/{id}/detail(id=${exam.examID})}" class="btn btn-primary btn-sm">
+                                <a th:href="@{/exams/{id}/detail(id=${exam.examID})}" class="btn-custom btn-view">
                                     <i class="fa-solid fa-eye"></i> Xem
                                 </a>
-                                <a th:href="@{/exams/{id}/do(id=${exam.examID})}" class="btn btn-danger btn-sm">
+                                <a th:href="@{/exams/{id}/do(id=${exam.examID})}" class="btn-custom btn-do">
                                     <i class="fa-solid fa-pen"></i> Làm bài
                                 </a>
-                                <button class="btn btn-outline-danger btn-sm likeButton"
-                                        th:attr="data-exam-id=${exam.examID}, data-liked=${isLiked}">
+                                <button class="btn btn-outline-danger btn-sm likeButton" th:attr="data-exam-id=${exam.examID}, data-liked=${isLiked}">
+                                    <i class="fa-regular fa-heart"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Danh mục lớp 11 -->
+                <h3 class="text-primary ">Lớp 11</h3>
+                <div class="row">
+                    <div class="col-12 col-md-6 mb-4" th:each="exam : ${grade11Exams}">
+                        <div class="exam-card p-3 shadow-sm ">
+                            <h4 th:text="${exam.examName}" class="text-primary d-block mb-2 text-center"></h4>
+                            <p><i class="fa-solid fa-graduation-cap text-success"></i> <b>Lớp:</b> <span th:text="${exam.grade}"></span></p>
+                            <p><i class="fa-solid fa-book text-info"></i> <b>Môn học:</b> <span th:text="${exam.subject}"></span></p>
+                            <p><i class="fa-solid fa-file-lines text-warning"></i> <b>Dạng đề:</b> <span th:text="${exam.examType}"></span></p>
+                            <p><i class="fa-solid fa-map-marker-alt text-danger"></i> <b>Tỉnh-Thành Phố:</b> <span th:text="${exam.city}"></span></p>
+                            <p><i class="fa-solid fa-users text-primary"></i> <b>Số lượt tham gia:</b> <span th:text="${exam.participantCount}"></span></p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <a th:href="@{/exams/{id}/detail(id=${exam.examID})}" class="btn-custom btn-view">
+                                    <i class="fa-solid fa-eye"></i> Xem
+                                </a>
+                                <a th:href="@{/exams/{id}/do(id=${exam.examID})}" class="btn-custom btn-do">
+                                    <i class="fa-solid fa-pen"></i> Làm bài
+                                </a>
+                                <button class="btn btn-outline-danger btn-sm likeButton" th:attr="data-exam-id=${exam.examID}, data-liked=${isLiked}">
+                                    <i class="fa-regular fa-heart"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Danh mục lớp 12 -->
+                <h3 class="text-primary ">Lớp 12</h3>
+                <div class="row">
+                    <div class="col-12 col-md-6 mb-4" th:each="exam : ${grade12Exams}">
+                        <div class="exam-card p-3 shadow-sm ">
+                            <h4 th:text="${exam.examName}" class="text-primary d-block mb-2 text-center"></h4>
+                            <p><i class="fa-solid fa-graduation-cap text-success"></i> <b>Lớp:</b> <span th:text="${exam.grade}"></span></p>
+                            <p><i class="fa-solid fa-book text-info"></i> <b>Môn học:</b> <span th:text="${exam.subject}"></span></p>
+                            <p><i class="fa-solid fa-file-lines text-warning"></i> <b>Dạng đề:</b> <span th:text="${exam.examType}"></span></p>
+                            <p><i class="fa-solid fa-map-marker-alt text-danger"></i> <b>Tỉnh-Thành Phố:</b> <span th:text="${exam.city}"></span></p>
+                            <p><i class="fa-solid fa-users text-primary"></i> <b>Số lượt tham gia:</b> <span th:text="${exam.participantCount}"></span></p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <a th:href="@{/exams/{id}/detail(id=${exam.examID})}" class="btn-custom btn-view">
+                                    <i class="fa-solid fa-eye"></i> Xem
+                                </a>
+                                <a th:href="@{/exams/{id}/do(id=${exam.examID})}" class="btn-custom btn-do">
+                                    <i class="fa-solid fa-pen"></i> Làm bài
+                                </a>
+                                <button class="btn btn-outline-danger btn-sm likeButton" th:attr="data-exam-id=${exam.examID}, data-liked=${isLiked}">
                                     <i class="fa-regular fa-heart"></i>
                                 </button>
                             </div>
@@ -156,7 +324,7 @@
 
             <!-- Cột xếp hạng -->
             <div class="col-12 col-md-3 px-md-3">
-                <div class="rank-section p-3 shadow-sm rounded border">
+                <div class="rank-section p-3 shadow-sm ">
                     <h4 class="text-center mb-3">BXH Điểm Số</h4>
                     <ul id="leaderboard" class="list-group">
                         <!-- Dữ liệu sẽ được thêm vào đây bằng JavaScript -->
@@ -233,14 +401,21 @@
             let data = await response.json();
             let leaderboard = document.querySelector("#leaderboard");
             leaderboard.innerHTML = "";
+
             data.forEach(record => {
                 let formattedScore = record.totalScore.toFixed(0);
-                let row = `<li class="list-group-item d-flex justify-content-between">
-    <span class="text-truncate" style="max-width: 50%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
-        ${record.username}
-    </span>
-    <span>${formattedScore} Điểm</span>
-</li>`;
+                let avatarUrl = record.avatarUrl || "https://via.placeholder.com/40"; // Avatar mặc định nếu không có
+
+                let row = `<li class="list-group-item d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center">
+                    <img src="${avatarUrl}" alt="Avatar" class="rounded-circle me-2" width="40" height="40">
+                    <span class="text-truncate" style="max-width: 70%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
+                        ${record.username}
+                    </span>
+                </div>
+                <span>${formattedScore} Điểm</span>
+            </li>`;
+
                 leaderboard.innerHTML += row;
             });
         } catch (error) {
@@ -254,15 +429,19 @@
             let data = await response.json();
             let contributionBoard = document.querySelector("#contribution-board");
             contributionBoard.innerHTML = "";
+
             data.forEach(record => {
                 let formattedScore = record.totalScore.toFixed(0);
+                let avatarUrl = record.avatarUrl || "https://via.placeholder.com/40"; // Avatar mặc định nếu không có
 
-                let row = `<li class="list-group-item d-flex justify-content-between">
-    <span class="text-truncate" style="max-width: 50%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
-        ${record.username}
-    </span>
-    <span>${formattedScore} Điểm</span>
-</li>`;
+                let row = `<li class="list-group-item d-flex align-items-center">
+                <img src="${avatarUrl}" alt="Avatar" class="rounded-circle me-2" width="40" height="40">
+                <span class="text-truncate flex-grow-1" style="max-width: 60%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
+                    ${record.username}
+                </span>
+                <span class="text-end fw-bold">${formattedScore} Điểm</span>
+            </li>`;
+
                 contributionBoard.innerHTML += row;
             });
         } catch (error) {

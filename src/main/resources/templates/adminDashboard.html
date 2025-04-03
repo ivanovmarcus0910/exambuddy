@@ -1,367 +1,26 @@
-<!--<!DOCTYPE html>-->
-<!--<html lang="vi">-->
-<!--<head>-->
-<!--  <meta charset="UTF-8">-->
-<!--  <meta name="viewport" content="width=device-width, initial-scale=1.0">-->
-<!--  <title>Admin Dashboard</title>-->
-<!--  <link rel="icon" type="image/x-icon"-->
-<!--        href="https://res.cloudinary.com/dsuav027e/image/upload/v1740393796/favicon_llcueu.ico">-->
-
-<!--  &lt;!&ndash; Bootstrap CSS &ndash;&gt;-->
-<!--  <link rel="stylesheet"-->
-<!--        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">-->
-<!--  &lt;!&ndash; Bootstrap Icons &ndash;&gt;-->
-<!--  <link rel="stylesheet"-->
-<!--        href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">-->
-<!--  &lt;!&ndash; Bootstrap JS (Bundle) &ndash;&gt;-->
-<!--  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>-->
-<!--  &lt;!&ndash; Chart.js &ndash;&gt;-->
-<!--  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>-->
-
-<!--  <style>-->
-<!--    /* Sidebar sticky */-->
-<!--    .sidebar-sticky {-->
-<!--      position: sticky;-->
-<!--      top: 0;-->
-<!--      height: 100vh;-->
-<!--      overflow-y: auto;-->
-<!--      z-index: 10;-->
-<!--    }-->
-<!--    /* Header sticky */-->
-<!--    .header-sticky {-->
-<!--      position: sticky;-->
-<!--      top: 0;-->
-<!--      z-index: 999;-->
-<!--      background: #fff;-->
-<!--    }-->
-<!--  </style>-->
-<!--</head>-->
-<!--<body class="bg-white">-->
-
-<!--<div class="container-fluid">-->
-<!--  <div class="row">-->
-<!--    &lt;!&ndash; Sidebar &ndash;&gt;-->
-<!--    <div class="col-2 bg-light px-3 py-4 sidebar-sticky">-->
-<!--      <div class="text-center mb-4">-->
-<!--        <img src="/img/logo.png" alt="Logo" class="img-fluid mb-3">-->
-<!--      </div>-->
-<!--      <h2 class="h5 fw-bold text-center">🎩 Dashboard</h2>-->
-<!--      <ul class="nav flex-column mt-4">-->
-<!--        <li class="nav-item mb-2">-->
-<!--          <a href="#users" class="nav-link">👥 Quản lí Người dùng</a>-->
-<!--        </li>-->
-<!--        <li class="nav-item mb-2">-->
-<!--          <a href="#exams" class="nav-link">📝 Quản lí Đề thi</a>-->
-<!--        </li>-->
-<!--        <li class="nav-item mb-2">-->
-<!--          <a href="#posts" class="nav-link">📄 Quản lí Bài viết</a>-->
-<!--        </li>-->
-<!--        <li class="nav-item mb-2">-->
-<!--          <a href="#stats" class="nav-link">📊 Thống kê</a>-->
-<!--        </li>-->
-<!--        <li class="nav-item mt-3">-->
-<!--          <a href="/logout" class="nav-link text-danger">🚪 Đăng xuất</a>-->
-<!--        </li>-->
-<!--      </ul>-->
-<!--    </div>-->
-<!--    &lt;!&ndash; /Sidebar &ndash;&gt;-->
-
-<!--    &lt;!&ndash; Main Content &ndash;&gt;-->
-<!--    <div class="col-10 px-0">-->
-<!--      &lt;!&ndash; Header sticky &ndash;&gt;-->
-<!--      <div class="header-sticky shadow-sm p-4 mb-4">-->
-<!--        <div class="d-flex justify-content-between align-items-center">-->
-<!--          <h1 class="h3 fw-bold m-0">Dashboard</h1>-->
-<!--          <div class="d-flex align-items-center">-->
-<!--            <div class="me-3 position-relative">-->
-<!--              <input type="text" placeholder="🔍 Tìm kiếm..."-->
-<!--                     class="form-control" style="width: 200px;">-->
-<!--            </div>-->
-<!--            <div class="d-flex align-items-center">-->
-<!--              <span class="fw-semibold me-2" th:text="${adminUser.username}"></span>-->
-<!--              <img th:src="${adminUser.avatarUrl}"-->
-<!--                   alt="Admin Avatar"-->
-<!--                   class="rounded-circle border border-secondary"-->
-<!--                   style="width:40px; height:40px;">-->
-<!--            </div>-->
-<!--          </div>-->
-<!--        </div>-->
-<!--      </div>-->
-
-<!--      <div class="px-4">-->
-<!--        &lt;!&ndash; Bảng thống kê &ndash;&gt;-->
-<!--        <div id="stats" class="d-flex flex-wrap gap-3 mb-4">-->
-<!--          <div class="border rounded p-3 flex-fill text-center" style="min-width: 200px;">-->
-<!--            <h3>👤 Tổng tài khoản</h3>-->
-<!--            <p class="display-6 fw-bold" th:text="${totalUser}">0</p>-->
-<!--          </div>-->
-<!--          <div class="border rounded p-3 flex-fill text-center" style="min-width: 200px;">-->
-<!--            <h3>📄 Tổng bài viết</h3>-->
-<!--            <p class="display-6 fw-bold" th:text="${totalPost}">0</p>-->
-<!--          </div>-->
-<!--          <div class="border rounded p-3 flex-fill text-center" style="min-width: 200px;">-->
-<!--            <h3>📝 Tổng đề thi</h3>-->
-<!--            <p class="display-6 fw-bold" th:text="${totalExam}">0</p>-->
-<!--          </div>-->
-<!--        </div>-->
-
-<!--        &lt;!&ndash; Biểu đồ tròn (userChart) &ndash;&gt;-->
-<!--        <div class="mb-5 d-flex justify-content-center">-->
-<!--          <div class="bg-white p-3 rounded shadow-sm"-->
-<!--               style="width: 500px; max-width: 100%; margin: 0 auto;">-->
-<!--            <canvas id="userChart" style="height: 250px;"></canvas>-->
-<!--          </div>-->
-<!--        </div>-->
-
-<!--        &lt;!&ndash; Biểu đồ đường (lineChart) &ndash;&gt;-->
-<!--        <div class="mt-5 text-center">-->
-<!--          <h2 class="h5 fw-bold mb-3">📈 Biểu đồ số lượng tài khoản hoạt động</h2>-->
-<!--          <div class="mx-auto bg-white p-3 rounded shadow-sm"-->
-<!--               style="width: 1100px; max-width:100%;">-->
-<!--            <canvas id="lineChart" style="height:250px;"></canvas>-->
-<!--          </div>-->
-<!--        </div>-->
-
-<!--        &lt;!&ndash; Biểu đồ cột (monthlyChart) &ndash;&gt;-->
-<!--        <div class="mt-5 text-center">-->
-<!--          <h2 class="h5 fw-bold mb-3">📊 Thống kê Bài viết & Đề thi (12 tháng)</h2>-->
-<!--          <div class="mx-auto bg-white p-3 rounded shadow-sm"-->
-<!--               style="width: 1100px; max-width:100%;">-->
-<!--            <canvas id="monthlyChart" style="height:250px;"></canvas>-->
-<!--          </div>-->
-<!--        </div>-->
-
-<!--        &lt;!&ndash; Quản lý Người dùng &ndash;&gt;-->
-<!--        <div id="users" class="mt-5">-->
-<!--          <h2 class="h5 fw-bold mb-3">👥 Quản lý Người dùng</h2>-->
-<!--          <div class="table-responsive bg-light rounded shadow-sm">-->
-<!--            <table class="table table-hover align-middle mb-0">-->
-<!--              <thead class="table-secondary">-->
-<!--              <tr>-->
-<!--                <th>📧 Email</th>-->
-<!--                <th>👤 Tên</th>-->
-<!--                <th>🛡 Vai trò</th>-->
-<!--                <th class="text-center">⚙️ Hành động</th>-->
-<!--              </tr>-->
-<!--              </thead>-->
-<!--              <tbody>-->
-<!--              <tr th:each="user : ${users}">-->
-<!--                <td th:text="${user.email}"></td>-->
-<!--                <td th:text="${user.username}"></td>-->
-<!--                <td class="fw-bold text-primary" th:text="${user.role}"></td>-->
-<!--                <td class="text-center">-->
-<!--                  &lt;!&ndash; Form cập nhật vai trò &ndash;&gt;-->
-<!--                  <form action="/admin/changeRole" method="post" class="d-inline-block">-->
-<!--                    <input type="hidden" name="username" th:value="${user.username}">-->
-<!--                    <select name="newRole" class="form-select d-inline-block w-auto">-->
-<!--                      <option value="USER" th:selected="${user.role == 'USER'}">USER</option>-->
-<!--                      <option value="TEACHER" th:selected="${user.role == 'TEACHER'}">TEACHER</option>-->
-<!--                      <option value="ADMIN" th:selected="${user.role == 'ADMIN'}">ADMIN</option>-->
-<!--                      <option value="UPGRADED_USER" th:selected="${user.role == 'UPGRADED_USER'}">UPGRADED_USER</option>-->
-<!--                    </select>-->
-<!--                    <button type="submit" class="btn btn-success btn-sm ms-2">💾 Lưu</button>-->
-<!--                  </form>-->
-<!--                  &lt;!&ndash; Nút cập nhật trạng thái: nếu user.active là true thì hiện "🚫 Vô hiệu hóa", ngược lại "✅ Kích hoạt lại" &ndash;&gt;-->
-<!--                  <form action="/admin/updateUserStatus" method="post" class="d-inline-block">-->
-<!--                    <input type="hidden" name="username" th:value="${user.username}">-->
-<!--                    <button type="submit" class="btn"-->
-<!--                            th:classappend="${user.active} ? ' btn-danger btn-sm ms-2' : ' btn-success btn-sm ms-2'"-->
-<!--                            th:text="${user.active} ? '🚫 Vô hiệu hóa' : '✅ Kích hoạt lại'">-->
-<!--                    </button>-->
-<!--                  </form>-->
-<!--                </td>-->
-<!--              </tr>-->
-<!--              </tbody>-->
-<!--            </table>-->
-<!--          </div>-->
-<!--        </div>-->
-
-<!--        &lt;!&ndash; Quản lý Đề Thi &ndash;&gt;-->
-<!--        <div id="exams" class="mt-5">-->
-<!--          <h2 class="h5 fw-bold mb-3">📚 Quản Lý Đề Thi</h2>-->
-<!--          <div class="text-end mb-3">-->
-<!--            <a href="/exams/addExam" class="btn btn-success shadow-sm">➕ Thêm Đề Thi</a>-->
-<!--          </div>-->
-<!--          <div class="table-responsive bg-light rounded shadow-sm">-->
-<!--            <table class="table table-hover align-middle mb-0">-->
-<!--              <thead class="table-secondary">-->
-<!--              <tr>-->
-<!--                <th>📄 Tên Đề Thi</th>-->
-<!--                <th>📌 Môn Học</th>-->
-<!--                <th>📅 Ngày Tạo</th>-->
-<!--                <th>👤 Người Tạo</th>-->
-<!--                <th class="text-center">⚙️ Hành Động</th>-->
-<!--              </tr>-->
-<!--              </thead>-->
-<!--              <tbody>-->
-<!--              <tr th:each="exam : ${exams}">-->
-<!--                <td class="fw-semibold" th:text="${exam.examName}"></td>-->
-<!--                <td th:text="${exam.subject}"></td>-->
-<!--                <td th:text="${exam.date}"></td>-->
-<!--                <td class="fw-semibold text-primary" th:text="${exam.username}"></td>-->
-<!--                <td class="text-center">-->
-<!--                  <a th:href="@{/exams/{examId}/detail(examId=${exam.examID})}"-->
-<!--                     class="btn btn-primary btn-sm">🔍 Xem</a>-->
-<!--                  <a th:href="@{/exams/{examId}/edit(examId=${exam.examID})}"-->
-<!--                     class="btn btn-warning btn-sm text-white">✏️ Sửa</a>-->
-<!--                  <form action="/admin/updateExamStatus" method="post" class="d-inline-block">-->
-<!--                    <input type="hidden" name="examId" th:value="${exam.examID}">-->
-<!--                    <button type="submit" class="btn"-->
-<!--                            th:classappend="${exam.active} ? ' btn-danger btn-sm' : ' btn-success btn-sm'"-->
-<!--                            th:text="${exam.active} ? '🚫 Vô hiệu hóa' : '✅ Kích hoạt lại'">-->
-<!--                    </button>-->
-<!--                  </form>-->
-<!--                </td>-->
-<!--              </tr>-->
-<!--              </tbody>-->
-<!--            </table>-->
-<!--          </div>-->
-<!--        </div>-->
-
-<!--        &lt;!&ndash; Quản lý Bài Đăng &ndash;&gt;-->
-<!--        <div id="posts" class="mt-5">-->
-<!--          <h2 class="h5 fw-bold mb-3">📄 Quản Lý Bài Đăng</h2>-->
-<!--          <div class="table-responsive bg-light rounded shadow-sm">-->
-<!--            <table class="table table-hover align-middle mb-0">-->
-<!--              <thead class="table-secondary">-->
-<!--              <tr>-->
-<!--                <th>👤 Người Đăng</th>-->
-<!--                <th>📝 Nội Dung</th>-->
-<!--                <th>📅 Ngày Đăng</th>-->
-<!--                <th class="text-center">❤️ Lượt Thích</th>-->
-<!--                <th class="text-center">⚙️ Hành Động</th>-->
-<!--              </tr>-->
-<!--              </thead>-->
-<!--              <tbody>-->
-<!--              <tr th:each="post : ${posts}">-->
-<!--                <td class="fw-semibold text-primary" th:text="${post.username}"></td>-->
-<!--                <td class="text-truncate" style="max-width: 300px;" th:text="${post.content}"></td>-->
-<!--                <td th:text="${post.date}"></td>-->
-<!--                <td class="fw-semibold text-center" th:text="${post.likeCount}"></td>-->
-<!--                <td class="text-center">-->
-<!--                  <a th:href="@{/forum/{postId}(postId=${post.postId})}"-->
-<!--                     class="btn btn-primary btn-sm">🔍 Xem</a>-->
-<!--                  <form action="/admin/updatePostStatus" method="post" class="d-inline-block">-->
-<!--                    <input type="hidden" name="postId" th:value="${post.postId}">-->
-<!--                    <button type="submit" class="btn"-->
-<!--                            th:classappend="${post.active} ? ' btn-danger btn-sm' : ' btn-success btn-sm'"-->
-<!--                            th:text="${post.active} ? '🚫 Vô hiệu hóa' : '✅ Kích hoạt lại'">-->
-<!--                    </button>-->
-<!--                  </form>-->
-<!--                </td>-->
-<!--              </tr>-->
-<!--              </tbody>-->
-<!--            </table>-->
-<!--          </div>-->
-<!--        </div>-->
-
-<!--      </div> &lt;!&ndash; /px-4 &ndash;&gt;-->
-<!--    </div> &lt;!&ndash; /col-10 &ndash;&gt;-->
-<!--  </div> &lt;!&ndash; /row &ndash;&gt;-->
-<!--</div> &lt;!&ndash; /container-fluid &ndash;&gt;-->
-
-<!--&lt;!&ndash; JavaScript for Charts &ndash;&gt;-->
-<!--<script>-->
-<!--  // Biểu đồ tròn (userChart)-->
-<!--  new Chart(document.getElementById('userChart'), {-->
-<!--    type: 'pie',-->
-<!--    data: {-->
-<!--      labels: ['User', 'Admin', 'Teacher', 'Upgraded User'],-->
-<!--      datasets: [{-->
-<!--        data: [45, 5, 15, 10],-->
-<!--        backgroundColor: ['#4CAF50', '#FF6384', '#36A2EB', '#FFCE56']-->
-<!--      }]-->
-<!--    },-->
-<!--    options: {-->
-<!--      responsive: true,-->
-<!--      maintainAspectRatio: false-->
-<!--    }-->
-<!--  });-->
-
-<!--  // Biểu đồ đường (lineChart)-->
-<!--  new Chart(document.getElementById('lineChart'), {-->
-<!--    type: 'line',-->
-<!--    data: {-->
-<!--      labels: ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',-->
-<!--        'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'],-->
-<!--      datasets: [{-->
-<!--        label: 'Người dùng hoạt động',-->
-<!--        data: [100, 150, 120, 180, 60, 90, 300, 112, 156, 189, 203, 500],-->
-<!--        borderColor: '#36A2EB',-->
-<!--        fill: false-->
-<!--      }]-->
-<!--    },-->
-<!--    options: {-->
-<!--      responsive: true,-->
-<!--      maintainAspectRatio: false-->
-<!--    }-->
-<!--  });-->
-
-<!--  // Biểu đồ cột (monthlyChart)-->
-<!--  new Chart(document.getElementById('monthlyChart'), {-->
-<!--    type: 'bar',-->
-<!--    data: {-->
-<!--      labels: ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',-->
-<!--        'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'],-->
-<!--      datasets: [-->
-<!--        {-->
-<!--          label: 'Bài viết',-->
-<!--          data: [10, 15, 8, 20, 25, 10, 30, 12, 14, 22, 18, 16],-->
-<!--          backgroundColor: '#36A2EB'-->
-<!--        },-->
-<!--        {-->
-<!--          label: 'Đề thi',-->
-<!--          data: [7, 10, 12, 18, 20, 14, 25, 9, 11, 19, 17, 15],-->
-<!--          backgroundColor: '#FFCE56'-->
-<!--        }-->
-<!--      ]-->
-<!--    },-->
-<!--    options: {-->
-<!--      responsive: true,-->
-<!--      maintainAspectRatio: false-->
-<!--    }-->
-<!--  });-->
-<!--</script>-->
-
-<!--</body>-->
-<!--</html>-->
-
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Dashboard - Trang Chủ</title>
   <link rel="icon" type="image/x-icon" href="https://res.cloudinary.com/dsuav027e/image/upload/v1740393796/favicon_llcueu.ico">
-  <!-- Bootstrap CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-  <!-- Bootstrap Icons -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
-  <!-- Bootstrap JS Bundle -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <!-- (Nếu cần Chart.js cho các trang khác) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
   <style>
-    /* Sidebar sticky */
-    .sidebar-sticky {
-      position: sticky;
-      top: 0;
-      height: 100vh;
-      overflow-y: auto;
-      z-index: 10;
-    }
-    /* Header sticky */
-    .header-sticky {
-      position: sticky;
-      top: 0;
-      z-index: 999;
-      background: #fff;
-    }
+    .sidebar-sticky { position: sticky; top: 0; height: calc(100vh - 56px); overflow-y: auto; z-index: 10; }
+    .header-sticky { position: sticky; top: 0; z-index: 999; background: #fff; }
+    .chart-container { max-width: 300px; margin: 0 auto; }
+    .stats-card { min-width: 150px; padding: 15px; }
+    .stats-card h3 { font-size: 1rem; margin-bottom: 5px; }
+    .stats-card p { font-size: 1.5rem; margin: 0; }
   </style>
 </head>
 <body class="bg-white">
 <div class="container-fluid">
   <div class="row">
-    <!-- Sidebar -->
     <div class="col-2 bg-light px-3 py-4 sidebar-sticky">
       <div class="text-center mb-4">
         <img src="/img/logo.png" alt="Logo" class="img-fluid mb-3">
@@ -369,46 +28,166 @@
       <h2 class="h5 fw-bold text-center">🎩 Dashboard</h2>
       <ul class="nav flex-column mt-4">
         <li class="nav-item mb-2">
-          <a href="/admin/users" class="nav-link">👥 Quản lí Người dùng</a>
+          <a href="/admin" class="nav-link active bg-light fw-bold">
+            <i class="bi bi-house-fill text-primary me-2" style="transition: color 0.3s;"></i> Bảng Điều Khiển
+          </a>
         </li>
         <li class="nav-item mb-2">
-          <a href="/admin/exams" class="nav-link">📝 Quản lí Đề thi</a>
+          <a href="/admin/users" class="nav-link text-dark">
+            <i class="bi bi-people-fill text-success me-2" style="transition: color 0.3s;"></i> Quản Lý Người Dùng
+          </a>
         </li>
         <li class="nav-item mb-2">
-          <a href="/admin/posts" class="nav-link">📄 Quản lí Bài viết</a>
+          <a href="/admin/exams" class="nav-link text-dark">
+            <i class="bi bi-file-earmark-text-fill text-warning me-2" style="transition: color 0.3s;"></i> Quản Lý Đề Thi
+          </a>
         </li>
         <li class="nav-item mb-2">
-          <a href="/admin/stats" class="nav-link">📊 Thống kê</a>
+          <a href="/admin/posts" class="nav-link text-dark">
+            <i class="bi bi-file-post-fill me-2" style="color: #6f42c1; transition: color 0.3s;"></i> Quản Lý Bài Viết
+          </a>
+        </li>
+        <li class="nav-item mb-2">
+          <a href="/admin/reports" class="nav-link text-dark">
+            <i class="bi bi-exclamation-triangle-fill text-danger me-2" style="transition: color 0.3s;"></i> Quản Lý Báo Cáo
+          </a>
+        </li>
+        <li class="nav-item mb-2">
+          <a href="/admin/logs" class="nav-link text-dark">
+            <i class="bi bi-clock-history text-info me-2" style="transition: color 0.3s;"></i> Lịch Sử Hành Động
+          </a>
         </li>
         <li class="nav-item mt-3">
-          <a href="/logout" class="nav-link text-danger">🚪 Đăng xuất</a>
+          <a href="/logout" class="nav-link text-danger" data-bs-toggle="modal" data-bs-target="#logoutModal">
+            <i class="bi bi-box-arrow-right text-danger me-2" style="transition: color 0.3s;"></i> Đăng Xuất
+          </a>
         </li>
       </ul>
     </div>
-    <!-- Main Content -->
     <div class="col-10 px-0">
-      <!-- Header -->
       <div class="header-sticky shadow-sm p-4 mb-4">
         <div class="d-flex justify-content-between align-items-center">
-          <h1 class="h3 fw-bold m-0">Dashboard</h1>
+          <h1 class="h3 fw-bold m-0">Bảng Điều Khiển</h1>
           <div class="d-flex align-items-center">
-            <div class="me-3 position-relative">
-              <input type="text" placeholder="🔍 Tìm kiếm..." class="form-control" style="width: 200px;">
-            </div>
-            <div class="d-flex align-items-center">
-              <span class="fw-semibold me-2" th:text="${adminUser.username}">Admin</span>
-              <img th:src="${adminUser.avatarUrl}" alt="Admin Avatar" class="rounded-circle border border-secondary" style="width:40px; height:40px;">
-            </div>
+            <input type="text" placeholder="🔍 Tìm kiếm..." class="form-control me-3" style="width: 200px;">
+            <span class="fw-semibold me-2" th:text="${adminUser.username}">Admin</span>
+            <img th:src="${adminUser.avatarUrl}" alt="Admin Avatar" class="rounded-circle border border-secondary" style="width:40px; height:40px;">
           </div>
         </div>
       </div>
-      <!-- Nội dung trang chủ -->
       <div class="px-4">
-        <h2 class="h5 fw-bold">Chào mừng đến với Admin Dashboard</h2>
-        <p>Vui lòng chọn một mục từ sidebar để quản lí nội dung.</p>
+        <h2 class="h5 fw-bold">Chào mừng đến với Bảng Điều Khiển Admin</h2>
+        <p>Vui lòng chọn một mục từ sidebar để quản lý nội dung.</p>
+
+        <!-- Thống kê tổng quan -->
+        <div class="mt-4">
+          <h2 class="h5 fw-bold mb-3">📊 Thống kê tổng quan</h2>
+          <div id="stats" class="d-flex flex-wrap gap-3 mb-4">
+            <div class="border rounded stats-card flex-fill text-center">
+              <h3>👤 Tổng tài khoản</h3>
+              <p class="fw-bold" th:text="${totalUser}">0</p>
+            </div>
+            <div class="border rounded stats-card flex-fill text-center">
+              <h3>📄 Tổng bài viết</h3>
+              <p class="fw-bold" th:text="${totalPost}">0</p>
+            </div>
+            <div class="border rounded stats-card flex-fill text-center">
+              <h3>📝 Tổng đề thi</h3>
+              <p class="fw-bold" th:text="${totalExam}">0</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hành động gần đây -->
+        <div class="mt-4">
+          <h2 class="h5 fw-bold mb-3">⏳ Hành động gần đây</h2>
+          <div class="border rounded p-3">
+            <ul class="list-group list-group-flush">
+              <li th:each="log : ${recentLogs}" class="list-group-item d-flex justify-content-between align-items-center">
+                <span>
+                  <strong th:text="${log.adminUsername}"></strong>
+                  <span th:text="${log.description}"></span>
+                </span>
+                <small class="text-muted" th:text="${log.formattedTimestamp}"></small>
+              </li>
+              <li th:if="${recentLogsEmpty}" class="list-group-item text-muted">
+                Chưa có hành động nào gần đây.
+              </li>
+            </ul>
+            <div class="text-end mt-3">
+              <a href="/admin/logs" class="btn btn-outline-primary btn-sm">Xem tất cả</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Biểu đồ tỷ lệ người dùng (5 vai trò) -->
+        <div class="mt-4">
+          <h2 class="h5 fw-bold mb-3">📈 Tỷ lệ người dùng</h2>
+          <div class="chart-container">
+            <canvas id="userRatioChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Báo cáo chưa xử lý -->
+        <div class="mt-4">
+          <h2 class="h5 fw-bold mb-3">⚠️ Báo cáo chưa xử lý</h2>
+          <div class="border rounded p-3 d-flex justify-content-between align-items-center">
+            <div>
+              <p class="mb-0">Có <strong th:text="${pendingReportsCount}">0</strong> báo cáo đang chờ xử lý.</p>
+            </div>
+            <a href="/admin/reports" class="btn btn-outline-danger btn-sm">Xem báo cáo</a>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </div>
+
+
+
+<!-- Script để vẽ biểu đồ -->
+<script th:inline="javascript">
+  document.addEventListener('DOMContentLoaded', function () {
+    const ctx = document.getElementById('userRatioChart').getContext('2d');
+    const adminCount = [[${adminCount != null ? adminCount : 0}]];
+    const teacherCount = [[${teacherCount != null ? teacherCount : 0}]];
+    const studentCount = [[${studentCount != null ? studentCount : 0}]];
+    const pendingCount = [[${pendingCount != null ? pendingCount : 0}]];
+    const blockedCount = [[${blockedCount != null ? blockedCount : 0}]];
+
+    // Kiểm tra nếu không có dữ liệu
+    if (adminCount === 0 && teacherCount === 0 && studentCount === 0 && pendingCount === 0 && blockedCount === 0) {
+      ctx.canvas.parentNode.innerHTML = '<p class="text-muted text-center">Chưa có dữ liệu người dùng để hiển thị.</p>';
+      return;
+    }
+
+    new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels: ['Admin', 'Giáo viên', 'Học sinh', 'Chờ duyệt', 'Bị khóa'],
+        datasets: [{
+          data: [adminCount, teacherCount, studentCount, pendingCount, blockedCount],
+          backgroundColor: [
+            '#0d6efd', // Màu xanh dương (Admin)
+            '#198754', // Màu xanh lá (Giáo viên)
+            '#ffc107', // Màu vàng (Học sinh)
+            '#6f42c1', // Màu tím (Chờ duyệt)
+            '#dc3545'  // Màu đỏ (Bị khóa)
+          ],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'bottom'
+          }
+        }
+      }
+    });
+  });
+</script>
+<div th:insert="~{fragments/logoutModal :: logoutModal}"></div>
 </body>
 </html>
