@@ -71,7 +71,7 @@ function submitComment(event) {
                 if (tempCommentEl) {
                     tempCommentEl.setAttribute("data-post-id", data.postId);
                     tempCommentEl.id = "comment-" + data.commentId;
-                    tempCommentEl.querySelector(".heart-btn").setAttribute("data-comment-id", data.commentId);
+                    tempCommentEl.querySelector(".heart-icon").setAttribute("data-comment-id", data.commentId);
                     tempCommentEl.querySelector(".edit-comment").setAttribute("data-comment-id", data.commentId);
                     tempCommentEl.querySelector(".delete-comment").setAttribute("data-comment-id", data.commentId);
                     tempCommentEl.querySelector(".report-comment").setAttribute("data-comment-id", data.commentId);

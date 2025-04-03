@@ -33,6 +33,10 @@
                                     <option value="ly">Vật lý</option>
                                     <option value="hoa">Hóa học</option>
                                     <option value="ngoaingu">Ngoại ngữ</option>
+                                    <option value="nghethuat">Nghệ thuật</option>
+                                    <option value="thethao">Thể thao</option>
+                                    <option value="congnghe">Công nghệ</option>
+                                    <option value="amnhac">Âm nhạc</option>
                                     <option value="khac">Khác</option>
                                 </select>
                             </div>
@@ -79,22 +83,11 @@
         <aside class="col-md-3 d-none d-md-block sidebar">
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h2 class="h5 mb-0">Lịch sử bình luận</h2>
+                    <h2 class="h5 mb-0">Thông báo</h2>
                     <a href="#" class="text-decoration-none">Xem tất cả</a>
                 </div>
-                <ul class="list-group list-group-flush">
-                    <li th:each="comment : ${userComments}" class="list-group-item">
-                        <a th:href="@{/postDetail/{id}(id=${comment.postId})}"
-                           class="d-flex align-items-center text-decoration-none text-dark">
-                            <img th:src="${comment.avatarUrl}" class="rounded-circle me-3" width="35" height="35"
-                                 alt="User">
-                            <div>
-                                <strong th:text="${comment.username} + ' >>> ' + ${comment.postOwner}"></strong>
-                                <div class="small text-muted">Bạn: <span th:text="${comment.content}"></span></div>
-                                <div class="small text-muted" th:text="${comment.timeAgo}"></div>
-                            </div>
-                        </a>
-                    </li>
+                <ul class="list-group list-group-flush" id="notification-list">
+                    <!-- Thông báo sẽ được thêm vào đây bằng JavaScript -->
                 </ul>
             </div>
         </aside>
@@ -176,7 +169,7 @@
 
         // Gọi API để lấy bài viết
         function fetchPosts(subject, grade) {
-            let url = `/forum/posts`;
+            let url = "/forum/posts";
             const params = new URLSearchParams();
             if (subject) params.append("subject", subject); // Nếu không có subject thì lấy tất cả
             if (grade) params.append("grade", grade);
@@ -214,6 +207,61 @@
             });
         });
     });
+
+    function fetchNotifications() {
+        fetch('/forum/notifications')
+            .then(response => response.json())
+            .then(notifications => {
+                const notificationList = document.getElementById("notification-list");
+                notificationList.innerHTML = ""; // Xóa thông báo cũ trước khi cập nhật mới
+
+                if (notifications.length === 0) {
+                    notificationList.innerHTML = "<p class='text-muted text-center'>Không có thông báo nào</p>";
+                    return;
+                }
+
+                notifications.forEach(noti => {
+                    const listItem = document.createElement("li");
+                    listItem.className = "list-group-item d-flex justify-content-between";
+                    listItem.setAttribute("data-post-id", noti.postId);
+                    listItem.setAttribute("data-read", noti.isRead);
+
+                    const link = document.createElement("a");
+                    link.href = `/postDetail/${noti.postId}`;
+                    link.className = "text-decoration-none text-dark notification-link";
+
+                    // Cắt ngắn content nếu quá dài (ví dụ 100 ký tự)
+                    const maxContentLength = 20;
+                    let contentPreview = noti.content;
+                    if (contentPreview.length > maxContentLength) {
+                        contentPreview = contentPreview.slice(0, maxContentLength) + "...";
+                    }
+
+                    link.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center">
+                        <strong>${noti.sender} ${noti.type === "comment" ? ">>>" : "<<<"} ${noti.receiver}</strong>
+                        <div class="small text-muted time-ago ml-auto">${noti.timeAgo}</div> <!-- Thêm ml-auto để đẩy sang bên phải -->
+                    </div>
+                    <div class="content-preview text-muted">${contentPreview}</div>
+                `;
+
+                    // Nếu thông báo chưa đọc, thêm chấm tròn xanh
+                    if (noti.isRead === false || noti.isRead == null) {
+                        const unreadDot = document.createElement("span");
+                        unreadDot.className = "badge bg-primary rounded-circle notification-dot";
+                        unreadDot.style.width = "10px";
+                        unreadDot.style.height = "10px";
+                        listItem.appendChild(unreadDot);
+                    }
+
+                    listItem.appendChild(link);
+                    notificationList.appendChild(listItem);
+                });
+            })
+            .catch(error => console.error("❌ Lỗi khi tải thông báo:", error));
+    }
+
+    document.addEventListener("DOMContentLoaded", fetchNotifications);
 
     function createPostElement(post) {
         const postElement = document.createElement("div");
@@ -317,6 +365,33 @@
             output.innerHTML = "<strong>Đã chọn:</strong> " +
                 Array.from(fileList).map(file => file.name).join(', ');
         }
+    });
+
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll(".notification-link").forEach(item => {
+            item.addEventListener("click", function (event) {
+                event.preventDefault(); // Ngăn điều hướng ngay lập tức
+
+                let listItem = this.closest("li");
+                let postId = listItem.getAttribute("data-post-id");
+
+                if (listItem.getAttribute("data-read") === "false") {
+                    fetch(`/forum/markAsRead/${postId}`, { method: "POST" })
+                        .then(response => response.text())
+                        .then(result => {
+                            if (result === "Updated") {
+                                listItem.setAttribute("data-read", "true");
+                                let dot = listItem.querySelector(".notification-dot");
+                                if (dot) dot.remove(); // Xóa chấm tròn xanh
+                            }
+                        })
+                        .catch(error => console.error("Error:", error));
+                }
+
+                // Điều hướng đến trang chi tiết bài viết sau khi cập nhật trạng thái
+                window.location.href = this.getAttribute("href");
+            });
+        });
     });
 
     document.addEventListener("DOMContentLoaded", function () {
