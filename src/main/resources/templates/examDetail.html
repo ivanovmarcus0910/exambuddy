@@ -48,6 +48,32 @@
                 <button class="btn btn-outline-secondary btn-sm share-button" type="button" th:data-exam-id="${exam.examID}">
                     <i class="fas fa-share-alt"></i> Share
                 </button>
+                <!-- Đánh giá trung bình -->
+                <div class="mb-3">
+                    <h6 class="fw-bold">Đánh giá trung bình:</h6>
+                    <div>
+                        <span th:text="${T(java.lang.String).format('%.1f', ratingSummary.average)} + ' / 5'"></span>
+
+
+
+                        <span class="text-muted"> (Từ <span th:text="${ratingSummary.total}"></span> phản hồi)</span>
+
+                    </div>
+
+                    <!-- Bộ lọc theo sao -->
+                    <div class="mt-2">
+                        <label class="form-label fw-bold">Lọc theo sao:</label>
+                        <select id="filter-star" class="form-select form-select-sm" onchange="filterFeedbacksByStar()">
+                            <option value="all">Tất cả</option>
+                            <option value="5">5 sao</option>
+                            <option value="4">4 sao</option>
+                            <option value="3">3 sao</option>
+                            <option value="2">2 sao</option>
+                            <option value="1">1 sao</option>
+                        </select>
+                    </div>
+                </div>
+
                 <!-- Feedback Form -->
                 <div th:if="${isLoggedIn and not hasCommented and not isExamCreator}">
                     <form id="feedback-form" th:action="@{/exams/{examId}/feedback(examId=${exam.examID})}" method="post" class="mb-3">
@@ -259,6 +285,25 @@
             alert('🔗 Link đề thi đã được sao chép vào clipboard!');
         }
     });
+
+
+
+
+        function filterFeedbacksByStar() {
+        const selectedStar = document.getElementById("filter-star").value;
+        const allFeedbacks = document.querySelectorAll(".feedback-item");
+
+        allFeedbacks.forEach(item => {
+        const stars = item.querySelectorAll(".star-display .fas").length;
+        if (selectedStar === "all" || parseInt(selectedStar) === stars) {
+        item.style.display = "block";
+    } else {
+        item.style.display = "none";
+    }
+    });
+    }
+
+
 </script>
 
 
