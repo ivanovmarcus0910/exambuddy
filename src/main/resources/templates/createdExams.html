@@ -89,6 +89,15 @@
                 </select>
             </div>
 
+            <!-- Dropdown lọc theo trạng thái -->
+            <div class="form-group">
+                <select class="form-select" name="status">
+                    <option value="all" th:selected="${selectedStatus == null or selectedStatus == 'all'}">Tất cả trạng thái</option>
+                    <option value="APPROVED" th:selected="${selectedStatus == 'APPROVED'}">Đã được duyệt</option>
+                    <option value="PENDING" th:selected="${selectedStatus == 'PENDING'}">Chờ duyệt</option>
+                </select>
+            </div>
+
             <!-- Nút Lọc -->
             <div class="form-group">
                 <button type="submit" class="btn btn-success">
@@ -106,6 +115,7 @@
                     <th>Môn học</th>
                     <th>Lớp</th>
                     <th>Ngày đăng</th>
+                    <th>Trạng thái</th>
                     <th>Hành động</th>
                 </tr>
                 </thead>
@@ -115,6 +125,11 @@
                     <td th:text="${exam.subject}"></td>
                     <td th:text="${exam.grade}"></td>
                     <td th:text="${exam.getFormattedDate()}"></td>
+                    <td>
+                        <span th:if="${exam.getStatus() == 'APPROVED'}" class="badge bg-success">Đã được duyệt</span>
+                        <span th:if="${exam.getStatus() == 'PENDING'}" class="badge bg-warning">Chờ duyệt</span>
+
+                    </td>
                     <td>
                         <div class="d-flex gap-2">
                             <form th:action="@{/exams/{id}/detail(id=${exam.examID})}" method="get">
@@ -139,6 +154,40 @@
                 </tbody>
             </table>
         </div>
+
+        <!-- Phân trang -->
+        <div th:if="${totalPages > 1}" class="d-flex justify-content-center mt-4">
+            <nav aria-label="Page navigation">
+                <ul class="pagination">
+                    <!-- Nút Previous -->
+                    <li class="page-item" th:classappend="${currentPage == 0 ? 'disabled' : ''}">
+                        <a class="page-link"
+                           th:href="@{/exams/created(page=${currentPage - 1}, size=${pageSize}, subject=${selectedSubject}, grade=${selectedGrade}, searchQuery=${searchQuery})}"
+                           aria-label="Previous">
+                            <span aria-hidden="true">«</span>
+                        </a>
+                    </li>
+
+                    <!-- Các số trang -->
+                    <li th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                        class="page-item" th:classappend="${i == currentPage ? 'active' : ''}">
+                        <a class="page-link"
+                           th:href="@{/exams/created(page=${i}, size=${pageSize}, subject=${selectedSubject}, grade=${selectedGrade}, searchQuery=${searchQuery})}"
+                           th:text="${i + 1}"></a>
+                    </li>
+
+                    <!-- Nút Next -->
+                    <li class="page-item" th:classappend="${currentPage == totalPages - 1 ? 'disabled' : ''}">
+                        <a class="page-link"
+                           th:href="@{/exams/created(page=${currentPage + 1}, size=${pageSize}, subject=${selectedSubject}, grade=${selectedGrade}, searchQuery=${searchQuery})}"
+                           aria-label="Next">
+                            <span aria-hidden="true">»</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+
     </div>
 </div>
 <!-- Bootstrap Bundle JS -->

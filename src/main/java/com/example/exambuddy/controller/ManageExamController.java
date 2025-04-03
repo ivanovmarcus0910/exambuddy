@@ -16,6 +16,10 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -88,7 +92,8 @@ public class ManageExamController {
             model.addAttribute("isLoggedIn", isLoggedIn);
             model.addAttribute("hasCommented", hasCommented);
             model.addAttribute("isExamCreator", isExamCreator);
-
+            Map<String, Object> ratingSummary = feedbackService.getRatingSummary(examId);
+            model.addAttribute("ratingSummary", ratingSummary);
             return "examDetail"; // Trả về trang HTML hiển thị đề thi
         } catch (Exception e) {
             model.addAttribute("error", "Lỗi khi tải đề thi: " + e.getMessage());
@@ -240,10 +245,12 @@ public class ManageExamController {
 //                    System.out.println(questionID + " => " + answers)
 //            );
             String username = session.getAttribute("loggedInUser").toString();
+            User user = userService.getUserByUsername(username);
+            String avatarUrl = user != null ? user.getAvatarUrl() : "";
             session.removeAttribute("shuffledQuestions_"+examId);
             examService.submitExam(username, examId);
             examService.saveExamResult(username, examId, score, exam, userAnswers, correctQuestions);
-            leaderBoardService.updateUserScore(username, score);
+            leaderBoardService.updateUserScore(username, score, avatarUrl);
             model.addAttribute("exam", exam);
             model.addAttribute("score", score);
             model.addAttribute("totalQuestions", questions.size());
@@ -331,16 +338,30 @@ public class ManageExamController {
     }
     //Lấy danh sách lịch sử làm bài
     @GetMapping("exams/result-list")
-    public String getResultList(HttpServletRequest request, HttpSession session, Model model) {
+    public String getResultList(HttpServletRequest request, HttpSession session, Model model,
+                                @RequestParam(defaultValue = "0") int page, // Thêm tham số page
+                                @RequestParam(defaultValue = "10") int size) { // Thêm tham số size
         if (session.getAttribute("loggedInUser") == null) {
             return "redirect:/home"; // Nếu chưa đăng nhập, chuyển hướng về home
         }
+
         String username = cookieService.getCookie(request, "noname");
-        User user =userService.getUserByUsername(username);
+        User user = userService.getUserByUsername(username);
         model.addAttribute("user", user);
-        List<ExamResult> results = username != null ? examService.getExamResultByUsername(username) : new ArrayList<>();
-        model.addAttribute("results", results);
+
+        // Tạo đối tượng Pageable để truyền vào ExamService
+        Pageable pageable = PageRequest.of(page, size);
+
+        // Gọi ExamService để lấy danh sách phân trang
+        Page<ExamResult> resultPage = username != null ? examService.getExamResultByUsername(username, pageable) : Page.empty();
+
+        // Thêm các thuộc tính vào model để giao diện sử dụng
+        model.addAttribute("results", resultPage.getContent()); // Danh sách kết quả trong trang hiện tại
+        model.addAttribute("currentPage", resultPage.getNumber()); // Trang hiện tại
+        model.addAttribute("totalPages", resultPage.getTotalPages()); // Tổng số trang
+        model.addAttribute("totalItems", resultPage.getTotalElements()); // Tổng số kết quả
         model.addAttribute("username", username);
+
         return "examResultList";
     }
 
@@ -426,11 +447,15 @@ public class ManageExamController {
 
     //Created List
     @GetMapping("/exams/created")
-        public String showCreatedExams(
+    public String showCreatedExams(
             @RequestParam(value = "subject", required = false) String subject,
             @RequestParam(value = "grade", required = false) String grade,
+            @RequestParam(value = "status", required = false) String status, // Thêm tham số status
             @RequestParam(value = "searchQuery", required = false) String searchQuery,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size,
             Model model, HttpServletRequest request, HttpSession session) {
+
         if (session.getAttribute("loggedInUser") == null) {
             return "redirect:/login"; // Nếu chưa đăng nhập, chuyển hướng về login
         }
@@ -439,8 +464,15 @@ public class ManageExamController {
         User user = userService.getUserByUsername(username);
         model.addAttribute("user", user);
 
-        // Lấy danh sách bài kiểm tra đã tạo bởi username
-        List<Exam> createdExams = examService.getHtoryCreateExamsByUsername(username);
+        // Tạo đối tượng Pageable để truyền vào service
+        Pageable pageable = PageRequest.of(page, size, Sort.by("date").descending());
+
+        // Lấy danh sách bài kiểm tra đã tạo bởi username với phân trang
+        Page<Exam> examPage = examService.getHistoryCreateExamsByUsername(username, pageable);
+
+        // Lấy danh sách exams từ Page
+        List<Exam> createdExams = examPage.getContent();
+        System.out.println("createdExams: " + createdExams);
 
         // Áp dụng tìm kiếm theo tên
         if (searchQuery != null && !searchQuery.trim().isEmpty()) {
@@ -449,14 +481,20 @@ public class ManageExamController {
                     .collect(Collectors.toList());
         }
 
-        // Áp dụng bộ lọc theo môn học và grade
+        // Áp dụng bộ lọc theo môn học, grade và trạng thái
         createdExams = examService.filterExamsBySubject(createdExams, subject);
         createdExams = examService.filterExamsByClass(createdExams, grade);
+        createdExams = examService.filterExamsByStatus(createdExams, status); // Thêm bộ lọc theo trạng thái
 
         // Truyền dữ liệu sang view
         model.addAttribute("createdExams", createdExams);
+        model.addAttribute("currentPage", examPage.getNumber());
+        model.addAttribute("totalPages", examPage.getTotalPages());
+        model.addAttribute("totalItems", examPage.getTotalElements());
+        model.addAttribute("pageSize", size);
         model.addAttribute("selectedSubject", subject);
         model.addAttribute("selectedGrade", grade);
+        model.addAttribute("selectedStatus", status); // Thêm selectedStatus vào model
         model.addAttribute("searchQuery", searchQuery);
 
         return "createdExams";
@@ -464,52 +502,76 @@ public class ManageExamController {
 
 
     @GetMapping("/exams/result/{resultId}/{examId}")
-    public String viewExamResult(@PathVariable String resultId, @PathVariable String examId, Model model, HttpServletRequest request, HttpSession session) throws ExecutionException, InterruptedException {
-        if (session.getAttribute("loggedInUser") == null) {
-            return "redirect:/login"; // Nếu chưa đăng nhập, chuyển hướng về login
-        }
-        String username = cookieService.getCookie(request, "noname");
+    public String viewExamResult(@PathVariable String resultId, @PathVariable String examId, Model model, HttpServletRequest request, HttpSession session) {
+        try {
+            // Kiểm tra đăng nhập
+            if (session.getAttribute("loggedInUser") == null) {
+                return "redirect:/login";
+            }
+            String username = cookieService.getCookie(request, "noname");
+            if (username == null) {
+                model.addAttribute("err", "Không tìm thấy thông tin người dùng.");
+                model.addAttribute("exam", new Exam());
+                model.addAttribute("score", 0);
+                model.addAttribute("userName", "Không xác định");
+                model.addAttribute("userAnswers", null);
+                model.addAttribute("correctQuestions", null);
+                return "fragments/ResultDetail :: detailFragment";
+            }
 
-        // Lấy kết quả bài thi của user
-        ExamResult examResult = examService.getExamResult(resultId);
-        if (examResult == null) {
-            return "redirect:/home";
-        }
+            // Lấy kết quả bài thi
+            ExamResult examResult = examService.getExamResult(resultId);
+            if (examResult == null) {
+                model.addAttribute("err", "Không tìm thấy kết quả bài thi.");
+                model.addAttribute("exam", new Exam());
+                model.addAttribute("score", 0);
+                model.addAttribute("userName", username);
+                model.addAttribute("userAnswers", null);
+                model.addAttribute("correctQuestions", null);
+                return "fragments/ResultDetail :: detailFragment";
+            }
 
-        // Lấy danh sách câu hỏi từ Firestore
-        Exam exam = examResult.getExam();
-        if (exam == null) {
-            model.addAttribute("exam", new Exam());  // Truyền danh sách câu hỏi vào Thymeleaf
+            // Lấy thông tin đề thi hiện tại từ examService
+            Exam exam = examService.getExam(examId);
 
+            // Kiểm tra xem exam bị vô hiệu hóa hay không
+            if (exam == null || "DISABLED".equals(exam.getStatus())) {
+                model.addAttribute("exam", new Exam()); // Đối tượng rỗng để tránh lỗi template
+                model.addAttribute("score", examResult.getScore());
+                model.addAttribute("userName", examResult.getUsername() != null ? examResult.getUsername() : username);
+                model.addAttribute("userAnswers", null);
+                model.addAttribute("correctQuestions", examResult.getCorrectAnswers());
+                model.addAttribute("err", "Lỗi đề thi đã bị vô hiệu hóa, chân thành xin lỗi!");
+                return "fragments/ResultDetail :: detailFragment";
+            }
+
+            // Nếu đề thi không bị vô hiệu hóa, hiển thị chi tiết
+            Map<String, List<String>> userAnswers = new HashMap<>();
+            if (exam.getQuestions() != null) {
+                for (int i = 0; i < exam.getQuestions().size(); i++) {
+                    String key = "q" + i;
+                    userAnswers.put(key, examResult.getAnswers() != null ?
+                            examResult.getAnswers().getOrDefault(key, Collections.emptyList()) : Collections.emptyList());
+                }
+            }
+
+            model.addAttribute("exam", exam);
             model.addAttribute("score", examResult.getScore());
-            model.addAttribute("userName", examResult.getUsername());
-            model.addAttribute("userAnswers", null);
+            model.addAttribute("userAnswers", userAnswers);
             model.addAttribute("correctQuestions", examResult.getCorrectAnswers());
+            model.addAttribute("userName", examResult.getUsername() != null ? examResult.getUsername() : username);
 
+            return "fragments/ResultDetail :: detailFragment";
+        } catch (Exception e) {
+            log.error("Lỗi khi xem kết quả bài thi: resultId={}, examId={}, error={}", resultId, examId, e.getMessage(), e);
+            model.addAttribute("exam", new Exam());
+            model.addAttribute("score", 0);
+            model.addAttribute("userName", "Không xác định");
+            model.addAttribute("userAnswers", null);
+            model.addAttribute("correctQuestions", null);
             model.addAttribute("err", "Lỗi đề thi đã bị vô hiệu hóa, chân thành xin lỗi!");
             return "fragments/ResultDetail :: detailFragment";
         }
-        System.out.println(exam.getExamID());
-        // Khởi tạo userAnswers với tất cả các câu hỏi
-        Map<String, List<String>> userAnswers = new HashMap<>();
-        if (exam.getQuestions() != null) {
-            for (int i = 0; i < exam.getQuestions().size(); i++) {
-                String key = "q" + i;
-                // Lấy đáp án từ examResult, nếu không có thì để danh sách rỗng
-                userAnswers.put(key, examResult.getAnswers() != null ?
-                        examResult.getAnswers().getOrDefault(key, Collections.emptyList()) : Collections.emptyList());
-            }
-        }
-        System.out.println(exam.getExamID());
-
-        model.addAttribute("exam", exam);  // Truyền danh sách câu hỏi vào Thymeleaf
-        model.addAttribute("score", examResult.getScore());
-        model.addAttribute("userAnswers", userAnswers);
-        model.addAttribute("correctQuestions", examResult.getCorrectAnswers());
-        model.addAttribute("userName", examResult.getUsername());
-
-        // Trả về fragment thay vì toàn bộ trang
-        return "fragments/ResultDetail :: detailFragment";
     }
 
     @GetMapping("/search")
@@ -745,16 +807,17 @@ public class ManageExamController {
             return "redirect:/login";
         }
         Exam exam = examService.getExam(examId);
-        if (exam.getUsername().equals(username)) {
-            examService.updateExamStatus(examId, false);
+        if (exam != null && exam.getUsername().equals(username)) {
+            // Thay vì xoá hoàn toàn, chuyển trạng thái của đề thi thành "DISABLED"
+            examService.disableExam(examId);
+            session.setAttribute("success", "Đề thi đã được vô hiệu hoá thành công!");
             return "redirect:/exams/created";
-        }
-        else
-        {
-            model.addAttribute("error", "Bạn đang truy cập trái phép");
+        } else {
+            model.addAttribute("error", "Bạn không có quyền xoá đề thi này hoặc đề thi không tồn tại!");
             return "error";
         }
     }
+
     @GetMapping("/exams/{examId}/feedbacks")
     public ResponseEntity<List<Feedback>> getFeedbacks(@PathVariable String examId) {
         List<Feedback> feedbacks = feedbackService.getFeedbacksByExamId(examId);

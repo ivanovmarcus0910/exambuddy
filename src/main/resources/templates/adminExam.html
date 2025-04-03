@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -35,28 +35,42 @@
       <div class="text-center mb-4">
         <img src="/img/logo.png" alt="Logo" class="img-fluid mb-3">
       </div>
-      <h2 class="h5 fw-bold text-center">🎩 Dashboard</h2>
+
       <ul class="nav flex-column mt-4">
         <li class="nav-item mb-2">
-          <a href="/admin/users" class="nav-link">👥 Quản lí Người dùng</a>
+          <a href="/admin" class="nav-link text-dark">
+            <i class="bi bi-house-fill text-primary me-2" style="transition: color 0.3s;"></i> Bảng Điều Khiển
+          </a>
         </li>
         <li class="nav-item mb-2">
-          <a href="/admin/exams" class="nav-link">📝 Quản lí Đề thi</a>
+          <a href="/admin/users" class="nav-link text-dark">
+            <i class="bi bi-people-fill text-success me-2" style="transition: color 0.3s;"></i> Quản Lý Người Dùng
+          </a>
         </li>
         <li class="nav-item mb-2">
-          <a href="/admin/posts" class="nav-link">📄 Quản lí Bài viết</a>
+          <a href="/admin/exams" class="nav-link text-dark">
+            <i class="bi bi-file-earmark-text-fill text-warning me-2" style="transition: color 0.3s;"></i> Quản Lý Đề Thi
+          </a>
         </li>
         <li class="nav-item mb-2">
-          <a href="/admin/reports" class="nav-link">⚠️ Quản lí Báo cáo</a>
+          <a href="/admin/posts" class="nav-link text-dark">
+            <i class="bi bi-file-post-fill me-2" style="color: #6f42c1; transition: color 0.3s;"></i> Quản Lý Bài Viết
+          </a>
         </li>
         <li class="nav-item mb-2">
-          <a href="/admin/logs" class="nav-link active">📝 Lịch sử Admin</a>
+          <a href="/admin/reports" class="nav-link text-dark">
+            <i class="bi bi-exclamation-triangle-fill text-danger me-2" style="transition: color 0.3s;"></i> Quản Lý Báo Cáo
+          </a>
         </li>
         <li class="nav-item mb-2">
-          <a href="/admin/stats" class="nav-link">📊 Thống kê</a>
+          <a href="/admin/logs" class="nav-link active bg-light fw-bold">
+            <i class="bi bi-clock-history text-info me-2" style="transition: color 0.3s;"></i> Lịch Sử Hành Động
+          </a>
         </li>
         <li class="nav-item mt-3">
-          <a href="/logout" class="nav-link text-danger">🚪 Đăng xuất</a>
+          <a href="/logout" class="nav-link text-danger" data-bs-toggle="modal" data-bs-target="#logoutModal">
+            <i class="bi bi-box-arrow-right text-danger me-2" style="transition: color 0.3s;"></i> Đăng Xuất
+          </a>
         </li>
       </ul>
     </div>
@@ -76,10 +90,12 @@
       <div class="px-4">
         <h2 class="h5 fw-bold mb-3">📚 Quản Lý Đề Thi</h2>
         <div class="text-end mb-3">
-          <!-- Nút Thêm đề thi được làm to hơn -->
           <a href="/exams/addExam" class="btn btn-success shadow-sm"
              style="padding:6px 12px; border-radius:10px; font-size:1rem;">➕ Thêm Đề Thi</a>
         </div>
+        <!-- Thông báo thành công hoặc lỗi -->
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+        <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
         <div class="table-responsive bg-light rounded shadow-sm">
           <table class="table table-hover align-middle mb-0">
             <thead class="table-secondary">
@@ -89,7 +105,7 @@
               <th>📅 Ngày Tạo</th>
               <th>👤 Người Tạo</th>
               <th>⚙️ Trạng thái</th>
-              <th>Thao tác</th>
+              <th class="text-center">Thao tác</th>
               <th class="text-center">Hành động</th>
             </tr>
             </thead>
@@ -100,8 +116,15 @@
               <td th:text="${exam.date}"></td>
               <td class="fw-semibold text-primary" th:text="${exam.username}"></td>
               <!-- Cột trạng thái -->
-              <td th:text="${exam.active} ? 'Đã kích hoạt' : 'Chưa kích hoạt'"></td>
-              <!-- Cột Thao tác: nút xem chi tiết -->
+              <td>
+                <span th:switch="${exam.status}">
+                  <span th:case="'PENDING'" class="badge bg-warning text-dark">Chờ duyệt</span>
+                  <span th:case="'APPROVED'" class="badge bg-success">Đã duyệt</span>
+                  <span th:case="'DISABLED'" class="badge bg-danger">Vô hiệu hóa</span>
+                  <span th:case="*">Không xác định</span>
+                </span>
+              </td>
+              <!-- Cột Thao tác -->
               <td class="text-center">
                 <a th:href="@{/exams/{examId}/detail(examId=${exam.examID})}"
                    class="btn btn-primary btn-sm"
@@ -109,19 +132,52 @@
                   🔍 Xem
                 </a>
               </td>
-              <!-- Cột Hành động: form cập nhật trạng thái -->
+              <!-- Cột Hành động -->
               <td class="text-center">
-                <form action="/admin/updateExamStatus" method="post" class="d-inline-flex align-items-center"
-                      th:attr="onsubmit=${exam.active} ? 'return confirm(\'Bạn có chắc chắn muốn vô hiệu hoá đề thi này?\')' : 'return confirm(\'Bạn có chắc chắn muốn kích hoạt lại đề thi này?\')'">
-                  <input type="hidden" name="examId" th:value="${exam.examID}">
-                  <button type="submit"
-                          class="btn btn-sm rounded-pill d-flex align-items-center justify-content-center px-3 fw-bold text-white"
-                          style="padding:2px 6px; border-radius:8px; font-size:0.8rem;"
-                          th:classappend="${exam.active} ? ' btn-danger' : ' btn-success'">
-                    <i class="bi" th:class="${exam.active} ? 'bi-x-circle me-1' : 'bi-check-circle me-1'"></i>
-                    <span th:text="${exam.active} ? 'Vô hiệu hoá' : 'Duyệt'"></span>
-                  </button>
-                </form>
+                <div class="d-flex justify-content-center gap-2">
+                  <!-- Nút Duyệt/Vô hiệu hóa (chỉ admin) -->
+                  <th:block th:if="${isAdmin}">
+                    <form th:action="@{/admin/updateExamStatus}" method="post" class="d-inline-flex align-items-center"
+                          th:switch="${exam.status}">
+                      <input type="hidden" name="examId" th:value="${exam.examID}">
+                      <!-- Nếu trạng thái là PENDING -->
+                      <span th:case="'PENDING'">
+                        <input type="hidden" name="status" value="APPROVED">
+                        <button type="submit" class="btn btn-success btn-sm rounded-pill px-3"
+                                style="font-size:0.8rem;" onclick="return confirm('Bạn có chắc chắn muốn duyệt đề thi này?');">
+                          <i class="bi bi-check-circle me-1"></i> Duyệt
+                        </button>
+                      </span>
+                      <!-- Nếu trạng thái là DISABLED -->
+                      <span th:case="'DISABLED'">
+                        <input type="hidden" name="status" value="APPROVED">
+                        <button type="submit" class="btn btn-success btn-sm rounded-pill px-3"
+                                style="font-size:0.8rem;" onclick="return confirm('Bạn có chắc chắn muốn kích hoạt lại đề thi này?');">
+                          <i class="bi bi-check-circle me-1"></i> Kích hoạt
+                        </button>
+                      </span>
+                      <!-- Nếu trạng thái là APPROVED -->
+                      <span th:case="'APPROVED'">
+                        <input type="hidden" name="status" value="DISABLED">
+                        <button type="submit" class="btn btn-danger btn-sm rounded-pill px-3"
+                                style="font-size:0.8rem;" onclick="return confirm('Bạn có chắc chắn muốn vô hiệu hóa đề thi này?');">
+                          <i class="bi bi-x-circle me-1"></i> Vô hiệu hóa
+                        </button>
+                      </span>
+                    </form>
+                  </th:block>
+                  <!-- Nút Xóa (admin hoặc người tạo) -->
+                  <th:block th:if="${isAdmin or exam.username == currentUser.username}">
+                    <form th:action="@{/admin/deleteExam}" method="post" class="d-inline-flex align-items-center"
+                          onsubmit="return confirm('Bạn có chắc chắn muốn xóa đề thi này?');">
+                      <input type="hidden" name="examId" th:value="${exam.examID}">
+                      <button type="submit" class="btn btn-danger btn-sm rounded-pill px-3"
+                              style="font-size:0.8rem;">
+                        <i class="bi bi-trash me-1"></i> Xóa
+                      </button>
+                    </form>
+                  </th:block>
+                </div>
               </td>
             </tr>
             </tbody>
@@ -131,5 +187,6 @@
     </div>
   </div>
 </div>
+<div th:insert="~{fragments/logoutModal :: logoutModal}"></div>
 </body>
 </html>

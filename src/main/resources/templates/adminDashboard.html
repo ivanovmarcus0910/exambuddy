@@ -5,34 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Dashboard - Trang Chủ</title>
   <link rel="icon" type="image/x-icon" href="https://res.cloudinary.com/dsuav027e/image/upload/v1740393796/favicon_llcueu.ico">
-  <!-- Bootstrap CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-  <!-- Bootstrap Icons -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
-  <!-- Bootstrap JS Bundle -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
   <style>
-    /* Sidebar sticky */
-    .sidebar-sticky {
-      position: sticky;
-      top: 0;
-      height: calc(100vh - 56px); /* trừ chiều cao navbar */
-      overflow-y: auto;
-      z-index: 10;
-    }
-    /* Header sticky */
-    .header-sticky {
-      position: sticky;
-      top: 0;
-      z-index: 999;
-      background: #fff;
-    }
+    .sidebar-sticky { position: sticky; top: 0; height: calc(100vh - 56px); overflow-y: auto; z-index: 10; }
+    .header-sticky { position: sticky; top: 0; z-index: 999; background: #fff; }
+    .chart-container { max-width: 300px; margin: 0 auto; }
+    .stats-card { min-width: 150px; padding: 15px; }
+    .stats-card h3 { font-size: 1rem; margin-bottom: 5px; }
+    .stats-card p { font-size: 1.5rem; margin: 0; }
   </style>
 </head>
 <body class="bg-white">
 <div class="container-fluid">
   <div class="row">
-    <!-- Sidebar -->
     <div class="col-2 bg-light px-3 py-4 sidebar-sticky">
       <div class="text-center mb-4">
         <img src="/img/logo.png" alt="Logo" class="img-fluid mb-3">
@@ -40,72 +28,166 @@
       <h2 class="h5 fw-bold text-center">🎩 Dashboard</h2>
       <ul class="nav flex-column mt-4">
         <li class="nav-item mb-2">
-          <a href="/adminDashboard" class="nav-link text-dark">
-            <i class="bi bi-house-fill" style="color:#007bff;"></i> Trang Admin
+          <a href="/admin" class="nav-link active bg-light fw-bold">
+            <i class="bi bi-house-fill text-primary me-2" style="transition: color 0.3s;"></i> Bảng Điều Khiển
           </a>
         </li>
         <li class="nav-item mb-2">
           <a href="/admin/users" class="nav-link text-dark">
-            <i class="bi bi-people-fill" style="color:#28a745;"></i> Quản lí Người dùng
+            <i class="bi bi-people-fill text-success me-2" style="transition: color 0.3s;"></i> Quản Lý Người Dùng
           </a>
         </li>
         <li class="nav-item mb-2">
           <a href="/admin/exams" class="nav-link text-dark">
-            <i class="bi bi-journal-text" style="color:#ffc107;"></i> Quản lí Đề thi
+            <i class="bi bi-file-earmark-text-fill text-warning me-2" style="transition: color 0.3s;"></i> Quản Lý Đề Thi
           </a>
         </li>
         <li class="nav-item mb-2">
           <a href="/admin/posts" class="nav-link text-dark">
-            <i class="bi bi-file-earmark-text" style="color:#17a2b8;"></i> Quản lí Bài viết
+            <i class="bi bi-file-post-fill me-2" style="color: #6f42c1; transition: color 0.3s;"></i> Quản Lý Bài Viết
           </a>
         </li>
-        <!-- Mục bổ sung -->
         <li class="nav-item mb-2">
           <a href="/admin/reports" class="nav-link text-dark">
-            <i class="bi bi-exclamation-triangle-fill" style="color:#dc3545;"></i> Quản lí Báo cáo
+            <i class="bi bi-exclamation-triangle-fill text-danger me-2" style="transition: color 0.3s;"></i> Quản Lý Báo Cáo
           </a>
         </li>
         <li class="nav-item mb-2">
           <a href="/admin/logs" class="nav-link text-dark">
-            <i class="bi bi-clock-history" style="color:#6c757d;"></i> Lịch sử Admin
-          </a>
-        </li>
-        <li class="nav-item mb-2">
-          <a href="/admin/stats" class="nav-link text-dark">
-            <i class="bi bi-bar-chart-line-fill" style="color:#6610f2;"></i> Thống kê
+            <i class="bi bi-clock-history text-info me-2" style="transition: color 0.3s;"></i> Lịch Sử Hành Động
           </a>
         </li>
         <li class="nav-item mt-3">
-          <a href="/logout" class="nav-link text-danger">
-            <i class="bi bi-box-arrow-right"></i> Đăng xuất
+          <a href="/logout" class="nav-link text-danger" data-bs-toggle="modal" data-bs-target="#logoutModal">
+            <i class="bi bi-box-arrow-right text-danger me-2" style="transition: color 0.3s;"></i> Đăng Xuất
           </a>
         </li>
       </ul>
     </div>
-    <!-- Main Content -->
     <div class="col-10 px-0">
-      <!-- Header -->
       <div class="header-sticky shadow-sm p-4 mb-4">
         <div class="d-flex justify-content-between align-items-center">
-          <h1 class="h3 fw-bold m-0">Dashboard</h1>
+          <h1 class="h3 fw-bold m-0">Bảng Điều Khiển</h1>
           <div class="d-flex align-items-center">
-            <div class="me-3 position-relative">
-              <input type="text" placeholder="🔍 Tìm kiếm..." class="form-control" style="width: 200px;">
-            </div>
-            <div class="d-flex align-items-center">
-              <span class="fw-semibold me-2" th:text="${adminUser.username}">Admin</span>
-              <img th:src="${adminUser.avatarUrl}" alt="Admin Avatar" class="rounded-circle border border-secondary" style="width:40px; height:40px;">
-            </div>
+            <input type="text" placeholder="🔍 Tìm kiếm..." class="form-control me-3" style="width: 200px;">
+            <span class="fw-semibold me-2" th:text="${adminUser.username}">Admin</span>
+            <img th:src="${adminUser.avatarUrl}" alt="Admin Avatar" class="rounded-circle border border-secondary" style="width:40px; height:40px;">
           </div>
         </div>
       </div>
-      <!-- Nội dung trang chủ -->
       <div class="px-4">
-        <h2 class="h5 fw-bold">Chào mừng đến với Admin Dashboard</h2>
-        <p>Vui lòng chọn một mục từ sidebar để quản lí nội dung.</p>
+        <h2 class="h5 fw-bold">Chào mừng đến với Bảng Điều Khiển Admin</h2>
+        <p>Vui lòng chọn một mục từ sidebar để quản lý nội dung.</p>
+
+        <!-- Thống kê tổng quan -->
+        <div class="mt-4">
+          <h2 class="h5 fw-bold mb-3">📊 Thống kê tổng quan</h2>
+          <div id="stats" class="d-flex flex-wrap gap-3 mb-4">
+            <div class="border rounded stats-card flex-fill text-center">
+              <h3>👤 Tổng tài khoản</h3>
+              <p class="fw-bold" th:text="${totalUser}">0</p>
+            </div>
+            <div class="border rounded stats-card flex-fill text-center">
+              <h3>📄 Tổng bài viết</h3>
+              <p class="fw-bold" th:text="${totalPost}">0</p>
+            </div>
+            <div class="border rounded stats-card flex-fill text-center">
+              <h3>📝 Tổng đề thi</h3>
+              <p class="fw-bold" th:text="${totalExam}">0</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hành động gần đây -->
+        <div class="mt-4">
+          <h2 class="h5 fw-bold mb-3">⏳ Hành động gần đây</h2>
+          <div class="border rounded p-3">
+            <ul class="list-group list-group-flush">
+              <li th:each="log : ${recentLogs}" class="list-group-item d-flex justify-content-between align-items-center">
+                <span>
+                  <strong th:text="${log.adminUsername}"></strong>
+                  <span th:text="${log.description}"></span>
+                </span>
+                <small class="text-muted" th:text="${log.formattedTimestamp}"></small>
+              </li>
+              <li th:if="${recentLogsEmpty}" class="list-group-item text-muted">
+                Chưa có hành động nào gần đây.
+              </li>
+            </ul>
+            <div class="text-end mt-3">
+              <a href="/admin/logs" class="btn btn-outline-primary btn-sm">Xem tất cả</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Biểu đồ tỷ lệ người dùng (5 vai trò) -->
+        <div class="mt-4">
+          <h2 class="h5 fw-bold mb-3">📈 Tỷ lệ người dùng</h2>
+          <div class="chart-container">
+            <canvas id="userRatioChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Báo cáo chưa xử lý -->
+        <div class="mt-4">
+          <h2 class="h5 fw-bold mb-3">⚠️ Báo cáo chưa xử lý</h2>
+          <div class="border rounded p-3 d-flex justify-content-between align-items-center">
+            <div>
+              <p class="mb-0">Có <strong th:text="${pendingReportsCount}">0</strong> báo cáo đang chờ xử lý.</p>
+            </div>
+            <a href="/admin/reports" class="btn btn-outline-danger btn-sm">Xem báo cáo</a>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </div>
+
+
+
+<!-- Script để vẽ biểu đồ -->
+<script th:inline="javascript">
+  document.addEventListener('DOMContentLoaded', function () {
+    const ctx = document.getElementById('userRatioChart').getContext('2d');
+    const adminCount = [[${adminCount != null ? adminCount : 0}]];
+    const teacherCount = [[${teacherCount != null ? teacherCount : 0}]];
+    const studentCount = [[${studentCount != null ? studentCount : 0}]];
+    const pendingCount = [[${pendingCount != null ? pendingCount : 0}]];
+    const blockedCount = [[${blockedCount != null ? blockedCount : 0}]];
+
+    // Kiểm tra nếu không có dữ liệu
+    if (adminCount === 0 && teacherCount === 0 && studentCount === 0 && pendingCount === 0 && blockedCount === 0) {
+      ctx.canvas.parentNode.innerHTML = '<p class="text-muted text-center">Chưa có dữ liệu người dùng để hiển thị.</p>';
+      return;
+    }
+
+    new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels: ['Admin', 'Giáo viên', 'Học sinh', 'Chờ duyệt', 'Bị khóa'],
+        datasets: [{
+          data: [adminCount, teacherCount, studentCount, pendingCount, blockedCount],
+          backgroundColor: [
+            '#0d6efd', // Màu xanh dương (Admin)
+            '#198754', // Màu xanh lá (Giáo viên)
+            '#ffc107', // Màu vàng (Học sinh)
+            '#6f42c1', // Màu tím (Chờ duyệt)
+            '#dc3545'  // Màu đỏ (Bị khóa)
+          ],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'bottom'
+          }
+        }
+      }
+    });
+  });
+</script>
+<div th:insert="~{fragments/logoutModal :: logoutModal}"></div>
 </body>
 </html>

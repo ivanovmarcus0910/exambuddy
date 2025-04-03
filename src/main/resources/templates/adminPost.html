@@ -35,28 +35,42 @@
       <div class="text-center mb-4">
         <img src="/img/logo.png" alt="Logo" class="img-fluid mb-3">
       </div>
-      <h2 class="h5 fw-bold text-center">🎩 Dashboard</h2>
+
       <ul class="nav flex-column mt-4">
         <li class="nav-item mb-2">
-          <a href="/admin/users" class="nav-link">👥 Quản lí Người dùng</a>
+          <a href="/admin" class="nav-link text-dark">
+            <i class="bi bi-house-fill text-primary me-2" style="transition: color 0.3s;"></i> Bảng Điều Khiển
+          </a>
         </li>
         <li class="nav-item mb-2">
-          <a href="/admin/exams" class="nav-link">📝 Quản lí Đề thi</a>
+          <a href="/admin/users" class="nav-link text-dark">
+            <i class="bi bi-people-fill text-success me-2" style="transition: color 0.3s;"></i> Quản Lý Người Dùng
+          </a>
         </li>
         <li class="nav-item mb-2">
-          <a href="/admin/posts" class="nav-link">📄 Quản lí Bài viết</a>
+          <a href="/admin/exams" class="nav-link text-dark">
+            <i class="bi bi-file-earmark-text-fill text-warning me-2" style="transition: color 0.3s;"></i> Quản Lý Đề Thi
+          </a>
         </li>
         <li class="nav-item mb-2">
-          <a href="/admin/reports" class="nav-link">⚠️ Quản lí Báo cáo</a>
+          <a href="/admin/posts" class="nav-link text-dark">
+            <i class="bi bi-file-post-fill me-2" style="color: #6f42c1; transition: color 0.3s;"></i> Quản Lý Bài Viết
+          </a>
         </li>
         <li class="nav-item mb-2">
-          <a href="/admin/logs" class="nav-link active">📝 Lịch sử Admin</a>
+          <a href="/admin/reports" class="nav-link text-dark">
+            <i class="bi bi-exclamation-triangle-fill text-danger me-2" style="transition: color 0.3s;"></i> Quản Lý Báo Cáo
+          </a>
         </li>
         <li class="nav-item mb-2">
-          <a href="/admin/stats" class="nav-link">📊 Thống kê</a>
+          <a href="/admin/logs" class="nav-link active bg-light fw-bold">
+            <i class="bi bi-clock-history text-info me-2" style="transition: color 0.3s;"></i> Lịch Sử Hành Động
+          </a>
         </li>
         <li class="nav-item mt-3">
-          <a href="/logout" class="nav-link text-danger">🚪 Đăng xuất</a>
+          <a href="/logout" class="nav-link text-danger" data-bs-toggle="modal" data-bs-target="#logoutModal">
+            <i class="bi bi-box-arrow-right text-danger me-2" style="transition: color 0.3s;"></i> Đăng Xuất
+          </a>
         </li>
       </ul>
     </div>
@@ -130,5 +144,6 @@
     </div>
   </div>
 </div>
+<div th:insert="~{fragments/logoutModal :: logoutModal}"></div>
 </body>
 </html>

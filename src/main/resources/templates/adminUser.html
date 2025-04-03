@@ -76,6 +76,17 @@
       border-top: none;
       padding: 1rem;
     }
+    .modal-header .modal-title {
+      display: block !important;
+      opacity: 1 !important;
+      color: #000 !important; /* Đảm bảo màu chữ không bị trong suốt */
+    }
+
+    .modal-dialog {
+      margin-top: 80px;
+      max-height: 80vh; /* Giới hạn chiều cao tối đa */
+      overflow-y: auto; /* Cho phép cuộn nếu nội dung dài */
+    }
 
   </style>
 </head>
@@ -87,28 +98,42 @@
       <div class="text-center mb-4">
         <img src="/img/logo.png" alt="Logo" class="img-fluid mb-3">
       </div>
-      <h2 class="h5 fw-bold">🎩 Dashboard</h2>
+
       <ul class="nav flex-column mt-4">
         <li class="nav-item mb-2">
-          <a href="/admin/users" class="nav-link">👥 Quản lí Người dùng</a>
+          <a href="/admin" class="nav-link text-dark">
+            <i class="bi bi-house-fill text-primary me-2" style="transition: color 0.3s;"></i> Bảng Điều Khiển
+          </a>
         </li>
         <li class="nav-item mb-2">
-          <a href="/admin/exams" class="nav-link">📝 Quản lí Đề thi</a>
+          <a href="/admin/users" class="nav-link text-dark">
+            <i class="bi bi-people-fill text-success me-2" style="transition: color 0.3s;"></i> Quản Lý Người Dùng
+          </a>
         </li>
         <li class="nav-item mb-2">
-          <a href="/admin/posts" class="nav-link">📄 Quản lí Bài viết</a>
+          <a href="/admin/exams" class="nav-link text-dark">
+            <i class="bi bi-file-earmark-text-fill text-warning me-2" style="transition: color 0.3s;"></i> Quản Lý Đề Thi
+          </a>
         </li>
         <li class="nav-item mb-2">
-          <a href="/admin/reports" class="nav-link">⚠️ Quản lí Báo cáo</a>
+          <a href="/admin/posts" class="nav-link text-dark">
+            <i class="bi bi-file-post-fill me-2" style="color: #6f42c1; transition: color 0.3s;"></i> Quản Lý Bài Viết
+          </a>
         </li>
         <li class="nav-item mb-2">
-          <a href="/admin/logs" class="nav-link active">📝 Lịch sử Admin</a>
+          <a href="/admin/reports" class="nav-link text-dark">
+            <i class="bi bi-exclamation-triangle-fill text-danger me-2" style="transition: color 0.3s;"></i> Quản Lý Báo Cáo
+          </a>
         </li>
         <li class="nav-item mb-2">
-          <a href="/admin/stats" class="nav-link">📊 Thống kê</a>
+          <a href="/admin/logs" class="nav-link active bg-light fw-bold">
+            <i class="bi bi-clock-history text-info me-2" style="transition: color 0.3s;"></i> Lịch Sử Hành Động
+          </a>
         </li>
         <li class="nav-item mt-3">
-          <a href="/logout" class="nav-link text-danger" data-bs-toggle="modal" data-bs-target="#logoutModal">🚪 Đăng xuất</a>
+          <a href="/logout" class="nav-link text-danger" data-bs-toggle="modal" data-bs-target="#logoutModal">
+            <i class="bi bi-box-arrow-right text-danger me-2" style="transition: color 0.3s;"></i> Đăng Xuất
+          </a>
         </li>
       </ul>
     </div>
@@ -126,6 +151,11 @@
             </div>
           </div>
         </div>
+      </div>
+
+      <!-- Hiển thị thông báo thành công -->
+      <div th:if="${successMessage}" class="alert alert-success mx-4 mb-3" role="alert">
+        <span th:text="${successMessage}"></span>
       </div>
 
       <!-- Thanh công cụ: Tìm kiếm, Sắp xếp, Thêm người dùng -->
@@ -321,19 +351,19 @@
               <nav>
                 <ul class="pagination pagination-sm">
                   <!-- Nút Trang trước -->
-                  <li class="page-item" th:classappend="${currentPage > 0} ? '' : 'disabled'">
-                    <a class="page-link" th:href="@{/admin/users(page=${currentPage - 1})}">&laquo; Trang trước</a>
+                  <li class="page-item" th:classappend="${currentPage != null and currentPage > 0} ? '' : 'disabled'">
+                    <a class="page-link" th:href="${currentPage != null and currentPage > 0} ? @{/admin/users(page=${currentPage - 1}, search=${searchParam})} : '#'">« Trang trước</a>
                   </li>
 
                   <!-- Các số trang -->
-                  <li th:each="pageNum : ${#numbers.sequence(0, currentPage + 2)}"
-                      th:class="pageNum == currentPage ? 'page-item active' : 'page-item'">
+                  <li th:each="pageNum : ${#numbers.sequence(0, currentPage != null ? currentPage + 2 : 2)}"
+                      th:class="${pageNum == currentPage} ? 'page-item active' : 'page-item'">
                     <a class="page-link" th:href="@{/admin/users(page=${pageNum})}" th:text="${pageNum + 1}"></a>
                   </li>
 
                   <!-- Nút Trang sau -->
                   <li class="page-item" th:classappend="${hasNextPage} ? '' : 'disabled'">
-                    <a class="page-link" th:href="@{/admin/users(page=${currentPage + 1})}">Trang sau &raquo;</a>
+                    <a class="page-link" th:href="${hasNextPage} ? @{/admin/users(page=${currentPage != null ? currentPage + 1 : 1})} : '#'">Trang sau »</a>
                   </li>
                 </ul>
               </nav>
@@ -1142,7 +1172,7 @@
 
 <!-- New User Modal -->
 <div class="modal fade" id="newUserModal" tabindex="-1" aria-labelledby="newUserModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
+  <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <form th:action="@{/admin/addUser}" method="post" id="newUserForm">
         <div class="modal-header">
@@ -1150,6 +1180,8 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
         </div>
         <div class="modal-body">
+          <!-- Thêm tiêu đề phụ cho form -->
+          <h6 class="mb-3">Thông tin tài khoản</h6>
           <!-- Tên đăng nhập -->
           <div class="mb-3">
             <label for="username" class="form-label">Tên đăng nhập</label>
@@ -1168,23 +1200,21 @@
           <div class="mb-3 position-relative">
             <label for="password" class="form-label">Mật khẩu</label>
             <input type="password" class="form-control" id="password" name="password" required>
-            <!-- Icon toggle ẩn/hiện mật khẩu -->
             <span class="position-absolute" style="top: 38px; right: 10px; cursor: pointer;"
                   onclick="togglePasswordVisibility()">
               <i class="bi bi-eye" id="togglePasswordIcon"></i>
             </span>
+            <div class="text-danger" th:if="${passwordError != null}" th:text="${passwordError}"></div>
           </div>
           <!-- Vai trò -->
           <div class="mb-3">
             <label for="role" class="form-label">Vai trò</label>
             <select class="form-select" id="role" name="role" required>
-              <option value="STUDENT" th:selected="${roleValue=='STUDENT'}">Học sinh</option>
-              <option value="TEACHER" th:selected="${roleValue=='TEACHER'}">Giáo viên</option>
-              <option value="ADMIN" th:selected="${roleValue=='ADMIN'}">Quản trị viên</option>
-              <!-- Thêm các tùy chọn khác nếu cần -->
+              <option value="STUDENT" th:selected="${roleValue == 'STUDENT'}">Học sinh</option>
+              <option value="TEACHER" th:selected="${roleValue == 'TEACHER'}">Giáo viên</option>
+              <option value="ADMIN" th:selected="${roleValue == 'ADMIN'}">Quản trị viên</option>
             </select>
           </div>
-          <!-- Các trường khác nếu cần -->
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
@@ -1195,14 +1225,23 @@
   </div>
 </div>
 
+
 <!-- Chèn Fragment modal từ file userModal.html (nếu có) -->
 <div th:replace="~{fragments/userModal :: userModalFragment}"></div>
 
 <!-- Liên kết file JavaScript xử lý modal (nằm trong thư mục js) -->
 <script src="/js/infUser.js"></script>
 
-<!-- Chart.js Script (nếu cần) -->
+
 <script th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', function () {
+      var showNewUserModal = /*[[${showNewUserModal}]]*/ false;
+      if (showNewUserModal) {
+        var modal = new bootstrap.Modal(document.getElementById('newUserModal'));
+        modal.show();
+      }
+  });
+
   function togglePasswordVisibility() {
     var passwordInput = document.getElementById("password");
     var toggleIcon = document.getElementById("togglePasswordIcon");
@@ -1215,46 +1254,7 @@
       toggleIcon.classList.remove("bi-eye-slash");
       toggleIcon.classList.add("bi-eye");
     }
-  }
-  /*<![CDATA[*/
-  var studentCount = /*[[${studentCount}]]*/ 0;
-  var teacherCount = /*[[${teacherCount}]]*/ 0;
-  var upgradedCount = /*[[${upgradedCount}]]*/ 0;
-  var pendingCount = /*[[${pendingCount}]]*/ 0;
-  var adminCount = /*[[${adminCount}]]*/ 0;
-  /*]]>*/
-
-  // Các nhãn cho biểu đồ
-  var roleLabels = ['Student', 'Teacher', 'Upgraded', 'Pending', 'Admin'];
-  var roleData = [studentCount, teacherCount, upgradedCount, pendingCount, adminCount];
-
-  // Khởi tạo biểu đồ tròn
-  var ctx = document.getElementById('userRoleChart').getContext('2d');
-  var userRoleChart = new Chart(ctx, {
-    type: 'pie',
-    data: {
-      labels: roleLabels,
-      datasets: [{
-        data: roleData,
-        backgroundColor: [
-          'rgba(54, 162, 235, 0.7)',
-          'rgba(255, 206, 86, 0.7)',
-          'rgba(75, 192, 192, 0.7)',
-          'rgba(255, 99, 132, 0.7)',
-          'rgba(153, 102, 255, 0.7)'
-        ]
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          position: 'bottom'
-        }
-      }
-    }
-  });
+  };
 </script>
 <div th:insert="~{fragments/logoutModal :: logoutModal}"></div>
 </body>
