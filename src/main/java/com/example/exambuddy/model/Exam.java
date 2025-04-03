@@ -33,7 +33,7 @@ public class Exam {
     // Constructor có tham số
     public Exam(String examID, String examName, String grade, String subject, String examType, String city,
                 List<String> tags, String username, String date, int questionCount, List<Question> questions,
-                long timeduration, int participantCount) {
+                long timeduration, int participantCount ,String status) {
         this.examID = examID;
         this.examName = examName;
         this.grade = grade;
@@ -47,7 +47,7 @@ public class Exam {
         this.questions = questions;
         this.timeduration = timeduration;
         this.participantCount = participantCount;
-        //this.status = "PENDING"; // Mặc định là "PENDING"
+        this.status = status; // Mặc định là "PENDING"
     }
 
     // Getters và Setters
