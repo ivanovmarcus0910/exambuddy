@@ -13,7 +13,7 @@
                         </button>
                         <ul class="dropdown-menu">
                             <li>
-                                <a class="dropdown-item text-primary" href="#"
+                                <a class="dropdown-item text-primary edit-comment" href="#"
                                    onclick="event.preventDefault(); editComment(this)"
                                    th:attr="data-comment-id=${comment.commentId},
                                             data-content=${comment.content},
@@ -42,20 +42,26 @@
                     <img th:src="${imageUrl}" class="comment-image" onclick="openImageModal(this)">
                 </span>
             </div>
-            <div class="d-flex align-items-center mt-2">
-                <button class="btn btn-outline-secondary heart-btn"
-                        th:attr="data-comment-id=${comment.commentId}, data-post-id=${post.postId}"
-                        th:classappend="${comment.liked} ? 'text-danger' : ''"
-                        onclick="toggleLikeComment(this)">
+            <div class="d-flex align-items-center mt-2" style="margin-left: 8px">
+                <!-- Biểu tượng tim -->
+                <span class="heart-icon d-flex align-items-center"
+                      th:attr="data-comment-id=${comment.commentId}, data-post-id=${post.postId}"
+                      th:classappend="${comment.liked} ? 'text-danger' : ''"
+                      onclick="toggleLikeComment(this)">
                     <i class="bi" th:classappend="${comment.liked} ? 'bi-heart-fill' : 'bi-heart'"></i>
-                    <span class="heart-count" th:text="${comment.likeCount}">0</span>
-                </button>
-                <button class="btn btn-sm btn-link text-dark text-decoration-none ms-2"
-                        th:attr="onclick='setReplyForm(\'' + ${comment.commentId} + '\', \'' + ${comment.username} + '\', \'' + (${comment.parentCommentId} != null ? ${comment.parentCommentId} : '') + '\')'">
-                    Phản hồi
-                </button>
+                    <span class="heart-count ms-1" th:text="${comment.likeCount}">0</span>
+                </span>
+
+                <!-- Phản hồi -->
+                <span class="btn btn-sm btn-link text-dark text-decoration-none ms-3"
+                      th:attr="onclick='setReplyForm(\'' + ${comment.commentId} + '\', \'' + ${comment.username} + '\', \'' + (${comment.parentCommentId} != null ? ${comment.parentCommentId} : '') + '\')'">
+                            Phản hồi
+                </span>
+
+                <!-- Thời gian -->
                 <span style="font-size: 11px; color: gray" th:text="${comment.timeAgo}"></span>
             </div>
+
 
             <!-- Hiển thị danh sách phản hồi -->
             <div class="replies ms-4 mt-2">

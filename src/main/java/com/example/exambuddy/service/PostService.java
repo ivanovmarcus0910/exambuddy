@@ -1,5 +1,6 @@
 package com.example.exambuddy.service;
 
+import com.example.exambuddy.model.Notification;
 import com.example.exambuddy.model.Post;
 import com.example.exambuddy.model.Comment;
 import com.google.api.core.ApiFuture;
@@ -7,12 +8,10 @@ import com.google.cloud.firestore.*;
 import com.google.firebase.cloud.FirestoreClient;
 import org.springframework.stereotype.Service;
 
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 
 @Service
@@ -138,11 +137,61 @@ public class PostService {
             DocumentReference newCommentRef = commentsRef.add(comment).get();
             comment.setCommentId(newCommentRef.getId());
             newCommentRef.update("commentId", comment.getCommentId()).get();
+            sendNotificationForComment(postId, parentCommentId, username, content, date);
             return comment;
         } catch (InterruptedException | ExecutionException e) {
             System.out.println("❌ Lỗi khi lưu bình luận: " + e.getMessage());
             e.printStackTrace();
             return null;
+        }
+    }
+
+    private static void sendNotificationForComment(String postId, String parentCommentId, String commenter, String content, String date) {
+        try {
+            String receiver = null;
+            String type = "comment";
+
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            Date notificationDate = sdf.parse(date);
+
+            if (parentCommentId == null || parentCommentId.equals("")) {
+                DocumentSnapshot postSnapshot = db.collection("posts").document(postId).get().get();
+                if (!postSnapshot.exists()) return;
+                receiver = postSnapshot.getString("username");
+            } else {
+                DocumentSnapshot parentComment = db.collection("posts")
+                        .document(postId)
+                        .collection("comments")
+                        .document(parentCommentId)
+                        .get()
+                        .get();
+                if (!parentComment.exists()) return;
+                receiver = parentComment.getString("username");
+                type = "reply";
+            }
+
+            if (receiver == null || receiver.isEmpty() || receiver.equals(commenter)) {
+                System.out.println("⚠️ Không cần gửi thông báo cho chính mình hoặc receiver không tồn tại.");
+                return;
+            }
+
+            Map<String, Object> notification = new HashMap<>();
+            notification.put("postId", postId);
+            notification.put("sender", commenter);
+            notification.put("receiver", receiver);
+            notification.put("content", content);
+            notification.put("type", type);
+            notification.put("isRead", false);
+            notification.put("date", notificationDate);
+
+            // 📝 Lưu thông báo và kiểm tra lỗi
+            ApiFuture<DocumentReference> future = db.collection("postNotifications").add(notification);
+            DocumentReference docRef = future.get(); // Chờ lưu xong
+            System.out.println("✅ Thông báo đã được lưu với ID: " + docRef.getId());
+
+        } catch (Exception e) {
+            System.out.println("❌ Lỗi khi gửi thông báo: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -433,4 +482,54 @@ public class PostService {
             return false;
         }
     }
+
+    public List<Notification> getUserNotifications(String username) {
+        List<Notification> notifications = new ArrayList<>();
+        try {
+            Query query = db.collection("postNotifications")
+                    .whereEqualTo("receiver", username)
+                    .orderBy("date", Query.Direction.DESCENDING);
+
+            ApiFuture<QuerySnapshot> future = query.get();
+            for (DocumentSnapshot doc : future.get().getDocuments()) {
+                Notification noti = doc.toObject(Notification.class);
+                if (noti != null) {
+                    noti.setNotificationId(doc.getId());
+                    notifications.add(noti);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return notifications;
+    }
+
+    public String markNotificationAsRead(String username, String postId) {
+        try {
+            Query query = db.collection("postNotifications")
+                    .whereEqualTo("receiver", username)
+                    .whereEqualTo("postId", postId);
+
+            ApiFuture<QuerySnapshot> future = query.get();
+            List<QueryDocumentSnapshot> documents = future.get().getDocuments();
+
+            if (documents.isEmpty()) {
+                return "No notifications found";
+            }
+
+            // Sử dụng batch để cập nhật đồng thời
+            WriteBatch batch = db.batch();
+            for (DocumentSnapshot doc : documents) {
+                batch.update(doc.getReference(), "isRead", true);
+            }
+
+            batch.commit().get(); // Đợi cập nhật hoàn thành
+
+            return "Updated";
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "Error updating notifications";
+        }
+    }
+
 }
