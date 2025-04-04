@@ -1,5 +1,6 @@
 package com.example.exambuddy.model;
 
+import com.google.cloud.firestore.annotation.IgnoreExtraProperties;
 import net.minidev.json.annotate.JsonIgnore;
 
 import java.time.Duration;
@@ -7,6 +8,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 
+@IgnoreExtraProperties
 public class Feedback {
     private String feedbackId;
     private String examId;

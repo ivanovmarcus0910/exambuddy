@@ -1,9 +1,12 @@
 package com.example.exambuddy.model;
 
 
+import com.google.cloud.firestore.annotation.IgnoreExtraProperties;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+@IgnoreExtraProperties
 public class User {
     private String id;
     private String email;
@@ -262,6 +265,13 @@ public class User {
 
     public void setTimeExpriredPremium(long timeExpriredPremium) {
         this.timeExpriredPremium = timeExpriredPremium;
+    }
+    public String getDegreeFile() {
+        return degreeUrl;
+    }
+
+    public void setDegreeFile(String degreeFile) {
+        this.degreeUrl= degreeFile;
     }
 
 
