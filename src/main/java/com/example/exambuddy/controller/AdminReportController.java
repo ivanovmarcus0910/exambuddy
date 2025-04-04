@@ -1,9 +1,6 @@
 package com.example.exambuddy.controller;
 
-import com.example.exambuddy.model.Exam;
-import com.example.exambuddy.model.Feedback;
-import com.example.exambuddy.model.ReportRequest;
-import com.example.exambuddy.model.User;
+import com.example.exambuddy.model.*;
 import com.example.exambuddy.service.*;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.Firestore;
@@ -15,8 +12,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpSession;
-import java.util.ArrayList;
-import java.util.List;
+
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 @Controller
@@ -38,58 +36,106 @@ public class AdminReportController {
     @Autowired
     private ExamService examService;
 
-    // Lấy danh sách báo cáo từ Firestore
-    private List<ReportRequest> getReports() throws ExecutionException, InterruptedException {
+    private CompletableFuture<List<ReportRequest>> getReports() {
         Firestore db = FirestoreClient.getFirestore();
-        List<ReportRequest> reportList = new ArrayList<>();
         ApiFuture<QuerySnapshot> future = db.collection("report").get();
-        List<QueryDocumentSnapshot> documents = future.get().getDocuments();
 
-        for (QueryDocumentSnapshot doc : documents) {
-            ReportRequest report = doc.toObject(ReportRequest.class);
-            report.setId(doc.getId()); // Giả sử ReportRequest có trường id để lưu document ID
-            // Lấy thông tin bài đăng từ postService
-            if (report.getPostId() != null) {
-                var post = postService.getPostById(report.getPostId()); // Bạn cần viết hàm này nếu chưa có
-                if (post != null) {
-                    report.setPostContent(post.getContent()); // thêm getter/setter vào ReportRequest
-                    report.setPostAuthor(post.getUsername());
-                    report.setPostActive(post.isActive());
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                List<QueryDocumentSnapshot> documents = future.get().getDocuments();
+                List<String> postIds = new ArrayList<>();
+                Map<String, ReportRequest> reportMap = new HashMap<>();
+
+                // Bước 1: Thu thập ID bài đăng và dữ liệu báo cáo ban đầu
+                for (QueryDocumentSnapshot doc : documents) {
+                    ReportRequest report = doc.toObject(ReportRequest.class);
+                    report.setId(doc.getId());
+                    reportMap.put(report.getId(), report);
+                    if (report.getPostId() != null) {
+                        postIds.add(report.getPostId());
+                    }
                 }
-            }
 
-            reportList.add(report);
-        }
-        return reportList;
+                // Bước 2: Lấy tất cả bài đăng trong một truy vấn
+                if (!postIds.isEmpty()) {
+                    ApiFuture<QuerySnapshot> postFuture = db.collection("posts")
+                            .whereIn("postId", postIds)
+                            .get();
+                    List<QueryDocumentSnapshot> postDocs = postFuture.get().getDocuments();
+                    for (QueryDocumentSnapshot postDoc : postDocs) {
+                        Post post = postDoc.toObject(Post.class);
+                        reportMap.values().stream()
+                                .filter(r -> r.getPostId().equals(postDoc.getId()))
+                                .forEach(r -> {
+                                    r.setPostContent(post.getContent());
+                                    r.setPostAuthor(post.getUsername());
+                                    r.setPostActive(post.isActive());
+                                });
+                    }
+                }
+                return new ArrayList<>(reportMap.values());
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+                return new ArrayList<>();
+            }
+        });
     }
 
     // Lấy danh sách tất cả feedback từ các đề thi
-    private List<Feedback> getAllFeedbacks() throws ExecutionException, InterruptedException {
-        List<Feedback> allFeedbacks = new ArrayList<>();
-        List<Exam> exams = examService.getExamList(); // Lấy tất cả đề thi
-        for (Exam exam : exams) {
-            List<Feedback> feedbacks = feedbackService.getFeedbacksByExamId(exam.getExamID());
-            allFeedbacks.addAll(feedbacks);
-            // Kiểm tra và vô hiệu hóa đề thi nếu cần
-            feedbackService.checkAndLockExam(exam.getExamID());
-        }
-        return allFeedbacks;
+    private CompletableFuture<List<Feedback>> getAllFeedbacks() {
+        List<Feedback> allFeedbacks = Collections.synchronizedList(new ArrayList<>());
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                List<Exam> exams = examService.getExamList(); // Giả sử hàm này đã đồng bộ, nếu không thì cần tối ưu thêm
+                List<CompletableFuture<Void>> futures = new ArrayList<>();
+
+                for (Exam exam : exams) {
+                    CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+                        try {
+                            List<Feedback> feedbacks = feedbackService.getFeedbacksByExamId(exam.getExamID());
+                            allFeedbacks.addAll(feedbacks);
+                            feedbackService.checkAndLockExam(exam.getExamID());
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    });
+                    futures.add(future);
+                }
+
+                // Đợi tất cả các tác vụ hoàn thành
+                CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+                return allFeedbacks;
+            } catch (Exception e) {
+                e.printStackTrace();
+                return allFeedbacks;
+            }
+        });
     }
 
 
     @GetMapping("")
-    public String adminReports(Model model, HttpSession session) throws ExecutionException, InterruptedException {
+    public CompletableFuture<String> adminReports(Model model, HttpSession session) {
         String loggedInUser = (String) session.getAttribute("loggedInUser");
         if (loggedInUser == null || !authService.isAdmin(loggedInUser)) {
-            return "redirect:/login";
+            return CompletableFuture.completedFuture("redirect:/login");
         }
-        List<ReportRequest> reports = getReports();
-        List<Feedback> feedbacks = getAllFeedbacks();
-        model.addAttribute("reports", reports);
-        model.addAttribute("feedbacks", feedbacks);
-        User adminUser = userService.getUserByUsername(loggedInUser);
-        model.addAttribute("adminUser", adminUser);
-        return "adminReport"; // File Thymeleaf hiển thị báo cáo
+
+        CompletableFuture<List<ReportRequest>> reportsFuture = getReports();
+        CompletableFuture<List<Feedback>> feedbacksFuture = getAllFeedbacks();
+
+        return CompletableFuture.allOf(reportsFuture, feedbacksFuture)
+                .thenApply(v -> {
+                    try {
+                        model.addAttribute("reports", reportsFuture.get());
+                        model.addAttribute("feedbacks", feedbacksFuture.get());
+                        User adminUser = userService.getUserByUsername(loggedInUser);
+                        model.addAttribute("adminUser", adminUser);
+                        return "adminReport";
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        return "redirect:/login";
+                    }
+                });
     }
 
     // Action khoá bài đăng từ báo cáo

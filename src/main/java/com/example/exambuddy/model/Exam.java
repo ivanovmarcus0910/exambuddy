@@ -1,11 +1,14 @@
 package com.example.exambuddy.model;
 
+import com.google.cloud.firestore.annotation.IgnoreExtraProperties;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
+@IgnoreExtraProperties
 public class Exam {
     private String examID;
     private String examName;
