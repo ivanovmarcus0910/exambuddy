@@ -211,23 +211,26 @@ public class QuestionBankService {
     }
 
     // Cập nhật câu hỏi trong kho private (không thay đổi)
-    public void updatePrivateQuestionContent(String userId, String questionId, String questionText)
+    public void updatePrivateQuestionContent(String userId, String questionId, Question updatedQuestion)
             throws ExecutionException, InterruptedException {
-        if (userId == null) {
-            throw new IllegalArgumentException("User ID không được null!");
+        if (userId == null || questionId == null || questionId.trim().isEmpty()) {
+            throw new IllegalArgumentException("User ID và Question ID không được rỗng!");
         }
-        if (questionId == null || questionId.trim().isEmpty()) {
-            throw new IllegalArgumentException("Question ID không được null hoặc rỗng!");
-        }
-        if (questionText == null || questionText.trim().isEmpty()) {
-            throw new IllegalArgumentException("Nội dung câu hỏi không được null hoặc rỗng!");
-        }
+
         DocumentReference ref = getFirestore().collection("users").document(userId)
                 .collection("questionBank").document(questionId);
+
         if (!ref.get().get().exists()) {
             throw new IllegalArgumentException("Câu hỏi không tồn tại trong kho cá nhân!");
         }
-        ref.update("questionText", questionText).get();
+
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("questionText", updatedQuestion.getQuestionText());
+        updates.put("options", updatedQuestion.getOptions());
+        updates.put("correctAnswers", updatedQuestion.getCorrectAnswers());
+        updates.put("difficulty", updatedQuestion.getDifficulty());
+
+        ref.update(updates).get();
     }
 
     // Tạo đề thi (không thay đổi)
