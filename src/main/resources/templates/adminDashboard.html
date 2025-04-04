@@ -69,7 +69,6 @@
         <div class="d-flex justify-content-between align-items-center">
           <h1 class="h3 fw-bold m-0">Bảng Điều Khiển</h1>
           <div class="d-flex align-items-center">
-            <input type="text" placeholder="🔍 Tìm kiếm..." class="form-control me-3" style="width: 200px;">
             <span class="fw-semibold me-2" th:text="${adminUser.username}">Admin</span>
             <img th:src="${adminUser.avatarUrl}" alt="Admin Avatar" class="rounded-circle border border-secondary" style="width:40px; height:40px;">
           </div>
@@ -128,16 +127,16 @@
           </div>
         </div>
 
-        <!-- Báo cáo chưa xử lý -->
-        <div class="mt-4">
-          <h2 class="h5 fw-bold mb-3">⚠️ Báo cáo chưa xử lý</h2>
-          <div class="border rounded p-3 d-flex justify-content-between align-items-center">
-            <div>
-              <p class="mb-0">Có <strong th:text="${pendingReportsCount}">0</strong> báo cáo đang chờ xử lý.</p>
-            </div>
-            <a href="/admin/reports" class="btn btn-outline-danger btn-sm">Xem báo cáo</a>
-          </div>
-        </div>
+<!--        &lt;!&ndash; Báo cáo chưa xử lý &ndash;&gt;-->
+<!--        <div class="mt-4">-->
+<!--          <h2 class="h5 fw-bold mb-3">⚠️ Báo cáo chưa xử lý</h2>-->
+<!--          <div class="border rounded p-3 d-flex justify-content-between align-items-center">-->
+<!--            <div>-->
+<!--              <p class="mb-0">Có <strong th:text="${pendingReportsCount}">0</strong> báo cáo đang chờ xử lý.</p>-->
+<!--            </div>-->
+<!--            <a href="/admin/reports" class="btn btn-outline-danger btn-sm">Xem báo cáo</a>-->
+<!--          </div>-->
+<!--        </div>-->
       </div>
     </div>
   </div>
