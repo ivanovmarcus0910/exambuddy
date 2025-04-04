@@ -35,7 +35,7 @@ public class AdminLogService {
         }
 
         // Lấy thông tin chi tiết của target (Post, Exam, hoặc User) để thay thế targetId trong description
-        String targetDetails = "";
+        /*String targetDetails = "";
         if ("Post".equalsIgnoreCase(log.getTargetType())) {
             DocumentReference postRef = db.collection("posts").document(log.getTargetId());
             ApiFuture<DocumentSnapshot> postFuture = postRef.get();
@@ -63,15 +63,39 @@ public class AdminLogService {
                     targetDetails = userDoc.getString("username");
                 }
             }
+        }*/
+        String targetDetails = "";
+        if ("Post".equalsIgnoreCase(log.getTargetType())) {
+            DocumentSnapshot postDoc = db.collection("posts").document(log.getTargetId()).get().get();
+            if (postDoc.exists()) {
+                targetDetails = postDoc.getString("content");
+                if (targetDetails != null && targetDetails.length() > 50) {
+                    targetDetails = targetDetails.substring(0, 47) + "...";
+                }
+            }
+        } else if ("Exam".equalsIgnoreCase(log.getTargetType())) {
+            DocumentSnapshot examDoc = db.collection("exams").document(log.getTargetId()).get().get();
+            if (examDoc.exists()) {
+                targetDetails = examDoc.getString("examName");
+            }
+        } else if ("User".equalsIgnoreCase(log.getTargetType())) {
+            DocumentSnapshot userDoc = db.collection("users").document(log.getTargetId()).get().get();
+            if (userDoc.exists()) {
+                targetDetails = userDoc.getString("fullName");
+                if (targetDetails == null || targetDetails.isEmpty()) {
+                    targetDetails = userDoc.getString("username");
+                }
+            }
         }
         targetDetails = (targetDetails != null && !targetDetails.isEmpty()) ? targetDetails : "Không tìm thấy";
 
         // Thay thế targetId trong description bằng targetDetails
-        String description = log.getDescription();
-        if (description != null && description.contains(log.getTargetId())) {
-            description = description.replace(log.getTargetId(), targetDetails);
-            log.setDescription(description);
-        }
+//        String description = log.getDescription();
+//        if (description != null && description.contains(log.getTargetId())) {
+//            description = description.replace(log.getTargetId(), targetDetails);
+//            log.setDescription(description);
+//        }
+        String description = log.getDescription().replace(log.getTargetId(), targetDetails);
 
         // Lưu log vào Firestore
         Map<String, Object> logData = new HashMap<>();
@@ -80,19 +104,24 @@ public class AdminLogService {
         logData.put("targetType", log.getTargetType());
         logData.put("targetId", log.getTargetId());
         logData.put("targetName", log.getTargetName());
-        logData.put("description", log.getDescription());
+        logData.put("description", description);
+        logData.put("targetDetails", targetDetails);
         logData.put("timestamp", Timestamp.now());
-        logData.put("formattedTimestamp", new SimpleDateFormat("dd/MM/yyyy HH:mm:ss")
-                .format(new java.util.Date()));
 
-        ApiFuture<DocumentReference> future = db.collection("adminLogs").add(logData);
-        future.get();
+        db.collection("adminLogs").add(logData).get();
     }
 
     public Page<AdminLog> getAdminLogs(Pageable pageable, String searchQuery, String timeFilter)
             throws ExecutionException, InterruptedException {
         CollectionReference logsRef = db.collection("adminLogs");
         Query query = logsRef;
+
+        // Áp dụng bộ lọc tìm kiếm trong Firestore
+        if (searchQuery != null && !searchQuery.trim().isEmpty()) {
+            String searchLower = searchQuery.toLowerCase();
+            query = query.whereGreaterThanOrEqualTo("adminUsername", searchLower)
+                    .whereLessThanOrEqualTo("adminUsername", searchLower + "\uf8ff");
+        }
 
         // Áp dụng bộ lọc thời gian
         if (timeFilter != null && !timeFilter.isEmpty()) {
@@ -123,11 +152,10 @@ public class AdminLogService {
             query = query.orderBy("timestamp", Query.Direction.DESCENDING);
         }
 
-        // Phân trang ngay trong truy vấn Firestore
-        query = query.offset((int) pageable.getOffset())
-                .limit(pageable.getPageSize());
-
-        ApiFuture<QuerySnapshot> querySnapshot = query.get();
+        // Phân trang
+        ApiFuture<QuerySnapshot> querySnapshot = query.offset((int) pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .get();
         List<QueryDocumentSnapshot> documents = querySnapshot.get().getDocuments();
 
         List<AdminLog> logs = new ArrayList<>();
@@ -141,61 +169,19 @@ public class AdminLogService {
                     doc.getString("description")
             );
             log.setId(doc.getId());
+            log.setTargetDetails(doc.getString("targetDetails")); // Lấy từ Firestore
 
-            // Chuyển đổi Timestamp thành LocalDateTime
             Timestamp timestamp = doc.getTimestamp("timestamp");
             if (timestamp != null) {
                 log.setTimestamp(timestamp.toDate().toInstant()
                         .atZone(ZoneId.systemDefault()).toLocalDateTime());
             }
 
-            // Lấy thông tin chi tiết của target (Post, Exam, hoặc User)
-            String targetDetails = "";
-            if ("Post".equalsIgnoreCase(log.getTargetType())) {
-                DocumentReference postRef = db.collection("posts").document(log.getTargetId());
-                ApiFuture<DocumentSnapshot> postFuture = postRef.get();
-                DocumentSnapshot postDoc = postFuture.get();
-                if (postDoc.exists()) {
-                    targetDetails = postDoc.getString("content");
-                    if (targetDetails != null && targetDetails.length() > 50) {
-                        targetDetails = targetDetails.substring(0, 47) + "...";
-                    }
-                }
-            } else if ("Exam".equalsIgnoreCase(log.getTargetType())) {
-                DocumentReference examRef = db.collection("exams").document(log.getTargetId());
-                ApiFuture<DocumentSnapshot> examFuture = examRef.get();
-                DocumentSnapshot examDoc = examFuture.get();
-                if (examDoc.exists()) {
-                    targetDetails = examDoc.getString("examName");
-                }
-            } else if ("User".equalsIgnoreCase(log.getTargetType())) {
-                DocumentReference userRef = db.collection("users").document(log.getTargetId());
-                ApiFuture<DocumentSnapshot> userFuture = userRef.get();
-                DocumentSnapshot userDoc = userFuture.get();
-                if (userDoc.exists()) {
-                    targetDetails = userDoc.getString("fullName");
-                    if (targetDetails == null || targetDetails.isEmpty()) {
-                        targetDetails = userDoc.getString("username");
-                    }
-                }
-            }
-            log.setTargetDetails(targetDetails != null ? targetDetails : "Không tìm thấy");
-
-            // Lọc tìm kiếm trong Java
-            if (searchQuery != null && !searchQuery.trim().isEmpty()) {
-                String searchLower = searchQuery.toLowerCase();
-                if (!log.getAdminUsername().toLowerCase().contains(searchLower) &&
-                        !log.getAction().toLowerCase().contains(searchLower)) {
-                    continue;
-                }
-            }
-
             logs.add(log);
         }
 
-        // Tính tổng số bản ghi
-        ApiFuture<QuerySnapshot> countFuture = logsRef.get();
-        long total = countFuture.get().size();
+        // Đếm tổng số bản ghi (tạm giữ)
+        long total = logsRef.get().get().size();
 
         return new PageImpl<>(logs, pageable, total);
     }

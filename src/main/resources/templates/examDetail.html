@@ -108,8 +108,9 @@
 
 
                 <!-- Feedback List -->
-                <div id="feedback-list">
-                    <div th:each="feedback : ${feedbacks}" th:if="${!feedback.isReply}" class="feedback-item mb-3 border-bottom pb-2" th:id="'feedback-' + ${feedback.feedbackId}" th:data-exam-id="${exam.examID}">
+                <div id="feedback-list" class="overflow-auto" style="max-height: 400px; padding-right: 10px; border-top: 1px solid #ccc; margin-top: 1rem;">
+
+                <div th:each="feedback : ${feedbacks}" th:if="${!feedback.isReply}" class="feedback-item mb-3 border-bottom pb-2" th:id="'feedback-' + ${feedback.feedbackId}" th:data-exam-id="${exam.examID}">
                         <!-- Feedback Content -->
                         <div class="feedback-header d-flex align-items-center justify-content-between">
                             <div>

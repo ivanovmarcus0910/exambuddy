@@ -6,7 +6,7 @@
     <title>Kho Câu Hỏi - ExamBuddy</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { padding: 20px; }
+
         .question-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         .question-table th, .question-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
         .question-table th { background-color: #f2f2f2; }
@@ -16,8 +16,9 @@
         .remove-question-btn { margin-top: 5px; }
     </style>
 </head>
-<body>
 <div th:insert="~{fragments/header :: header}"></div>
+<body>
+
 
 <div class="container">
     <h1 class="mb-4">Kho Câu Hỏi</h1>
@@ -207,6 +208,47 @@
         </div>
     </div>
 </div>
+<!-- Modal Sửa Câu Hỏi -->
+<div class="modal fade" id="editQuestionModal" tabindex="-1" aria-labelledby="editQuestionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Chỉnh Sửa Câu Hỏi</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editQuestionForm">
+                    <div class="mb-3">
+                        <label for="editQuestionText" class="form-label">Nội dung câu hỏi</label>
+                        <textarea class="form-control" id="editQuestionText" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Danh sách đáp án</label>
+                        <div id="editOptionsContainer"></div>
+                        <button type="button" class="btn btn-secondary mt-2" onclick="addEditOption()">Thêm đáp án</button>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editCorrectAnswer" class="form-label">Đáp án đúng (a, b, c,...)</label>
+                        <input type="text" class="form-control" id="editCorrectAnswer" placeholder="Ví dụ: a" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editDifficulty" class="form-label">Độ khó</label>
+                        <select class="form-control" id="editDifficulty" required>
+                            <option value="easy">Dễ</option>
+                            <option value="medium">Trung bình</option>
+                            <option value="hard">Khó</option>
+                        </select>
+                    </div>
+                    <input type="hidden" id="editQuestionId">
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" onclick="submitEditQuestion()">Lưu thay đổi</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
@@ -237,6 +279,55 @@
         document.getElementById('shareToSharedBtn').addEventListener('click', shareToShared);
         document.getElementById('saveQuestions').addEventListener('click', saveQuestions);
     });
+    function addEditOption() {
+        const optionsContainer = document.getElementById('editOptionsContainer');
+        const optionIndex = optionsContainer.querySelectorAll('.option-edit').length;
+        const optionDiv = document.createElement('div');
+        optionDiv.className = 'option-container mb-2';
+        optionDiv.innerHTML = `
+        <label class="form-label">${String.fromCharCode(97 + optionIndex)}.</label>
+        <input type="text" class="form-control option-edit" style="width: 80%; display: inline-block;" required>
+    `;
+        optionsContainer.appendChild(optionDiv);
+    }
+    function submitEditQuestion() {
+        const questionId = document.getElementById('editQuestionId').value;
+        const questionText = document.getElementById('editQuestionText').value.trim();
+        const correctLetter = document.getElementById('editCorrectAnswer').value.trim().toLowerCase();
+        const difficulty = document.getElementById('editDifficulty').value;
+
+        const optionInputs = document.querySelectorAll('#editOptionsContainer .option-edit');
+        const options = Array.from(optionInputs).map(opt => opt.value.trim());
+
+        if (!questionText || options.length < 2 || options.some(opt => !opt)) {
+            showNotification('Vui lòng nhập đầy đủ nội dung và đáp án!', false);
+            return;
+        }
+
+        const correctIndex = correctLetter.charCodeAt(0) - 97;
+        if (correctIndex < 0 || correctIndex >= options.length) {
+            showNotification('Đáp án đúng không hợp lệ!', false);
+            return;
+        }
+
+        fetch(`${BASE_URL}/private/update/${questionId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                questionText,
+                options,
+                correctAnswers: [correctIndex],
+                difficulty
+            })
+        })
+            .then(response => response.ok ? response.json() : Promise.reject('Lỗi khi cập nhật câu hỏi'))
+            .then(() => {
+                showNotification('Cập nhật câu hỏi thành công!');
+                bootstrap.Modal.getInstance(document.getElementById('editQuestionModal')).hide();
+                loadQuestions('private', 1, true);
+            })
+            .catch(err => showNotification('Lỗi: ' + err, false));
+    }
 
     function addNewQuestionGroup() {
         const index = questionCount++;
@@ -573,19 +664,34 @@
     }
 
     function updateQuestion(repoType, questionId) {
-        const newText = prompt('Nhập nội dung câu hỏi mới:');
-        if (!newText) return;
-        fetch(`${BASE_URL}/${repoType}/update/${questionId}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ questionText: newText })
-        })
-            .then(response => response.ok ? response.json() : Promise.reject('Lỗi khi cập nhật câu hỏi'))
-            .then(() => {
-                showNotification('Đã cập nhật câu hỏi!');
-                loadQuestions(repoType, 1, true);
-            })
-            .catch(err => showNotification('Lỗi: ' + err, false));
+        const questionList = cache.get(`${BASE_URL}/${repoType}/all/all/all/all/all?page=1&limit=${QUESTIONS_PER_PAGE}`) || [];
+        const question = questionList.find(q => q.questionId === questionId);
+        if (!question) {
+            alert('Không tìm thấy câu hỏi để sửa!');
+            return;
+        }
+
+        // Gán dữ liệu vào modal
+        document.getElementById('editQuestionId').value = question.questionId;
+        document.getElementById('editQuestionText').value = question.questionText;
+        document.getElementById('editCorrectAnswer').value = String.fromCharCode(97 + (question.correctAnswers?.[0] || 0));
+        document.getElementById('editDifficulty').value = question.difficulty || 'medium';
+
+        const optionsContainer = document.getElementById('editOptionsContainer');
+        optionsContainer.innerHTML = '';
+        (question.options || []).forEach((opt, idx) => {
+            const optionDiv = document.createElement('div');
+            optionDiv.className = 'option-container mb-2';
+            optionDiv.innerHTML = `
+            <label class="form-label">${String.fromCharCode(97 + idx)}.</label>
+            <input type="text" class="form-control option-edit" value="${opt}" style="width: 80%; display: inline-block;" required>
+        `;
+            optionsContainer.appendChild(optionDiv);
+        });
+
+        // Hiển thị modal
+        const modal = new bootstrap.Modal(document.getElementById('editQuestionModal'));
+        modal.show();
     }
 
     function showNotification(message, isSuccess = true) {
