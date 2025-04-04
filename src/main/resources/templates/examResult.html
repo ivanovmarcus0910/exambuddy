@@ -49,11 +49,13 @@
                 <p class="fw-bold text-success mt-2" th:if="${correctQuestions.contains('q' + i.index)}">✅ Đúng</p>
 
                 <!-- Nút Xem Giải Thích -->
+                <th:block th:if="${user.timeExpriredPremium > #dates.createNow().getTime()}">
+
                 <button class="btn btn-info btn-sm mt-2"
                         th:attr="onclick='getExplanation(this, \'' + ${question.questionText} + '\', \'' + ${#strings.listJoin(question.options, '|')} + '\')'">
                     Đáp án tham khảo từ AI
                 </button>
-
+                </th:block>
 
                 <!-- Khu vực hiển thị giải thích -->
                 <p class="mt-2 text-muted explanation" style="display: none;"></p>

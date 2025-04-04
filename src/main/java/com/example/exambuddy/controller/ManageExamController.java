@@ -270,6 +270,7 @@ public class ManageExamController {
             examService.submitExam(username, examId);
             examService.saveExamResult(username, examId, score, exam, userAnswers, correctQuestions);
             leaderBoardService.updateUserScore(username, score, avatarUrl);
+            model.addAttribute("user",user);
             model.addAttribute("exam", exam);
             model.addAttribute("score", score);
             model.addAttribute("totalQuestions", questions.size());
