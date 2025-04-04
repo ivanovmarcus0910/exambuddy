@@ -83,112 +83,62 @@ public class AdminController {
 
     // Trang chủ (Dashboard): admin.html
     @GetMapping("")
-    public CompletableFuture<String> adminDashboard(Model model, HttpSession session) {
+    public String adminDashboard(Model model, HttpSession session) throws ExecutionException, InterruptedException {
         String loggedInUser = (String) session.getAttribute("loggedInUser");
         if (loggedInUser == null || !authService.isAdmin(loggedInUser)) {
-            return CompletableFuture.completedFuture("redirect:/login");
+            return "redirect:/login";
         }
 
-        long startTime = System.currentTimeMillis(); // Đo thời gian
+        // Lấy dữ liệu thống kê tổng quan
+        List<User> users = userService.getAllUsers();
+        List<Exam> exams = examService.getAllExams();
+        List<Post> posts = postService.getPublicPostsFromFirestore();
 
-        // Lấy dữ liệu bất đồng bộ
-        CompletableFuture<List<User>> usersFuture = CompletableFuture.supplyAsync(() -> {
-            try {
-                return userService.getUserPage(0, 100); // Chỉ lấy 100 người dùng đầu tiên
-            } catch (Exception e) {
-                e.printStackTrace();
-                return List.of();
-            }
-        });
+        model.addAttribute("totalUser", users.size());
+        model.addAttribute("totalExam", exams.size());
+        model.addAttribute("totalPost", posts.size());
 
-        CompletableFuture<List<Exam>> examsFuture = CompletableFuture.supplyAsync(() -> {
-            try {
-                return examService.getAllExams(); // Có thể thay bằng phân trang nếu cần
-            } catch (Exception e) {
-                e.printStackTrace();
-                return List.of();
-            }
-        });
+        // Tính tỷ lệ người dùng (5 vai trò)
+        long adminCount = users.stream()
+                .filter(u -> u.getRole() != null && u.getRole().toString().toLowerCase().contains("admin"))
+                .count();
+        long teacherCount = users.stream()
+                .filter(u -> u.getRole() != null && u.getRole().toString().toLowerCase().contains("teacher"))
+                .count();
+        long studentCount = users.stream()
+                .filter(u -> u.getRole() != null && (u.getRole().toString().toLowerCase().contains("student") || u.getRole().toString().toLowerCase().contains("upgraded_student")))
+                .count();
+        long pendingCount = users.stream()
+                .filter(u -> u.getRole() != null && u.getRole().toString().toLowerCase().contains("pending"))
+                .count();
+        long blockedCount = users.stream()
+                .filter(u -> u.getRole() != null && u.getRole().toString().toLowerCase().contains("blocked"))
+                .count();
 
-        CompletableFuture<List<Post>> postsFuture = CompletableFuture.supplyAsync(() -> {
-            try {
-                return postService.getPublicPostsFromFirestore(); // Có thể thay bằng phân trang nếu cần
-            } catch (Exception e) {
-                e.printStackTrace();
-                return List.of();
-            }
-        });
+        model.addAttribute("adminCount", adminCount);
+        model.addAttribute("teacherCount", teacherCount);
+        model.addAttribute("studentCount", studentCount);
+        model.addAttribute("pendingCount", pendingCount);
+        model.addAttribute("blockedCount", blockedCount);
 
-        CompletableFuture<Page<AdminLog>> logsFuture = CompletableFuture.supplyAsync(() -> {
-            PageRequest pageable = PageRequest.of(0, 3, Sort.by(Sort.Direction.DESC, "timestamp"));
-            try {
-                return adminLogService.getAdminLogs(pageable, null, null);
-            } catch (ExecutionException e) {
-                throw new RuntimeException(e);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-        });
+        // Lấy 3 hành động gần đây nhất
+        PageRequest pageable = PageRequest.of(0, 3, Sort.by(Sort.Direction.DESC, "timestamp"));
+        Page<AdminLog> recentLogs = adminLogService.getAdminLogs(pageable, null, null);
+        model.addAttribute("recentLogs", recentLogs.getContent());
+        model.addAttribute("recentLogsEmpty", recentLogs.isEmpty());
 
-        return CompletableFuture.allOf(usersFuture, examsFuture, postsFuture, logsFuture)
-                .thenApply(v -> {
-                    try {
-                        List<User> users = usersFuture.get();
-                        List<Exam> exams = examsFuture.get();
-                        List<Post> posts = postsFuture.get();
-                        Page<AdminLog> recentLogs = logsFuture.get();
+        // Lấy số lượng báo cáo chưa xử lý (giả sử có một service để lấy báo cáo)
+        long pendingReportsCount = 0; // Thay bằng logic thực tế nếu có
+        // Ví dụ: pendingReportsCount = reportService.getPendingReportsCount();
+        model.addAttribute("pendingReportsCount", pendingReportsCount);
 
-                        // Thêm dữ liệu vào model
-                        model.addAttribute("totalUser", users.size());
-                        model.addAttribute("totalExam", exams.size());
-                        model.addAttribute("totalPost", posts.size());
+        // Thông tin admin
+        User adminUser = userService.getUserByUsername(loggedInUser);
+        if (adminUser != null) {
+            model.addAttribute("adminUser", adminUser);
+        }
 
-                        // Đếm vai trò bất đồng bộ hoặc dùng truy vấn Firestore trực tiếp
-                        long adminCount = users.stream()
-                                .filter(u -> u.getRole() != null && u.getRole().toString().toLowerCase().contains("admin"))
-                                .count();
-                        long teacherCount = users.stream()
-                                .filter(u -> u.getRole() != null && u.getRole().toString().toLowerCase().contains("teacher"))
-                                .count();
-                        long studentCount = users.stream()
-                                .filter(u -> u.getRole() != null && (u.getRole().toString().toLowerCase().contains("student") || u.getRole().toString().toLowerCase().contains("upgraded_student")))
-                                .count();
-                        long pendingCount = users.stream()
-                                .filter(u -> u.getRole() != null && u.getRole().toString().toLowerCase().contains("pending"))
-                                .count();
-                        long blockedCount = users.stream()
-                                .filter(u -> u.getRole() != null && u.getRole().toString().toLowerCase().contains("blocked"))
-                                .count();
-
-                        model.addAttribute("adminCount", adminCount);
-                        model.addAttribute("teacherCount", teacherCount);
-                        model.addAttribute("studentCount", studentCount);
-                        model.addAttribute("pendingCount", pendingCount);
-                        model.addAttribute("blockedCount", blockedCount);
-
-                        // Lấy 3 hành động gần đây nhất
-                        model.addAttribute("recentLogs", recentLogs.getContent());
-                        model.addAttribute("recentLogsEmpty", recentLogs.isEmpty());
-
-                        // Số lượng báo cáo chưa xử lý (giả sử)
-                        long pendingReportsCount = 0; // Thay bằng logic thực tế
-                        model.addAttribute("pendingReportsCount", pendingReportsCount);
-
-                        // Thông tin admin
-                        User adminUser = userService.getUserByUsername(loggedInUser);
-                        if (adminUser != null) {
-                            model.addAttribute("adminUser", adminUser);
-                        }
-
-                        long endTime = System.currentTimeMillis();
-                        System.out.println("Request to /admin took " + (endTime - startTime) + " ms");
-
-                        return "adminDashboard";
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        return "redirect:/login";
-                    }
-                });
+        return "adminDashboard";
     }
 
     // Quản lý Người dùng: adminUser.html
@@ -527,73 +477,40 @@ public class AdminController {
     }
 
     @GetMapping("/logs")
-    public CompletableFuture<String> adminLogs(Model model, HttpSession session,
-                                               @RequestParam(defaultValue = "0") int page,
-                                               @RequestParam(defaultValue = "10") int size,
-                                               @RequestParam(required = false) String searchQuery,
-                                               @RequestParam(required = false) String timeFilter,
-                                               @RequestParam(defaultValue = "timestamp") String sortBy,
-                                               @RequestParam(defaultValue = "desc") String sortDir) {
+    public String adminLogs(Model model, HttpSession session,
+                            @RequestParam(defaultValue = "0") int page,
+                            @RequestParam(defaultValue = "10") int size,
+                            @RequestParam(required = false) String searchQuery,
+                            @RequestParam(required = false) String timeFilter,
+                            @RequestParam(defaultValue = "timestamp") String sortBy,
+                            @RequestParam(defaultValue = "desc") String sortDir) throws ExecutionException, InterruptedException {
         String loggedInUser = (String) session.getAttribute("loggedInUser");
         if (loggedInUser == null || !authService.isAdmin(loggedInUser)) {
-            return CompletableFuture.completedFuture("redirect:/login");
+            return "redirect:/login";
         }
-
-        long startTime = System.currentTimeMillis(); // Đo thời gian
 
         Sort.Direction direction = sortDir.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
         PageRequest pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
-        // Lấy log bất đồng bộ
-        CompletableFuture<Page<AdminLog>> logFuture = CompletableFuture.supplyAsync(() -> {
-            try {
-                return adminLogService.getAdminLogs(pageable, searchQuery, timeFilter);
-            } catch (Exception e) {
-                e.printStackTrace();
-                return Page.empty();
-            }
-        });
+        Page<AdminLog> logPage = adminLogService.getAdminLogs(pageable, searchQuery, timeFilter);
 
-        // Lấy thông tin admin bất đồng bộ
-        CompletableFuture<User> adminUserFuture = CompletableFuture.supplyAsync(() -> {
-            try {
-                return userService.getUserByUsername(loggedInUser);
-            } catch (Exception e) {
-                e.printStackTrace();
-                return null;
-            }
-        });
+        model.addAttribute("logs", logPage.getContent());
+        model.addAttribute("logsEmpty", logPage.isEmpty());
+        model.addAttribute("currentPage", logPage.getNumber());
+        model.addAttribute("totalPages", logPage.getTotalPages());
+        model.addAttribute("pageSize", logPage.getSize());
+        model.addAttribute("totalItems", logPage.getTotalElements());
+        model.addAttribute("searchQuery", searchQuery);
+        model.addAttribute("timeFilter", timeFilter);
+        model.addAttribute("sortBy", sortBy);
+        model.addAttribute("sortDir", sortDir);
 
-        return CompletableFuture.allOf(logFuture, adminUserFuture)
-                .thenApply(v -> {
-                    try {
-                        Page<AdminLog> logPage = logFuture.get();
-                        User adminUser = adminUserFuture.get();
+        User adminUser = userService.getUserByUsername(loggedInUser);
+        if (adminUser != null) {
+            model.addAttribute("adminUser", adminUser);
+        }
 
-                        model.addAttribute("logs", logPage.getContent());
-                        model.addAttribute("logsEmpty", logPage.isEmpty());
-                        model.addAttribute("currentPage", logPage.getNumber());
-                        model.addAttribute("totalPages", logPage.getTotalPages());
-                        model.addAttribute("pageSize", logPage.getSize());
-                        model.addAttribute("totalItems", logPage.getTotalElements());
-                        model.addAttribute("searchQuery", searchQuery);
-                        model.addAttribute("timeFilter", timeFilter);
-                        model.addAttribute("sortBy", sortBy);
-                        model.addAttribute("sortDir", sortDir);
-
-                        if (adminUser != null) {
-                            model.addAttribute("adminUser", adminUser);
-                        }
-
-                        long endTime = System.currentTimeMillis();
-                        System.out.println("Request to /admin/logs took " + (endTime - startTime) + " ms");
-
-                        return "adminLogs";
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        return "redirect:/login";
-                    }
-                });
+        return "adminLogs";
     }
 
     @PostMapping("/changeRole")

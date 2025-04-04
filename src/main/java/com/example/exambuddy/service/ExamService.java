@@ -496,6 +496,7 @@ public class ExamService {
 
         exam.setParticipantCount(0);
         exam.setDate(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(new Date()));
+        exam.setStatus("APPROVED");
 
 
         // 4. Chuyển exam thành Map và lưu vào Firestore
@@ -515,6 +516,7 @@ public class ExamService {
         examData.put("participantCount", exam.getParticipantCount());
         examData.put("date", exam.getDate());
         examData.put("fromQuestionBank", true);
+        examData.put("status", "APPROVED");
 
 
         // 5. Lưu exam vào Firestore
