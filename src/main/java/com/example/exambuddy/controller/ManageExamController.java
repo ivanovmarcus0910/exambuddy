@@ -138,7 +138,6 @@ public class ManageExamController {
             }
 
             if (session.getAttribute("shuffledQuestions_" + examId) == null) {
-                // Gộp cả logic từ bạn A và bạn
                 examService.deleteProcess(username, examId); // Xoá tiến trình cũ
                 examService.addExamSession(examId, username, 1000L * 60 * exam.getTimeduration());
                 Collections.shuffle(questions);
@@ -365,7 +364,7 @@ public class ManageExamController {
             return "redirect:/home"; // Nếu chưa đăng nhập, chuyển hướng về home
         }
 
-        String username = cookieService.getCookie(request, "noname");
+        String username = (String) session.getAttribute("loggedInUser");
         User user = userService.getUserByUsername(username);
         model.addAttribute("user", user);
         // Tạo đối tượng Pageable để truyền vào ExamService
@@ -527,7 +526,7 @@ public class ManageExamController {
             if (session.getAttribute("loggedInUser") == null) {
                 return "redirect:/login";
             }
-            String username = cookieService.getCookie(request, "noname");
+            String username = session.getAttribute("loggedInUser").toString();
             if (username == null) {
                 model.addAttribute("err", "Không tìm thấy thông tin người dùng.");
                 model.addAttribute("exam", new Exam());
