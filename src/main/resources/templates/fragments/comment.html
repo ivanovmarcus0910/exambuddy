@@ -44,7 +44,7 @@
             </div>
             <div class="d-flex align-items-center mt-2" style="margin-left: 8px">
                 <!-- Biểu tượng tim -->
-                <span class="heart-icon d-flex align-items-center"
+                <span class="d-flex align-items-center like-comment"
                       th:attr="data-comment-id=${comment.commentId}, data-post-id=${post.postId}"
                       th:classappend="${comment.liked} ? 'text-danger' : ''"
                       onclick="toggleLikeComment(this)">

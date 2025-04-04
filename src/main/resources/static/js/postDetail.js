@@ -71,7 +71,7 @@ function submitComment(event) {
                 if (tempCommentEl) {
                     tempCommentEl.setAttribute("data-post-id", data.postId);
                     tempCommentEl.id = "comment-" + data.commentId;
-                    tempCommentEl.querySelector(".heart-icon").setAttribute("data-comment-id", data.commentId);
+                    tempCommentEl.querySelector(".like-comment").setAttribute("data-comment-id", data.commentId);
                     tempCommentEl.querySelector(".edit-comment").setAttribute("data-comment-id", data.commentId);
                     tempCommentEl.querySelector(".delete-comment").setAttribute("data-comment-id", data.commentId);
                     tempCommentEl.querySelector(".report-comment").setAttribute("data-comment-id", data.commentId);
@@ -145,15 +145,18 @@ function createCommentElement(comment) {
                         <span class="comment-content">${comment.content}</span>
                     </div>
                     <div class="comment-images mt-2">${imagesHtml}</div>
-                    <div class="d-flex align-items-center mt-2">
-                        <button class="btn btn-outline-secondary heart-btn" data-post-id="${comment.postId}"
-                                data-comment-id="${comment.commentId}" onclick="toggleLikeComment(this)">
-                            <i class="bi bi-heart"></i> <span class="heart-count">0</span>
-                        </button>
+                    <div class="d-flex align-items-center mt-2" style="margin-left: 8px">
+                        <span class="like-comment" data-post-id="${comment.postId}"
+                                data-comment-id="${comment.commentId}"
+                                th:classappend="${comment.liked} ? 'text-danger' : ''"
+                                onclick="toggleLikeComment(this)">
+                            <i class="bi" th:classappend="${comment.liked} ? 'bi-heart-fill' : 'bi-heart'"></i>
+                            <span class="heart-count ms-1" th:text="${comment.likeCount}">0</span>
+                        </span>
                         <button class="btn btn-sm btn-link reply-btn text-dark text-decoration-none ms-2" onclick="setReplyForm('${comment.commentId}', '${comment.username}', ${comment.parentCommentId})">
                             Phản hồi
                         </button>
-                        <span style="font-size: 11px; color: gray">Vừa xong</span>
+                        <span style="font-size: 11px; color: gray" th:text="${comment.timeAgo}"></span>
                     </div>
                 </div>
             </div>

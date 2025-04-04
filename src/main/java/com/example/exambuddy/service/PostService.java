@@ -32,6 +32,7 @@ public class PostService {
         post.setStatus(status);
         post.setImageUrls(imageUrls);
         post.setLikeCount(0);
+        post.setCommentCount(0);
         post.setLikedUsernames(new ArrayList<>());
         // Thiết lập bài đăng mới tạo mặc định chưa duyệt
         //post.setActive(false);
@@ -111,7 +112,6 @@ public class PostService {
             for (DocumentSnapshot document : documents) {
                 Post post = document.toObject(Post.class);
                 post.setPostId(document.getId());
-
                 postList.add(post);
             }
         } catch (InterruptedException | ExecutionException e) {
@@ -122,7 +122,6 @@ public class PostService {
 
 
     public static Comment saveComment(String postId, String parentCommentId, String username, String avatarUrl, String content, String date, List<String> imageUrls) {
-
         DocumentReference postRef = db.collection("posts").document(postId);
         CollectionReference commentsRef = postRef.collection("comments");
 
@@ -136,10 +135,19 @@ public class PostService {
         comment.setImageUrls(imageUrls);
 
         try {
+            // Thêm comment vào collection "comments" của bài post
             DocumentReference newCommentRef = commentsRef.add(comment).get();
             comment.setCommentId(newCommentRef.getId());
+
+            // Cập nhật lại commentId cho document vừa tạo
             newCommentRef.update("commentId", comment.getCommentId()).get();
+
+            // Gửi thông báo về comment
             sendNotificationForComment(postId, parentCommentId, username, content, date);
+
+            // Tăng commentCount của post đó lên 1
+            postRef.update("commentCount", FieldValue.increment(1)).get();
+
             return comment;
         } catch (InterruptedException | ExecutionException e) {
             System.out.println("❌ Lỗi khi lưu bình luận: " + e.getMessage());

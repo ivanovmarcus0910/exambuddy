@@ -123,13 +123,8 @@ public class ForumController {
             map.put("grade", post.getGrade());
             map.put("likeCount", post.getLikeCount());
             map.put("liked", post.isLiked());
-            map.put("imageUrls", post.getImageUrls()); // Trả về danh sách ảnh
-
-            // Lấy số lượng bình luận
-//            int commentCount = postService.getCommentsByPostId(post.getPostId(), username).size();
-//            post.setCommentCount(commentCount);
-//            map.put("commentCount", post.getCommentCount());
-
+            map.put("commentCount", post.getCommentCount());
+            map.put("imageUrls", post.getImageUrls());
             return map;
         }).collect(Collectors.toList());
 
