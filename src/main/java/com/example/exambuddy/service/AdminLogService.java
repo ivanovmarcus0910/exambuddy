@@ -123,25 +123,6 @@ public class AdminLogService {
                     .whereLessThanOrEqualTo("adminUsername", searchLower + "\uf8ff");
         }
 
-        // Áp dụng bộ lọc thời gian
-        if (timeFilter != null && !timeFilter.isEmpty()) {
-            Timestamp startTime;
-            switch (timeFilter) {
-                case "7days":
-                    startTime = Timestamp.ofTimeSecondsAndNanos(
-                            System.currentTimeMillis() / 1000 - 7 * 24 * 60 * 60, 0);
-                    query = query.whereGreaterThanOrEqualTo("timestamp", startTime);
-                    break;
-                case "30days":
-                    startTime = Timestamp.ofTimeSecondsAndNanos(
-                            System.currentTimeMillis() / 1000 - 30 * 24 * 60 * 60, 0);
-                    query = query.whereGreaterThanOrEqualTo("timestamp", startTime);
-                    break;
-                default:
-                    break;
-            }
-        }
-
         // Sắp xếp
         if (pageable.getSort().isSorted()) {
             for (org.springframework.data.domain.Sort.Order order : pageable.getSort()) {
