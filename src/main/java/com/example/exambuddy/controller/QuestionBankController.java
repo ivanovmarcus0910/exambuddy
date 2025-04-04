@@ -244,9 +244,10 @@ public class QuestionBankController {
     // Cập nhật câu hỏi trong kho private (không thay đổi)
     @PutMapping("/private/update/{questionId}")
     @ResponseBody
-    public ResponseEntity<Map<String, String>> updatePrivateQuestion(HttpSession session,
-                                                                     @PathVariable String questionId,
-                                                                     @RequestBody Map<String, String> updates) {
+    public ResponseEntity<Map<String, String>> updatePrivateQuestion(
+            HttpSession session,
+            @PathVariable String questionId,
+            @RequestBody Question updatedQuestion) {
         Map<String, String> response = new HashMap<>();
         try {
             String userId = (String) session.getAttribute("loggedInUser");
@@ -254,12 +255,14 @@ public class QuestionBankController {
                 response.put("error", "Chưa đăng nhập! Vui lòng đăng nhập để cập nhật câu hỏi.");
                 return ResponseEntity.status(401).body(response);
             }
-            String questionText = updates.get("questionText");
-            if (questionText == null || questionText.trim().isEmpty()) {
+
+            // Validate nội dung cơ bản
+            if (updatedQuestion.getQuestionText() == null || updatedQuestion.getQuestionText().trim().isEmpty()) {
                 response.put("error", "Nội dung câu hỏi không được để trống!");
                 return ResponseEntity.badRequest().body(response);
             }
-            questionBankService.updatePrivateQuestionContent(userId, questionId, questionText);
+
+            questionBankService.updatePrivateQuestionContent(userId, questionId, updatedQuestion);
             response.put("message", "Cập nhật câu hỏi trong kho cá nhân thành công!");
             return ResponseEntity.ok(response);
         } catch (ExecutionException | InterruptedException e) {
@@ -270,6 +273,7 @@ public class QuestionBankController {
             return ResponseEntity.status(400).body(response);
         }
     }
+
 
     // Tạo đề thi (không thay đổi)
     @PostMapping("/generate-exam")

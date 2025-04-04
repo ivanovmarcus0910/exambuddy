@@ -113,36 +113,8 @@
                     Bạn không có quyền truy cập trang này. Vui lòng <a th:href="@{/login}" class="alert-link">đăng nhập</a> bằng tài khoản admin.
                 </div>
                 <div th:if="${adminUser != null}">
-                    <!-- Form tìm kiếm và lọc -->
-                    <div class="bg-light p-3 rounded shadow-sm mb-3">
-                        <form th:action="@{/admin/logs}" method="get" class="row g-3 align-items-center">
-                            <div class="col-md-4">
-                                <label for="searchQuery" class="form-label">🔍 Tìm kiếm (Admin/Hành động):</label>
-                                <input type="text" id="searchQuery" name="searchQuery" th:value="${searchQuery}"
-                                       class="form-control" placeholder="Nhập tên admin hoặc hành động..." />
-                            </div>
-                            <div class="col-md-3">
-                                <label for="timeFilter" class="form-label">⏳ Lọc theo thời gian:</label>
-                                <select id="timeFilter" name="timeFilter" class="form-select">
-                                    <option value="" th:selected="${timeFilter == null}">Tất cả</option>
-                                    <option value="7days" th:selected="${timeFilter == '7days'}">7 ngày qua</option>
-                                    <option value="30days" th:selected="${timeFilter == '30days'}">30 ngày qua</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3 d-flex align-items-end">
-                                <button type="submit" class="btn btn-primary me-2 rounded-pill px-3">
-                                    <i class="fas fa-filter me-1"></i> Lọc
-                                </button>
-                                <a th:href="@{/admin/logs}" class="btn btn-outline-secondary rounded-pill px-3">
-                                    <i class="fas fa-undo me-1"></i> Xóa bộ lọc
-                                </a>
-                            </div>
-                        </form>
-                    </div>
-                    <!-- Thông báo khi không có kết quả -->
-                    <div th:if="${logsEmpty}" class="alert alert-info" role="alert">
-                        Không có lịch sử thao tác nào phù hợp với bộ lọc.
-                    </div>
+
+
 
                     <!-- Bảng hiển thị log -->
                     <div th:unless="${logsEmpty}" class="table-responsive bg-light rounded shadow-sm">
