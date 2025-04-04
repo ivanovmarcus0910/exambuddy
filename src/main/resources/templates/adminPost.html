@@ -125,14 +125,14 @@
               <!-- Cột Hành động: form cập nhật trạng thái bài viết -->
               <td class="text-center">
                 <form action="/admin/updatePostStatus" method="post" class="d-inline-flex align-items-center"
-                      th:attr="onsubmit=${post.active} ? 'return confirm(\'Bạn có chắc chắn muốn vô hiệu hóa bài viết này?\')' : 'return confirm(\'Bạn có chắc chắn muốn duyệt bài viết này?\')'">
+                      th:attr="onsubmit=${post.active} ? 'return confirm(\'Bạn có chắc chắn muốn vô hiệu hóa bài viết này?\')' : 'return confirm(\'Bạn có chắc chắn muốn mở lại bài viết này?\')'">
                   <input type="hidden" name="postId" th:value="${post.postId}">
                   <button type="submit"
                           class="btn btn-sm rounded-pill d-flex align-items-center justify-content-center px-3 fw-bold text-white"
                           style="padding:2px 6px; border-radius:8px; font-size:0.8rem;"
                           th:classappend="${post.active} ? ' btn-danger' : ' btn-success'">
                     <i class="bi" th:class="${post.active} ? 'bi-x-circle me-1' : 'bi-check-circle me-1'"></i>
-                    <span th:text="${post.active} ? 'Vô hiệu hóa' : 'Duyệt'"></span>
+                    <span th:text="${post.active} ? 'Vô hiệu hóa' : 'Mở lại'"></span>
                   </button>
                 </form>
               </td>

@@ -89,10 +89,10 @@
       <!-- Nội dung Quản lí Đề thi -->
       <div class="px-4">
         <h2 class="h5 fw-bold mb-3">📚 Quản Lý Đề Thi</h2>
-        <div class="text-end mb-3">
-          <a href="/exams/addExam" class="btn btn-success shadow-sm"
-             style="padding:6px 12px; border-radius:10px; font-size:1rem;">➕ Thêm Đề Thi</a>
-        </div>
+<!--        <div class="text-end mb-3">-->
+<!--          <a href="/exams/addExam" class="btn btn-success shadow-sm"-->
+<!--             style="padding:6px 12px; border-radius:10px; font-size:1rem;">➕ Thêm Đề Thi</a>-->
+<!--        </div>-->
         <!-- Thông báo thành công hoặc lỗi -->
         <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
         <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
@@ -166,17 +166,7 @@
                       </span>
                     </form>
                   </th:block>
-                  <!-- Nút Xóa (admin hoặc người tạo) -->
-                  <th:block th:if="${isAdmin or exam.username == currentUser.username}">
-                    <form th:action="@{/admin/deleteExam}" method="post" class="d-inline-flex align-items-center"
-                          onsubmit="return confirm('Bạn có chắc chắn muốn xóa đề thi này?');">
-                      <input type="hidden" name="examId" th:value="${exam.examID}">
-                      <button type="submit" class="btn btn-danger btn-sm rounded-pill px-3"
-                              style="font-size:0.8rem;">
-                        <i class="bi bi-trash me-1"></i> Xóa
-                      </button>
-                    </form>
-                  </th:block>
+
                 </div>
               </td>
             </tr>

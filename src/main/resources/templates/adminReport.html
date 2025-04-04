@@ -76,6 +76,7 @@
                             <th>Mô tả</th>
                             <th>Người báo cáo</th>
                             <th>Thời gian</th>
+                            <th>Thao tác</th>
                             <th>Hành động</th>
                         </tr>
                         </thead>
@@ -87,9 +88,17 @@
                             <td th:text="${report.description}"></td>
                             <td th:text="${report.reporter}"></td>
                             <td th:text="${#dates.format(report.timestamp, 'yyyy-MM-dd HH:mm:ss')}"></td>
+                            <!-- Cột Thao tác -->
+                            <td class="text-center">
+                                <a th:href="@{/postDetail/{id}(id=${report.postId})}"
+                                   class="btn btn-sm btn-primary rounded-pill d-flex align-items-center justify-content-center px-3 text-white">
+                                    <i class="bi bi-eye me-1"></i> Xem
+                                </a>
+                            </td>
+                            <!-- Cột Hành động -->
                             <td class="text-center">
                                 <form action="/admin/reports/lockPost" method="post" class="d-inline-flex align-items-center"
-                                      th:attr="onsubmit=${report.postActive} ? 'return confirm(\'Bạn có chắc chắn muốn khoá bài viết này?\')' : 'return confirm(\'Bạn có chắc chắn muốn duyệt lại bài viết này?\')'">
+                                      th:attr="onsubmit=${report.postActive} ? 'return confirm(\'Bạn có chắc chắn muốn khoá bài viết này?\')' : 'return confirm(\'Bạn có chắc chắn muốn mở lại bài viết này?\')'">
                                     <input type="hidden" name="postId" th:value="${report.postId}">
                                     <button type="submit" class="btn btn-sm rounded-pill d-flex align-items-center justify-content-center px-3 text-white"
                                             th:classappend="${report.postActive} ? 'btn-danger' : 'btn-success'">
@@ -107,12 +116,11 @@
                             </td>
                         </tr>
                         <tr th:if="${#lists.isEmpty(reports)}">
-                            <td colspan="7" class="text-muted text-center">Chưa có báo cáo nào.</td>
+                            <td colspan="8" class="text-muted text-center">Chưa có báo cáo nào.</td>
                         </tr>
                         </tbody>
                     </table>
                 </div>
-
                 <!-- Feedbacks Section -->
                 <div id="feedbacksSection" class="table-responsive bg-light rounded shadow-sm" style="display: none;">
                     <h3 class="h6 fw-bold p-3">Quản lý Feedback</h3>
@@ -124,6 +132,7 @@
                             <th>Nội dung</th>
                             <th>Đánh giá</th>
                             <th>Thời gian</th>
+                            <th>Thao tác</th>
                             <th>Hành động</th>
                         </tr>
                         </thead>
@@ -133,12 +142,22 @@
                             <td th:text="${feedback.username}"></td>
                             <td th:text="${feedback.content}"></td>
                             <td th:text="${feedback.rate} + ' sao'"></td>
-                            <td th:text="${feedback.date}"></td> <!-- Sử dụng trực tiếp date thay vì getTimeAgo() nếu không có -->
+                            <td th:text="${feedback.date}"></td>
+                            <!-- Cột Thao tác: nút Xem feedback (dùng examId từ feedback) -->
+                            <td class="text-center">
+                                <a th:href="@{/exams/{examId}/detail(examId=${feedback.examId})}"
+                                   class="btn btn-sm btn-primary rounded-pill d-inline-flex align-items-center justify-content-center px-3 text-white"
+                                   style="font-size:0.8rem; margin-right: 5px;">
+                                    <i class="bi bi-eye me-1"></i> Xem
+                                </a>
+                            </td>
+                            <!-- Cột Hành động: nút Khóa đề & Xóa -->
                             <td class="text-center">
                                 <form action="/admin/reports/lockExam" method="post" class="d-inline-flex align-items-center"
                                       th:onsubmit="return confirm('Bạn có chắc chắn muốn khóa đề thi này?')">
                                     <input type="hidden" name="examId" th:value="${feedback.examId}">
-                                    <button type="submit" class="btn btn-sm btn-danger rounded-pill d-flex align-items-center justify-content-center px-3 text-white">
+                                    <button type="submit" class="btn btn-sm btn-danger rounded-pill d-inline-flex align-items-center justify-content-center px-3 text-white"
+                                            style="font-size:0.8rem; margin-right: 5px;">
                                         <i class="bi bi-x-circle me-1"></i> Khóa đề
                                     </button>
                                 </form>
@@ -146,21 +165,24 @@
                                       th:onsubmit="|return confirm('Bạn có chắc chắn muốn xóa feedback này?')|">
                                     <input type="hidden" name="examId" th:value="${feedback.examId}"/>
                                     <input type="hidden" name="feedbackId" th:value="${feedback.feedbackId}"/>
-                                    <button type="submit" class="btn btn-warning btn-sm-rounded d-flex align-items-center justify-content-center">
+                                    <button type="submit" class="btn btn-warning btn-sm-rounded d-inline-flex align-items-center justify-content-center"
+                                            style="font-size:0.8rem;">
                                         <i class="bi bi-trash-fill me-1"></i> Xóa
                                     </button>
                                 </form>
                             </td>
                         </tr>
                         <tr th:if="${#lists.isEmpty(feedbacks)}">
-                            <td colspan="6" class="text-muted text-center">Chưa có feedback nào.</td>
+                            <td colspan="7" class="text-muted text-center">Chưa có feedback nào.</td>
                         </tr>
                         </tbody>
                     </table>
                 </div>
+
             </div>
         </div>
     </div>
+</div>
 </div>
 
 <!-- Logout Modal -->

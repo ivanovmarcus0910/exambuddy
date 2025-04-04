@@ -128,26 +128,20 @@ public class ExamService {
     // Phương thức format lại ngày
     public static String formatDate(String dateString) {
         try {
-            // Chuẩn hóa chuỗi đầu vào (cắt bớt micro giây và thêm 'Z' nếu cần)
-            String normalizedDate = dateString.replaceAll("\\.(\\d{3})\\d*", ".$1"); // Giữ 3 chữ số mili giây
-            if (!normalizedDate.endsWith("Z")) {
-                normalizedDate += "Z"; // Thêm 'Z' nếu thiếu
-            }
-
-            // Định dạng đầu vào từ Firestore (ISO 8601)
+            // Định dạng ban đầu từ Firebase (luôn là UTC)
             SimpleDateFormat originalFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-            originalFormat.setTimeZone(TimeZone.getTimeZone("UTC")); // Chuỗi gốc là UTC
-            Date date = originalFormat.parse(normalizedDate);
-
-            // Định dạng đầu ra mới: "dd/MM/yyyy HH:mm:ss" (24 giờ)
-            SimpleDateFormat targetFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
-            targetFormat.setTimeZone(TimeZone.getDefault()); // Chuyển sang múi giờ hệ thống
-            return targetFormat.format(date);
+            originalFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+            // Chuyển chuỗi Firebase thành đối tượng Date (mặc định là UTC)
+            Date date = originalFormat.parse(dateString);
+            // Chuyển sang múi giờ hệ thống mà không làm sai lệch giá trị
+            SimpleDateFormat targetFormat = new SimpleDateFormat("dd/MM/yyyy");
+            return targetFormat.format(new Date(date.getTime())); // Chuyển đổi về đúng format
         } catch (Exception e) {
             e.printStackTrace();
-            return "Lỗi định dạng ngày: " + e.getMessage();
+            return "Lỗi định dạng ngày!";
         }
     }
+
 
     public Exam getExam(String examID) {
         try {
@@ -502,6 +496,7 @@ public class ExamService {
 
         exam.setParticipantCount(0);
         exam.setDate(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(new Date()));
+        exam.setStatus("APPROVED");
 
 
         // 4. Chuyển exam thành Map và lưu vào Firestore
@@ -521,6 +516,7 @@ public class ExamService {
         examData.put("participantCount", exam.getParticipantCount());
         examData.put("date", exam.getDate());
         examData.put("fromQuestionBank", true);
+        examData.put("status", "APPROVED");
 
 
         // 5. Lưu exam vào Firestore
