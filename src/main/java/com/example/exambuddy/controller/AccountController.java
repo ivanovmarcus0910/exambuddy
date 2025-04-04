@@ -1,6 +1,7 @@
 package com.example.exambuddy.controller;
 
 import com.example.exambuddy.model.Payment;
+import com.example.exambuddy.model.RecordTopUser;
 import com.example.exambuddy.model.User;
 import com.example.exambuddy.service.*;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,6 +21,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 import org.springframework.web.bind.annotation.GetMapping;
@@ -122,11 +124,31 @@ public class AccountController {
 
         return "redirect:/profile";
     }
-
-
+    @ResponseBody
+    @GetMapping("/paymentHistoryData")
+    public CompletableFuture<List<Payment>> listPaymentsData(@RequestParam(defaultValue = "0") int page, HttpSession session) {
+        try {
+            String username = session.getAttribute("loggedInUser").toString();
+            User user = userService.getUserByUsername(username);
+            int pageSize = 10; // Số bản ghi trên mỗi trang
+            Long lastTimestamp = page > 0 ? getLastTimestamp2(page - 1, pageSize, username) : null;
+            List<Payment> x =  userService.getPaymentsByPage(username, pageSize, lastTimestamp);
+            return CompletableFuture.completedFuture(x);
+        }catch (Exception ex){
+            return null;
+        }
+    }
+    private Long getLastTimestamp2(int page, int pageSize, String username) throws ExecutionException, InterruptedException {
+        List<Payment> previousPage = userService.getPaymentsByPage(username, pageSize, null);
+        if (!previousPage.isEmpty()) {
+            return previousPage.get(previousPage.size() - 1).getTimestamp();
+        }
+        return null;
+    }
     @GetMapping("/paymentHistory")
     public String listPayments(@RequestParam(defaultValue = "0") int page, HttpServletRequest request, Model model, HttpSession session, HttpServletResponse httpServletResponse) {
         try {
+            System.out.println("Đã vào lịch sử");
             String username = session.getAttribute("loggedInUser").toString();
             User user = userService.getUserByUsername(username);
             model.addAttribute("user", user);

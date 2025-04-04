@@ -97,7 +97,20 @@
             </tr>
             </thead>
             <tbody id="payment-table-body">
-            <!-- Dữ liệu sẽ được thêm vào bằng JavaScript -->
+            <tr th:each="payment : ${payments}">
+              <td th:text="${payment.paymentCode}"></td>
+              <td class="text-success fw-bold" th:text="${payment.amount}"></td>
+              <td>
+                        <span th:class="${payment.status == 'PAID' ? 'badge bg-success' : (payment.status == 'PENDING' ? 'badge bg-warning text-dark' : 'badge bg-danger')}">
+                            <span th:text="${payment.status}"></span>
+                        </span>
+              </td>
+              <td th:text="${#dates.format(payment.timestamp, 'yyyy-MM-dd HH:mm:ss')}"></td>
+              <td>
+                <a th:if="${payment.status == 'PENDING' and payment.url != null}" th:href="@{${payment.url}}" class="btn btn-primary btn-sm">Thanh toán</a>
+              </td>
+              <td th:text="${payment.note != null ? payment.note : ''}"></td>
+            </tr>
             </tbody>
           </table>
         </div>
@@ -127,32 +140,6 @@
 <script>
   let currentPage = 0;
 
-  function loadPayments(page) {
-    fetch(`/api/payments?page=` + page)
-            .then(response => response.json())
-            .then(data => {
-              let tbody = document.getElementById("payment-table-body");
-              tbody.innerHTML = ""; // Xóa nội dung cũ
-
-              data.payments.forEach(payment => {
-                let row = `<tr>
-            <td>${payment.paymentCode}</td>
-            <td class="text-success fw-bold">${payment.amount}</td>
-            <td><span class="badge ${getBadgeClass(payment.status)}">${payment.status}</span></td>
-            <td class="text-muted">${formatDate(payment.timestamp)}</td>
-            <td>${payment.status === 'PENDING' ? `<a href="${payment.url}" class="btn btn-primary btn-sm">Thanh toán</a>` : ''}</td>
-            <td>${payment.note || ''}</td>
-          </tr>`;
-                tbody.innerHTML += row;
-              });
-
-              // Cập nhật trạng thái phân trang
-              currentPage = data.currentPage;
-              document.getElementById("prevPageBtn").disabled = (currentPage === 0);
-              document.getElementById("nextPageBtn").disabled = !data.hasNextPage;
-            })
-            .catch(error => console.error("Error loading payments:", error));
-  }
 
   function getBadgeClass(status) {
     return status === "PAID" ? "bg-success" :
@@ -165,9 +152,6 @@
     return date.toLocaleString("vi-VN");
   }
 
-  document.addEventListener("DOMContentLoaded", () => {
-    loadPayments(0); // Tải dữ liệu trang đầu tiên khi trang web load
-  });
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
