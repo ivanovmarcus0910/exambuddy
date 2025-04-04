@@ -47,11 +47,6 @@ public class MessageService {
 
             System.out.println("Số lượng báo cáo của bài đăng " + request.getPostId() + " là: " + reportCount);
 
-            // Nếu số lượng báo cáo >= 3, tự động vô hiệu hóa bài đăng
-            if (reportCount >= 3) {
-                postService.updatePostStatus(request.getPostId(), false);
-                System.out.println("Bài đăng " + request.getPostId() + " đã được vô hiệu hóa do quá nhiều báo cáo.");
-            }
         } catch (InterruptedException | ExecutionException e) {
             System.err.println("Lỗi khi lưu báo cáo: " + e.getMessage());
             e.printStackTrace();

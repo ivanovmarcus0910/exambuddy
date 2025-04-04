@@ -34,7 +34,7 @@ public class PostService {
         post.setLikeCount(0);
         post.setLikedUsernames(new ArrayList<>());
         // Thiết lập bài đăng mới tạo mặc định chưa duyệt
-        post.setActive(false);
+        //post.setActive(false);
         try {
             DocumentReference newPostRef = posts.add(post).get();
             String postId = newPostRef.getId();
