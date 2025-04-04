@@ -1,5 +1,6 @@
 package com.example.exambuddy.service;
 
+import com.example.exambuddy.model.LimitAccess;
 import com.example.exambuddy.model.Payment;
 import com.example.exambuddy.model.User;
 import com.google.api.core.ApiFuture;
@@ -13,6 +14,9 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
@@ -186,6 +190,7 @@ public class UserService {
         }
     }
 
+
     public static List<Payment> getPaymentsByPage(String username, int pageSize, Long lastTimestamp) throws ExecutionException, InterruptedException {
         Firestore firestore = FirestoreClient.getFirestore();
         CollectionReference transaction = firestore.collection("Transactions");
@@ -224,26 +229,26 @@ public class UserService {
     public boolean changeCoinBalance(long change, String username){
         Firestore firestore = FirestoreClient.getFirestore();
         DocumentReference userRef = firestore.collection("users").document(username);
-    try {
-        ApiFuture<Boolean> transactionFuture = firestore.runTransaction(transaction -> {
-            // Lấy document của user
-            DocumentSnapshot snapshot = transaction.get(userRef).get();
-            Long coinLong = snapshot.getLong("coin");
-            long currentCoin = coinLong != null ? coinLong.longValue() : 0;
-            long newCoin = currentCoin + change;
-            if (newCoin < 0) {
-                return false;
-            }
-            // Cập nhật lại giá trị coin mới vào document
-            transaction.update(userRef, "coin", newCoin);
-            return true;
-            // Trả về giá trị coin mới
-        });
-        return transactionFuture.get();
-    }
-    catch (Exception e) {
-        return false;
-    }
+        try {
+            ApiFuture<Boolean> transactionFuture = firestore.runTransaction(transaction -> {
+                // Lấy document của user
+                DocumentSnapshot snapshot = transaction.get(userRef).get();
+                Long coinLong = snapshot.getLong("coin");
+                long currentCoin = coinLong != null ? coinLong.longValue() : 0;
+                long newCoin = currentCoin + change;
+                if (newCoin < 0) {
+                    return false;
+                }
+                // Cập nhật lại giá trị coin mới vào document
+                transaction.update(userRef, "coin", newCoin);
+                return true;
+                // Trả về giá trị coin mới
+            });
+            return transactionFuture.get();
+        }
+        catch (Exception e) {
+            return false;
+        }
     }
 
     public String updatePaymentStatus(long paymentCode, long amount, String status) {
@@ -273,8 +278,7 @@ public class UserService {
     public boolean updatePaymentStatusFail(long paymentCode, String status) {
         Firestore firestore = FirestoreClient.getFirestore();
         CollectionReference transactions = firestore.collection("Transactions");
-        Query query = transactions
-                .whereEqualTo("paymentCode", paymentCode);
+        Query query = transactions.whereEqualTo("paymentCode", paymentCode);
 
         ApiFuture<QuerySnapshot> future = query.get();
         try {
@@ -305,6 +309,7 @@ public class UserService {
             e.printStackTrace();
         }
     }
+
 
     public boolean updateUserPremium(String username, long time){
         Firestore firestore = FirestoreClient.getFirestore();
@@ -394,5 +399,61 @@ public class UserService {
         Firestore firestore = FirestoreClient.getFirestore();
         firestore.collection("users").document(user.getUsername()).set(user);
     }
+    public boolean limitAccess(User user) {
+        try{
+            LocalDate today = LocalDate.now();
+            System.out.println("Hom nay"+today.toString());
+            Firestore firestore = FirestoreClient.getFirestore();
+        if (user.getTimeExpriredPremium()<System.currentTimeMillis()) {
+            DocumentSnapshot limitAccessSnapshot = firestore.collection("limitAccess").document(user.getUsername()).get().get();
+            if (limitAccessSnapshot.exists()) {
+                LimitAccess userLimit = limitAccessSnapshot.toObject(LimitAccess.class);
 
+                Instant instant = Instant.ofEpochMilli(userLimit.getTimeDo());
+                LocalDate date = instant.atZone(ZoneId.systemDefault()).toLocalDate();
+                System.out.println("Last time"+date.toString());
+
+                if (userLimit.getLimit()<=10 && date.equals(today)) {
+                    DocumentReference limitAccessRefferences = firestore.collection("limitAccess").document(user.getUsername());
+                    userLimit.setLimit(userLimit.getLimit()+1);
+                    userLimit.setTimeDo(System.currentTimeMillis());
+                    limitAccessRefferences.set(userLimit);
+                    System.out.println("Tăng thêm");
+                    return false;
+                }
+                else if (!date.equals(today))
+                {
+                    DocumentReference limitAccessRefferences = firestore.collection("limitAccess").document(user.getUsername());
+                    userLimit.setLimit(1);
+                    userLimit.setTimeDo(System.currentTimeMillis());
+                    limitAccessRefferences.set(userLimit);
+                    System.out.println("Tạo ngày mới");
+                    return false;
+                }
+                else
+                {
+                    System.out.println("Quá limit");
+                    return true;
+                }
+
+
+            }
+            else{
+                LimitAccess userLimit = new LimitAccess();
+                userLimit.setLimit(1);
+                userLimit.setTimeDo(System.currentTimeMillis());
+                firestore.collection("limitAccess").document(user.getUsername()).set(userLimit);
+                System.out.println("Tạo ngày mới");
+
+                return false;
+
+            }
+        }
+        else
+            return false;
+        }
+        catch (Exception e){
+            return true;
+        }
+    }
 }

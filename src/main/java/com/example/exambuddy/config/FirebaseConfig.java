@@ -18,11 +18,11 @@ public class FirebaseConfig {
     public void initializeFirebase() {
         try {
             FileInputStream serviceAccount =
-                    new FileInputStream("src/main/resources/swp-3bf01-firebase-adminsdk-fbsvc-b3a8d5ae4b.json");
+                    new FileInputStream("src/main/resources/swp-3bf01-firebase-adminsdk-fbsvc-3e6980ee57.json");
 
             FirebaseOptions options = FirebaseOptions.builder()
                     .setCredentials(GoogleCredentials.fromStream(serviceAccount))
-                    .setDatabaseUrl("https://<swp-3bf01>.firebaseio.com/") // Thay <your-project-id> bằng ID dự án Firebase
+                    .setDatabaseUrl("https://<swp-3bf01>.firebaseio.com/")
                     .build();
 
             if (FirebaseApp.getApps().isEmpty()) {
